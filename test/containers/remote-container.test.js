@@ -1,17 +1,20 @@
 import React from 'react';
-import {mount} from 'enzyme';
+import {shallow} from 'enzyme';
+import {QueryRenderer} from 'react-relay';
 
+import RemoteContainer from '../../lib/containers/remote-container';
 import * as reporterProxy from '../../lib/reporter-proxy';
-import {createRepositoryResult} from '../fixtures/factories/repository-result';
+import {queryBuilder} from '../builder/graphql/query';
 import Remote from '../../lib/models/remote';
+import RemoteSet from '../../lib/models/remote-set';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import BranchSet from '../../lib/models/branch-set';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import {nullOperationStateObserver} from '../../lib/models/operation-state-observer';
 import {getEndpoint} from '../../lib/models/endpoint';
-import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
-import RemoteContainer from '../../lib/containers/remote-container';
-import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
+import {InMemoryStrategy, INSUFFICIENT, UNAUTHENTICATED} from '../../lib/shared/keytar-strategy';
+
+import remoteQuery from '../../lib/containers/__generated__/remoteContainerQuery.graphql';
 
 describe('RemoteContainer', function() {
   let atomEnv, model;
@@ -27,9 +30,9 @@ describe('RemoteContainer', function() {
 
   function buildApp(overrideProps = {}) {
     const origin = new Remote('origin', 'git@github.com:atom/github.git');
+    const remotes = new RemoteSet([origin]);
     const branch = new Branch('master', nullBranch, nullBranch, true);
-    const branchSet = new BranchSet();
-    branchSet.add(branch);
+    const branches = new BranchSet([branch]);
 
     return (
       <RemoteContainer
@@ -41,8 +44,8 @@ describe('RemoteContainer', function() {
         notifications={atomEnv.notifications}
         workspace={atomEnv.workspace}
         remote={origin}
-        remotesByName={new Map()}
-        branches={branchSet}
+        remotes={remotes}
+        branches={branches}
 
         aheadCount={0}
         pushInProgress={false}
@@ -54,125 +57,101 @@ describe('RemoteContainer', function() {
     );
   }
 
-  function expectRepositoryQuery() {
-    return expectRelayQuery({
-      name: 'remoteContainerQuery',
-      variables: {
-        owner: 'atom',
-        name: 'github',
-      },
-    }, {
-      repository: createRepositoryResult({id: 'repository0'}),
-    });
-  }
-
-  function expectEmptyIssueishQuery() {
-    return expectRelayQuery({
-      name: 'issueishSearchContainerQuery',
-      variables: {
-        query: 'repo:atom/github type:pr state:open',
-        first: 20,
-      },
-    }, {
-      search: {
-        issueCount: 0,
-        nodes: [],
-      },
-    });
-  }
-
   it('renders a loading spinner while the token is being fetched', function() {
-    const wrapper = mount(buildApp());
-    assert.isTrue(wrapper.find('LoadingView').exists());
+    const wrapper = shallow(buildApp());
+    const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')(null);
+    assert.isTrue(tokenWrapper.exists('LoadingView'));
   });
 
   it('renders a loading spinner while the GraphQL query is being performed', async function() {
-    expectRepositoryQuery();
     model.setToken('https://api.github.com', '1234');
+
     sinon.spy(model, 'getToken');
     sinon.stub(model, 'getScopes').resolves(GithubLoginModel.REQUIRED_SCOPES);
 
-    const wrapper = mount(buildApp());
-    await model.getToken.returnValues[0];
+    const wrapper = shallow(buildApp());
 
-    assert.isTrue(wrapper.find('LoadingView').exists());
+    assert.strictEqual(await wrapper.find('ObserveModel').prop('fetchData')(model), '1234');
+    const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')('1234');
+
+    const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({
+      error: null,
+      props: null,
+      retry: () => {},
+    });
+
+    assert.isTrue(resultWrapper.exists('LoadingView'));
   });
 
-  it('renders a login prompt if no token is found', async function() {
-    sinon.spy(model, 'getToken');
-
-    const wrapper = mount(buildApp());
-    await model.getToken.returnValues[0];
-
-    assert.isTrue(wrapper.update().find('GithubLoginView').exists());
+  it('renders a login prompt if no token is found', function() {
+    const wrapper = shallow(buildApp());
+    const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')(UNAUTHENTICATED);
+    assert.isTrue(tokenWrapper.exists('GithubLoginView'));
   });
 
-  it('renders a login prompt if the token has insufficient OAuth scopes', async function() {
-    model.setToken('https://api.github.com', '1234');
-    sinon.spy(model, 'getToken');
-    sinon.stub(model, 'getScopes').resolves([]);
+  it('renders a login prompt if the token has insufficient OAuth scopes', function() {
+    const wrapper = shallow(buildApp());
+    const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')(INSUFFICIENT);
 
-    const wrapper = mount(buildApp());
-    await model.getToken.returnValues[0];
-
-    assert.match(wrapper.update().find('GithubLoginView').find('p').text(), /sufficient/);
+    assert.match(tokenWrapper.find('GithubLoginView').find('p').text(), /sufficient/);
   });
 
-  it('renders an error message if the GraphQL query fails', async function() {
-    const {reject} = expectRepositoryQuery();
-    const e = new Error('oh shit!');
-    e.rawStack = e.stack;
-    reject(e);
-    model.setToken('https://api.github.com', '1234');
-    sinon.stub(model, 'getScopes').resolves(GithubLoginModel.REQUIRED_SCOPES);
+  it('renders an error message if the GraphQL query fails', function() {
+    const wrapper = shallow(buildApp());
+    const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')('1234');
 
-    const wrapper = mount(buildApp());
-    await assert.async.isTrue(wrapper.update().find('QueryErrorView').exists());
+    const error = new Error('oh shit!');
+    error.rawStack = error.stack;
+    const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({error, props: null, retry: () => {}});
 
-    const qev = wrapper.find('QueryErrorView');
-    assert.strictEqual(qev.prop('error'), e);
+    assert.strictEqual(resultWrapper.find('QueryErrorView').prop('error'), error);
   });
 
   it('increments a counter on login', function() {
-    const token = '1234';
-    sinon.stub(model, 'getScopes').resolves(GithubLoginModel.REQUIRED_SCOPES);
     const incrementCounterStub = sinon.stub(reporterProxy, 'incrementCounter');
 
-    const wrapper = mount(buildApp());
-    wrapper.instance().handleLogin(token);
+    const wrapper = shallow(buildApp());
+    const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')(UNAUTHENTICATED);
+
+    tokenWrapper.find('GithubLoginView').prop('onLogin')();
     assert.isTrue(incrementCounterStub.calledOnceWith('github-login'));
   });
 
   it('increments a counter on logout', function() {
-    const token = '1234';
-    sinon.stub(model, 'getScopes').resolves(GithubLoginModel.REQUIRED_SCOPES);
+    const wrapper = shallow(buildApp());
+    const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')('1234');
 
-    const wrapper = mount(buildApp());
-    wrapper.instance().handleLogin(token);
+    const error = new Error('just show the logout button');
+    error.rawStack = error.stack;
+    const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({error, props: null, retry: () => {}});
 
     const incrementCounterStub = sinon.stub(reporterProxy, 'incrementCounter');
-    wrapper.instance().handleLogout();
+    resultWrapper.find('QueryErrorView').prop('logout')();
     assert.isTrue(incrementCounterStub.calledOnceWith('github-logout'));
   });
 
-  it('renders the controller once results have arrived', async function() {
-    const {resolve} = expectRepositoryQuery();
-    expectEmptyIssueishQuery();
-    model.setToken('https://api.github.com', '1234');
-    sinon.stub(model, 'getScopes').resolves(GithubLoginModel.REQUIRED_SCOPES);
+  it('renders the controller once results have arrived', function() {
+    const wrapper = shallow(buildApp());
+    const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')('1234');
 
-    const wrapper = mount(buildApp());
+    const props = queryBuilder(remoteQuery)
+      .repository(r => {
+        r.id('the-repo');
+        r.defaultBranchRef(dbr => {
+          dbr.prefix('refs/heads/');
+          dbr.name('devel');
+        });
+      })
+      .build();
+    const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({error: null, props, retry: () => {}});
 
-    resolve();
-
-    await assert.async.isTrue(wrapper.update().find('RemoteController').exists());
-    const controller = wrapper.find('RemoteController');
+    const controller = resultWrapper.find('RemoteController');
     assert.strictEqual(controller.prop('token'), '1234');
     assert.deepEqual(controller.prop('repository'), {
-      id: 'repository0',
+      id: 'the-repo',
       defaultBranchRef: {
         prefix: 'refs/heads/',
-        name: 'master',
+        name: 'devel',
       },
     });
   });
