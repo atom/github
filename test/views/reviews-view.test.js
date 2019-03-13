@@ -84,7 +84,12 @@ describe('ReviewsView', function() {
         t => t.addComment(c =>
           c.id(2).path('file1').position(20).bodyHTML('thanks for all the fish').author(a => a.login('dolphin').avatarUrl('pic-of-dolphin')),
         ),
-      ).build();
+      ).addReviewThread(t => {
+        t.thread(t0 => t0.isResolved(true));
+        t.addComment();
+        return t;
+      })
+      .build();
 
     const wrapper = shallow(buildApp())
       .find(AggregatedReviewsContainer)
@@ -92,9 +97,10 @@ describe('ReviewsView', function() {
 
     it('renders comment threads', function() {
       const threads = wrapper.find('details.github-Review');
-      assert.lengthOf(threads, 2);
+      assert.lengthOf(threads, 3);
       assert.lengthOf(threads.at(0).find('.github-Review-comment'), 2);
       assert.lengthOf(threads.at(1).find('.github-Review-comment'), 1);
+      assert.lengthOf(threads.at(2).find('.github-Review-comment'), 1);
     });
 
     it('each comment', function() {
@@ -106,7 +112,12 @@ describe('ReviewsView', function() {
       assert.strictEqual(comment.find('GithubDotcomMarkdown').prop('html'), 'i have opinions.');
     });
 
-    it('renders progress bar');
+    it('renders progress bar', function() {
+      assert.isTrue(wrapper.find('.github-Reviews-progress').exists());
+      assert.strictEqual(wrapper.find('.github-Reviews-count').text(), 'Resolved 1 of 3');
+      assert.include(wrapper.find('progress.github-Reviews-progessBar').props(), {value: 1, max: 3});
+    });
+
     it('renders a PatchPreviewView per comment thread');
 
     describe('navigation buttons', function() {
