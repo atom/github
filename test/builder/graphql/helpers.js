@@ -1,12 +1,18 @@
 class Spec {
-  constructor(node) {
-    this.node = node;
+  constructor(nodes) {
+    this.nodes = nodes;
   }
 
   getRequestedFields(kind) {
-    return this.node.selections
-      .filter(each => each.kind === kind)
-      .map(each => each.alias || each.name);
+    const fieldNames = new Set();
+    for (const node of this.nodes) {
+      for (const selection of node.selections) {
+        if (selection.kind === kind) {
+          fieldNames.add(selection.alias || selection.name);
+        }
+      }
+    }
+    return Array.from(fieldNames);
   }
 
   getRequestedScalarFields() {
@@ -17,13 +23,18 @@ class Spec {
     return this.getRequestedFields('LinkedField');
   }
 
-  getLinkedNode(name) {
-    const subNode = this.node.selections.find(each => each.alias === name) ||
-      this.node.selections.find(each => each.name === name);
-    if (!subNode) {
+  getLinkedNodes(name) {
+    const subNodes = [];
+    for (const node of this.nodes) {
+      const match = node.selections.find(selection => selection.alias === name || selection.name === name);
+      if (match) {
+        subNodes.push(match);
+      }
+    }
+    if (subNodes.length === 0) {
       throw new Error(`Unable to find linked field ${name}`);
     }
-    return subNode;
+    return subNodes;
   }
 }
 
@@ -47,8 +58,8 @@ function makeNullableFunctionName(fieldName) {
 
 // Superclass for Builders that are expected to adhere to the fields requested by a GraphQL fragment.
 class SpecBuilder {
-  constructor(node) {
-    this.spec = new Spec(node);
+  constructor(nodes) {
+    this.spec = new Spec(nodes);
 
     this.knownScalarFieldNames = new Set(this.spec.getRequestedScalarFields());
     this.knownLinkedFieldNames = new Set(this.spec.getRequestedLinkedFields());
@@ -91,7 +102,7 @@ class SpecBuilder {
       throw new Error(`Unrecognized field name ${fieldName} in ${this.builderName}`);
     }
 
-    const builder = new Builder(this.spec.getLinkedNode(fieldName));
+    const builder = new Builder(this.spec.getLinkedNodes(fieldName));
     block(builder);
     this.fields[fieldName] = builder.build();
 
@@ -109,7 +120,7 @@ class SpecBuilder {
       this.fields[fieldName] = [];
     }
 
-    const builder = new Builder(this.spec.getLinkedNode(fieldName));
+    const builder = new Builder(this.spec.getLinkedNodes(fieldName));
     block(builder);
     this.fields[fieldName].push(builder.build());
 

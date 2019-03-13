@@ -46,10 +46,10 @@ const PullRequestBuilder = createSpecBuilderClass('PullRequestBuilder', {
   reviewThreads: {linked: createConnectionBuilderClass('ReviewThreadConnection', ReviewThreadBuilder)},
 });
 
-export function reviewThreadBuilder(node) {
-  return new ReviewThreadBuilder(node);
+export function reviewThreadBuilder(...nodes) {
+  return new ReviewThreadBuilder(nodes);
 }
 
-export function pullRequestBuilder(node) {
-  return new PullRequestBuilder(node);
+export function pullRequestBuilder(...nodes) {
+  return new PullRequestBuilder(nodes);
 }

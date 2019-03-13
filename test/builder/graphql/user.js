@@ -5,6 +5,6 @@ export const UserBuilder = createSpecBuilderClass('UserBuilder', {
   avatarUrl: {default: 'https://avatars3.githubusercontent.com/u/17565?s=32&v=4'},
 });
 
-export function userBuilder(node) {
-  return new UserBuilder(node);
+export function userBuilder(...nodes) {
+  return new UserBuilder(nodes);
 }

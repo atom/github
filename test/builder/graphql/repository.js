@@ -11,6 +11,6 @@ export const RepositoryBuilder = createSpecBuilderClass('RepositoryBuilder', {
   owner: {linked: OwnerBuilder},
 });
 
-export function repositoryBuilder(node) {
-  return new RepositoryBuilder(node);
+export function repositoryBuilder(...nodes) {
+  return new RepositoryBuilder(nodes);
 }
