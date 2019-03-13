@@ -22,6 +22,7 @@ describe('ReviewsView', function() {
       checkoutOp: {
         isEnabled: () => true,
       },
+      contextLines: 4,
       ...override,
     };
 
@@ -74,7 +75,7 @@ describe('ReviewsView', function() {
       .addReviewSummary(r => r.id(0))
       .addReviewThread(t => {
         t.addComment(c =>
-          c.id(0).path('file0').position(10).bodyHTML('i have opinions.').author(a => a.login('user0').avatarUrl('user0.jpg')),
+          c.id(0).path('dir/file0').position(10).bodyHTML('i have opinions.').author(a => a.login('user0').avatarUrl('user0.jpg')),
         );
         t.addComment(c =>
           c.id(1).path('file0').position(10).bodyHTML('i disagree.').author(a => a.login('user1').avatarUrl('user1.jpg')),
@@ -99,7 +100,7 @@ describe('ReviewsView', function() {
         .renderProp('children')({errors, summaries, commentThreads});
     });
 
-    it('renders comment threads', function() {
+    it('renders threads with comments', function() {
       const threads = wrapper.find('details.github-Review');
       assert.lengthOf(threads, 3);
       assert.lengthOf(threads.at(0).find('.github-Review-comment'), 2);
@@ -107,7 +108,32 @@ describe('ReviewsView', function() {
       assert.lengthOf(threads.at(2).find('.github-Review-comment'), 1);
     });
 
-    it('each comment', function() {
+    describe('each thread', function() {
+      it('displays correct data', function() {
+        const thread = wrapper.find('details.github-Review').at(0);
+        assert.strictEqual(thread.find('.github-Review-path').text(), 'dir');
+        assert.strictEqual(thread.find('.github-Review-file').text(), '/file0');
+        // TODO: FIX ME
+        assert.strictEqual(thread.find('.github-Review-lineNr').text(), '10');
+      });
+
+      it('renders a PatchPreviewView per comment thread', function() {
+        assert.isTrue(wrapper.find('details.github-Review').everyWhere(thread => thread.find('PatchPreviewView').length === 1));
+        assert.include(wrapper.find('PatchPreviewView').at(0).props(), {
+          fileName: 'dir/file0',
+          diffRow: 10,
+          maxRowCount: 4,
+        });
+      });
+
+      describe('has navigation buttons', function() {
+        it('opens PR diff view and navigate to comment when "Open Diff" is clicked');
+        it('opens file on disk and navigate to the commented line when "Jump To File" is clicked');
+        it('"Jump To File" button is disabled with tooltip when PR is not checked out');
+      });
+    })
+
+    it('each comment displays correct data', function() {
       const comment = wrapper.find('.github-Review-comment').at(0);
       assert.strictEqual(comment.find('.github-Review-avatar').prop('src'), 'user0.jpg');
       assert.strictEqual(comment.find('.github-Review-avatar').prop('alt'), 'user0');
@@ -122,13 +148,6 @@ describe('ReviewsView', function() {
       assert.include(wrapper.find('progress.github-Reviews-progessBar').props(), {value: 1, max: 3});
     });
 
-    it('renders a PatchPreviewView per comment thread');
-
-    describe('navigation buttons', function() {
-      it('opens PR diff view and navigate to comment when "Open Diff" is clicked');
-      it('opens file on disk and navigate to the commented line when "Jump To File" is clicked');
-      it('"Jump To File" button is disabled with tooltip when PR is not checked out');
-    });
   });
 
 });
