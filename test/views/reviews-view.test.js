@@ -1,9 +1,12 @@
 import React from 'react';
 import {shallow} from 'enzyme';
+import sinon from 'sinon';
 
 import ReviewsView from '../../lib/views/reviews-view';
 import {aggregatedReviewsBuilder} from '../builder/graphql/aggregated-reviews-builder';
 import AggregatedReviewsContainer from '../../lib/containers/aggregated-reviews-container';
+import {checkoutStates} from '../../lib/controllers/pr-checkout-controller';
+import EnableableOperation from '../../lib/models/enableable-operation';
 
 describe('ReviewsView', function() {
   let atomEnv;
@@ -19,9 +22,7 @@ describe('ReviewsView', function() {
   function buildApp(override = {}) {
     const props = {
       repository: {pullRequest: {}},
-      checkoutOp: {
-        isEnabled: () => true,
-      },
+      checkoutOp: new EnableableOperation(() => {}).disable(checkoutStates.CURRENT),
       contextLines: 4,
       ...override,
     };
@@ -126,12 +127,59 @@ describe('ReviewsView', function() {
         });
       });
 
-      describe('has navigation buttons', function() {
-        it('opens PR diff view and navigate to comment when "Open Diff" is clicked');
-        it('opens file on disk and navigate to the commented line when "Jump To File" is clicked');
-        it('"Jump To File" button is disabled with tooltip when PR is not checked out');
+      describe('navigation buttons', function() {
+
+        it('a pair of "Open Diff" and "Jump To File" buttons per thread', function() {
+          assert.isTrue(wrapper.find('details.github-Review').everyWhere(thread =>
+            thread.find('.github-Review-navButton.icon-code').length === 1 && thread.find('.github-Review-navButton.icon-diff').length === 1,
+          ));
+        });
+
+        describe('when PR is checked out', function() {
+
+          const openFile = sinon.spy();
+          const openDiff = sinon.spy();
+
+          beforeEach(function() {
+            wrapper = shallow(buildApp({openFile, openDiff}))
+              .find(AggregatedReviewsContainer)
+              .renderProp('children')({errors, summaries, commentThreads});
+          });
+
+          it('calls openDiff with correct params when "Open Diff" is clicked', function() {
+            wrapper.find('details.github-Review').at(0).find('.icon-diff').simulate('click', {currentTarget: {dataset: {path: 'dir/file0', line: 10}}});
+            assert(openDiff.calledWith('dir/file0', 10));
+          });
+
+          it('calls openFile with correct params when when "Jump To File" is clicked', function() {
+            wrapper.find('details.github-Review').at(0).find('.icon-code').simulate('click', {currentTarget: {dataset: {path: 'dir/file0', line: 10}}});
+            assert(openFile.calledWith('dir/file0', 9));
+          });
+        });
+
+        describe('when PR is not checked out', function() {
+
+          const openFile = sinon.spy();
+
+          beforeEach(function() {
+            const checkoutOp = {isEnabled: () => true};
+            wrapper = shallow(buildApp({openFile, checkoutOp}))
+              .find(AggregatedReviewsContainer)
+              .renderProp('children')({errors, summaries, commentThreads});
+          });
+
+          it('"Jump To File" button is disabled with tooltip when PR is not checked out');
+
+          it('does not calls openFile when when "Jump To File" is clicked', function() {
+            wrapper.find('details.github-Review').at(0).find('.icon-code').simulate('click', {currentTarget: {dataset: {path: 'dir/file0', line: 10}}});
+            assert.isFalse(openFile.called);
+          });
+
+        });
+
       });
-    })
+
+    });
 
     it('each comment displays correct data', function() {
       const comment = wrapper.find('.github-Review-comment').at(0);
