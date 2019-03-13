@@ -9,3 +9,9 @@ export default class IDSequence {
     return id;
   }
 }
+
+const seq = new IDSequence();
+
+export function nextID() {
+  return seq.nextID().toString();
+}
