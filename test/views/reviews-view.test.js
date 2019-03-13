@@ -1,8 +1,8 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import {pullRequestBuilder} from '../builder/pr';
 import ReviewsView from '../../lib/views/reviews-view';
+import {aggregatedReviewsBuilder} from '../builder/graphql/aggregated-reviews-builder';
 
 describe('ReviewsView', function() {
   let atomEnv;
@@ -14,19 +14,6 @@ describe('ReviewsView', function() {
   afterEach(function() {
     atomEnv.destroy();
   });
-
-  // TODO: probably need to either refactor or fix this after the pullRequestBuilder implementation has settled
-  function aggregatePullRequest(pullRequest, override = {}) {
-    const reviewThreads = pullRequest.reviewThreads.edges.map(e => e.node);
-    const summaries = pullRequest.reviews.edges.map(e => e.node);
-    const commentThreads = reviewThreads.map(thread => {
-      return {
-        thread,
-        comments: thread.comments.edges.map(e => e.node),
-      };
-    });
-    return {summaries, commentThreads, errors: [], loading: false, ...override};
-  }
 
   function buildApp(override = {}) {
     const props = {
@@ -48,8 +35,7 @@ describe('ReviewsView', function() {
   it('registers atom commands');
 
   it('renders empty state if there is no review', function() {
-    const pr = pullRequestBuilder().build();
-    const {errors, summaries, commentThreads} = aggregatePullRequest(pr);
+    const {errors, summaries, commentThreads} = aggregatedReviewsBuilder().build();
     const wrapper = shallow(buildApp())
       .find('ForwardRef(Relay(BareAggregatedReviewsContainer))')
       .renderProp('children')({errors, summaries, commentThreads});
@@ -59,12 +45,12 @@ describe('ReviewsView', function() {
   });
 
   it('renders summary and comment sections', function() {
-    const pr = pullRequestBuilder()
-      .addReview(r => r.id(0))
+    const {errors, summaries, commentThreads} = aggregatedReviewsBuilder()
+      .addReviewSummary(r => r.id(0))
       .addReviewThread(t => t.addComment(c => c.id(1)))
       .addReviewThread(t => t.addComment(c => c.id(2)))
       .build();
-    const {errors, summaries, commentThreads} = aggregatePullRequest(pr);
+
     const wrapper = shallow(buildApp())
       .find('ForwardRef(Relay(BareAggregatedReviewsContainer))')
       .renderProp('children')({errors, summaries, commentThreads});
