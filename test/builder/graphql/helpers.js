@@ -109,6 +109,7 @@ class SpecBuilder {
     return this;
   }
 
+  // Construct a new SpecBuilder, configured to be consistent with the fields selected in "nodes".
   constructor(nodes) {
     if (!nodes || nodes.length === 0) {
       /* eslint-disable-next-line no-console */
@@ -131,6 +132,8 @@ class SpecBuilder {
     }
   }
 
+  // Directly populate the builder's value for a scalar (Int, String, ID, ...) field. This will fail if the fragment
+  // we're configured with doesn't select the field, or if the field is a linked field instead.
   singularScalarFieldSetter(fieldName, value) {
     if (!this.knownScalarFieldNames.has(fieldName)) {
       /* eslint-disable-next-line no-console */
@@ -146,6 +149,8 @@ class SpecBuilder {
     return this;
   }
 
+  // Append a scalar value to an Array field. This will fail if the fragment we're configured with doesn't select the
+  // field, or if the field is a linked field instead.
   pluralScalarFieldAdder(fieldName, value) {
     if (!this.knownScalarFieldNames.has(fieldName)) {
       /* eslint-disable-next-line no-console */
@@ -166,6 +171,9 @@ class SpecBuilder {
     return this;
   }
 
+  // Build a linked object with a different Builder using "block", then set the field's value based on the builder's
+  // output. This will fail if the field is not selected by the current fragment, or if the field is actually a
+  // scalar field.
   singularLinkedFieldSetter(fieldName, Builder, block) {
     if (!this.knownLinkedFieldNames.has(fieldName)) {
       /* eslint-disable-next-line no-console */
@@ -186,6 +194,8 @@ class SpecBuilder {
     return this;
   }
 
+  // Construct a linked object with another Builder using "block", then append the built object to an Array. This will
+  // fail if the named field is not selected by the current fragment, or if it's actually a scalar field.
   pluralLinkedFieldAdder(fieldName, Builder, block) {
     if (!this.knownLinkedFieldNames.has(fieldName)) {
       /* eslint-disable-next-line no-console */
@@ -210,6 +220,8 @@ class SpecBuilder {
     return this;
   }
 
+  // Explicitly set a field to `null` and prevent it from being populated with a default value. This will fail if the
+  // named field is not selected by the current fragment.
   nullField(fieldName) {
     if (!this.knownScalarFieldNames.has(fieldName) && !this.knownLinkedFieldNames.has(fieldName)) {
       /* eslint-disable-next-line no-console */
@@ -225,6 +237,9 @@ class SpecBuilder {
     return this;
   }
 
+  // Finalize any fields selected by the current query that have not been explicitly populated with their default
+  // values. Fail if any unpopulated fields have no specified default value or function. Then, return the selected
+  // fields as a plain JavaScript object.
   build() {
     const fieldNames = Object.keys(this.fields);
 
@@ -268,13 +283,19 @@ class SpecBuilder {
   }
 }
 
+// Resolve circular references by deferring the loading of a linked Builder class. Create these instances with the
+// exported "defer" function.
 class DeferredSpecBuilder {
+  // Construct a deferred builder that will load a named, exported builder class from a module path. Note that, if
+  // modulePath is relative, it should be relative to *this* file.
   constructor(modulePath, className) {
     this.modulePath = modulePath;
     this.className = className;
     this.Class = undefined;
   }
 
+  // Lazily load the requested builder. Fail if the named module doesn't exist, or if it does not export a symbol
+  // with the requested class name.
   resolve() {
     if (this.Class === undefined) {
       this.Class = require(this.modulePath)[this.className];
@@ -286,9 +307,32 @@ class DeferredSpecBuilder {
   }
 }
 
+// Dynamically construct a Builder class that includes *only* fields that are selected by a GraphQL fragment. Adding
+// fields to a fragment will cause them to be automatically included when that a Builder instance is created with
+// that fragment; when a field is removed from the fragment, attempting to populate it with a setter method at
+// build time will fail with an error.
+//
+// "name" is used in diagnostic messages, to make it easier to track down inconsistencies when they arise.
+//
+// "fieldDescriptions" is an object detailing the *superset* of the fields used by all fragments on this type. Each
+// key is a field name, and its value is an object that controls which methods that are generated on the builder:
+//
+// * "default" may be a constant value or a function. It's used to populate this field if it has not been explicitly
+//   set before build() is called.
+// * "linked" names another SpecBuilder class used to build a linked compound object.
+// * "plural" specifies that this property is an Array. It implicitly defaults to [] and may be constructed
+//   incrementally with an addFieldName() method.
+// * "nullable" generates a `nullFieldName()` method that may be used to intentionally omit a field that would normally
+//   have a default value.
+// * "custom" installs its value as a method on the generated Builder with the provided field name.
+//
+// See the README in this directory for examples.
 export function createSpecBuilderClass(name, fieldDescriptions) {
   class Builder extends SpecBuilder {}
   Builder.prototype.builderName = name;
+
+  // These functions are used to install functions on the Builder class that implement specific access patterns. They're
+  // implemented here as inner functions to avoid the use of function literals within a loop.
 
   function installScalarSetter(fieldName) {
     Builder.prototype[fieldName] = function(_value) {
@@ -341,23 +385,33 @@ export function createSpecBuilderClass(name, fieldDescriptions) {
     });
   }
 
+  // Iterate through field descriptions and install requested methods on the Builder class.
+
   for (const fieldName in fieldDescriptions) {
     const description = fieldDescriptions[fieldName];
 
     if (description.custom !== undefined) {
+      // Custom method. This is a backdoor to let you add random stuff to the final Builder.
       Builder.prototype[fieldName] = description.custom;
       continue;
     }
 
     const singularFieldName = description.singularName || fieldName;
 
+    // Object.keys() is used to detect the "linked" key here because, in the relatively common case of a circular
+    // import dependency, the description will be `{linked: undefined}`, and I want to provide a better error message
+    // when that happens.
     if (!Object.keys(description).includes('linked')) {
+      // Scalar field.
+
       if (description.plural) {
         installScalarAdder(fieldName, singularFieldName);
       } else {
         installScalarSetter(fieldName);
       }
     } else {
+      // Linked field.
+
       if (description.linked === undefined) {
         /* eslint-disable-next-line no-console */
         console.error(
@@ -376,6 +430,10 @@ export function createSpecBuilderClass(name, fieldDescriptions) {
       }
     }
 
+    // Install the appropriate default getter method. Explicitly specified defaults take precedence, then plural
+    // fields default to [], and linked fields default to calling the linked builder with an empty block to get
+    // the sub-builder's defaults.
+
     if (description.default !== undefined) {
       installDefaultGetter(fieldName, description.default);
     } else if (description.plural) {
@@ -383,6 +441,8 @@ export function createSpecBuilderClass(name, fieldDescriptions) {
     } else if (description.linked) {
       installDefaultLinkedGetter(fieldName);
     }
+
+    // Install the "explicitly null me out" method.
 
     if (description.nullable) {
       installNullableFunction(fieldName);
@@ -392,6 +452,8 @@ export function createSpecBuilderClass(name, fieldDescriptions) {
   return Builder;
 }
 
+// Resolve circular dependencies among SpecBuilder classes by replacing one of the imports with a defer() call. The
+// deferred Builder it returns will lazily require and locate the linked builder at first use.
 export function defer(modulePath, className) {
   return new DeferredSpecBuilder(modulePath, className);
 }
