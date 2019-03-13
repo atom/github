@@ -160,25 +160,30 @@ describe('ReviewsView', function() {
         describe('when PR is not checked out', function() {
 
           const openFile = sinon.spy();
+          const openDiff = sinon.spy();
 
           beforeEach(function() {
             const checkoutOp = {isEnabled: () => true};
-            wrapper = shallow(buildApp({openFile, checkoutOp}))
+            wrapper = shallow(buildApp({openFile, openDiff, checkoutOp}))
               .find(AggregatedReviewsContainer)
               .renderProp('children')({errors, summaries, commentThreads});
           });
 
-          it('"Jump To File" button is disabled with tooltip when PR is not checked out');
+          it('"Jump To File" button is disabled', function() {
+            assert.isTrue(wrapper.find('button.icon-code').everyWhere(button => button.prop('disabled') === true));
+          });
 
           it('does not calls openFile when when "Jump To File" is clicked', function() {
             wrapper.find('details.github-Review').at(0).find('.icon-code').simulate('click', {currentTarget: {dataset: {path: 'dir/file0', line: 10}}});
             assert.isFalse(openFile.called);
           });
 
+          it('"Open Diff" still works', function() {
+            wrapper.find('details.github-Review').at(0).find('.icon-diff').simulate('click', {currentTarget: {dataset: {path: 'dir/file0', line: 10}}});
+            assert(openDiff.calledWith('dir/file0', 10));
+          });
         });
-
       });
-
     });
 
     it('each comment displays correct data', function() {
