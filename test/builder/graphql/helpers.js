@@ -5,7 +5,29 @@
 class Spec {
   // Wrap an Array of "node" objects imported from *.graphql.js files.
   constructor(nodes) {
-    this.nodes = nodes;
+    const gettersByKind = {
+      Fragment: node => node,
+      LinkedField: node => node,
+      Request: node => node.fragment,
+    };
+
+    this.nodes = nodes.map(node => {
+      const fn = gettersByKind[node.kind];
+      if (fn === undefined) {
+        /* eslint-disable-next-line */
+        console.error(
+          `Unrecognized node kind "${node.kind}".\n` +
+          "I couldn't figure out what to do with a parsed GraphQL module.\n" +
+          "Either you're passing something unexpected into an xyzBuilder() method,\n" +
+          'or the Relay compiler is generating something that our builder factory\n' +
+          "doesn't yet know how to handle.",
+          node,
+        );
+        throw new Error(`Unrecognized node kind ${node.kind}`);
+      } else {
+        return fn(node);
+      }
+    });
   }
 
   // Query all of our query specs for the names of selected fields that match a certain "kind". Field kinds include
