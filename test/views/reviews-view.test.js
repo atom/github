@@ -91,9 +91,13 @@ describe('ReviewsView', function() {
       })
       .build();
 
-    const wrapper = shallow(buildApp())
-      .find(AggregatedReviewsContainer)
-      .renderProp('children')({errors, summaries, commentThreads});
+    let wrapper;
+
+    beforeEach(function() {
+      wrapper = shallow(buildApp())
+        .find(AggregatedReviewsContainer)
+        .renderProp('children')({errors, summaries, commentThreads});
+    });
 
     it('renders comment threads', function() {
       const threads = wrapper.find('details.github-Review');
