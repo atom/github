@@ -103,6 +103,12 @@ function makeNullableFunctionName(fieldName) {
 
 // Superclass for Builders that are expected to adhere to the fields requested by a GraphQL fragment.
 class SpecBuilder {
+
+  // Compatibility with deferred-resolution builders.
+  static resolve() {
+    return this;
+  }
+
   constructor(nodes) {
     if (!nodes || nodes.length === 0) {
       /* eslint-disable-next-line no-console */
@@ -172,7 +178,8 @@ class SpecBuilder {
       throw new Error(`Unrecognized field name ${fieldName} in ${this.builderName}`);
     }
 
-    const builder = new Builder(this.spec.getLinkedNodes(fieldName));
+    const Resolved = Builder.resolve();
+    const builder = new Resolved(this.spec.getLinkedNodes(fieldName));
     block(builder);
     this.fields[fieldName] = builder.build();
 
@@ -195,7 +202,8 @@ class SpecBuilder {
       this.fields[fieldName] = [];
     }
 
-    const builder = new Builder(this.spec.getLinkedNodes(fieldName));
+    const Resolved = Builder.resolve();
+    const builder = new Resolved(this.spec.getLinkedNodes(fieldName));
     block(builder);
     this.fields[fieldName].push(builder.build());
 
@@ -257,6 +265,21 @@ class SpecBuilder {
     }
 
     return this.fields;
+  }
+}
+
+class DeferredSpecBuilder {
+  constructor(modulePath, className) {
+    this.modulePath = modulePath;
+    this.className = className;
+    this.Class = undefined;
+  }
+
+  resolve() {
+    if (this.Class === undefined) {
+      this.Class = require(this.modulePath)[this.className];
+    }
+    return this.Class;
   }
 }
 
@@ -325,13 +348,24 @@ export function createSpecBuilderClass(name, fieldDescriptions) {
 
     const singularFieldName = description.singularName || fieldName;
 
-    if (description.linked === undefined) {
+    if (!Object.keys(description).includes('linked')) {
       if (description.plural) {
         installScalarAdder(fieldName, singularFieldName);
       } else {
         installScalarSetter(fieldName);
       }
     } else {
+      if (description.linked === undefined) {
+        /* eslint-disable-next-line no-console */
+        console.error(
+          `Linked field ${fieldName} requested without a builder class in ${name}.\n` +
+          'This can happen if you have a circular dependency between builders in different ' +
+          'modules. Use defer() to defer loading of one builder to break it.',
+          fieldDescriptions,
+        );
+        throw new Error(`Linked field ${fieldName} requested without a builder class in ${name}`);
+      }
+
       if (description.plural) {
         installLinkedAdder(fieldName, singularFieldName, description.linked);
       } else {
@@ -353,4 +387,8 @@ export function createSpecBuilderClass(name, fieldDescriptions) {
   }
 
   return Builder;
+}
+
+export function defer(modulePath, className) {
+  return new DeferredSpecBuilder(modulePath, className);
 }
