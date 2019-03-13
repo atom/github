@@ -104,7 +104,7 @@ function makeNullableFunctionName(fieldName) {
 // Superclass for Builders that are expected to adhere to the fields requested by a GraphQL fragment.
 class SpecBuilder {
   constructor(nodes) {
-    if (nodes.length === 0) {
+    if (!nodes || nodes.length === 0) {
       /* eslint-disable-next-line no-console */
       console.error(
         `No parsed queries given to ${this.builderName}.\n` +
