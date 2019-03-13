@@ -82,6 +82,16 @@ function makeNullableFunctionName(fieldName) {
 // Superclass for Builders that are expected to adhere to the fields requested by a GraphQL fragment.
 class SpecBuilder {
   constructor(nodes) {
+    if (nodes.length === 0) {
+      /* eslint-disable-next-line no-console */
+      console.error(
+        `No parsed queries given to ${this.builderName}.\n` +
+        "Make sure you're passing a compiled Relay query (__generated__/*.graphql.js module)" +
+        ' to the builder construction function.',
+      );
+      throw new Error(`No parsed queries given to ${this.builderName}`);
+    }
+
     this.spec = new Spec(nodes);
 
     this.knownScalarFieldNames = new Set(this.spec.getRequestedScalarFields());
@@ -96,7 +106,12 @@ class SpecBuilder {
   singularScalarFieldSetter(fieldName, value) {
     if (!this.knownScalarFieldNames.has(fieldName)) {
       /* eslint-disable-next-line no-console */
-      console.error('Try re-running "npm run relay" to regenerate the compiled GraphQL modules.');
+      console.error(
+        `Unrecognized scalar field name ${fieldName} in ${this.builderName}\n` +
+        `"${fieldName}" may not be included in the GraphQL fragments you passed to this builder.\n` +
+        'It may also be present, but as a linked field, in which case the builder definitions should be updated.\n' +
+        'Otherwise, try re-running "npm run relay" to regenerate the compiled GraphQL modules.',
+      );
       throw new Error(`Unrecognized field name ${fieldName} in ${this.builderName}`);
     }
     this.fields[fieldName] = value;
@@ -106,7 +121,12 @@ class SpecBuilder {
   pluralScalarFieldAdder(fieldName, value) {
     if (!this.knownScalarFieldNames.has(fieldName)) {
       /* eslint-disable-next-line no-console */
-      console.error('Try re-running "npm run relay" to regenerate the compiled GraphQL modules.');
+      console.error(
+        `Unrecognized scalar field name ${fieldName} in ${this.builderName}\n` +
+        `"${fieldName}" may not be included in the GraphQL fragments you passed to this builder.\n` +
+        'It may also be present, but as a linked field, in which case the builder definitions should be updated.\n' +
+        'Otherwise, try re-running "npm run relay" to regenerate the compiled GraphQL modules.',
+      );
       throw new Error(`Unrecognized field name ${fieldName} in ${this.builderName}`);
     }
 
@@ -121,7 +141,12 @@ class SpecBuilder {
   singularLinkedFieldSetter(fieldName, Builder, block) {
     if (!this.knownLinkedFieldNames.has(fieldName)) {
       /* eslint-disable-next-line no-console */
-      console.error('Try re-running "npm run relay" to regenerate the compiled GraphQL modules.');
+      console.error(
+        `Unrecognized linked field name ${fieldName} in ${this.builderName}.\n` +
+        `"${fieldName}" may not be included in the GraphQL fragments you passed to this builder.\n` +
+        'It may also be present, but as a scalar field, in which case the builder definitions should be updated.\n' +
+        'Otherwise, try re-running "npm run relay" to regenerate the compiled GraphQL modules.',
+      );
       throw new Error(`Unrecognized field name ${fieldName} in ${this.builderName}`);
     }
 
@@ -135,7 +160,12 @@ class SpecBuilder {
   pluralLinkedFieldAdder(fieldName, Builder, block) {
     if (!this.knownLinkedFieldNames.has(fieldName)) {
       /* eslint-disable-next-line no-console */
-      console.error('Try re-running "npm run relay" to regenerate the compiled GraphQL modules.');
+      console.error(
+        `Unrecognized linked field name ${fieldName} in ${this.builderName}.\n` +
+        `"${fieldName}" may not be included in the GraphQL fragments you passed to this builder.\n` +
+        'It may also be present, but as a scalar field, in which case the builder definitions should be updated.\n' +
+        'Otherwise, try re-running "npm run relay" to regenerate the compiled GraphQL modules.',
+      );
       throw new Error(`Unrecognized field name ${fieldName} in ${this.builderName}`);
     }
 
@@ -153,7 +183,11 @@ class SpecBuilder {
   nullField(fieldName) {
     if (!this.knownScalarFieldNames.has(fieldName) && !this.knownLinkedFieldNames.has(fieldName)) {
       /* eslint-disable-next-line no-console */
-      console.error('Try re-running "npm run relay" to regenerate the compiled GraphQL modules.');
+      console.error(
+        `Unrecognized field name ${fieldName} in ${this.builderName}.\n` +
+        `"${fieldName}" may not be included in the GraphQL fragments you provided to this builder.\n` +
+        'Try re-running "npm run relay" to regenerate the compiled GraphQL modules.',
+      );
       throw new Error(`Unrecognized field name ${fieldName} in ${this.builderName}`);
     }
 
@@ -189,7 +223,10 @@ class SpecBuilder {
 
     if (missingFieldNames.length > 0) {
       /* eslint-disable-next-line no-console */
-      console.error('Either give these fields a "default" in the builder or call their setters.');
+      console.error(
+        `Missing required fields ${missingFieldNames.join(', ')} in builder ${this.builderName}.\n` +
+        'Either give these fields a "default" in the builder or call their setters explicitly before calling "build()".',
+      );
       throw new Error(`Missing required fields ${missingFieldNames.join(', ')} in builder ${this.builderName}`);
     }
 
