@@ -14,6 +14,15 @@ export function createConnectionBuilderClass(name, NodeBuilder) {
   return createSpecBuilderClass(name, {
     pageInfo: {linked: PageInfoBuilder},
     edges: {linked: EdgeBuilder, plural: true, singularName: 'edge'},
-    totalCount: {default: f => f.edges.length},
+    nodes: {linked: NodeBuilder, plural: true, singularName: 'node'},
+    totalCount: {default: f => {
+      if (f.edges) {
+        return f.edges.length;
+      }
+      if (f.nodes) {
+        return f.nodes.length;
+      }
+      return 0;
+    }},
   });
 }
