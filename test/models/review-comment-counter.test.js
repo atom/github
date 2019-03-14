@@ -16,12 +16,20 @@ describe('ReviewCommentCounter', function() {
     assert.strictEqual(counter.getResolvedCount(), 0);
   });
 
-  it('increments total but not resolve when presented with an unresolved comment thread', function() {
+  it('increments total but not resolved when presented with unresolved comment threads', function() {
     const cb = sinon.spy();
     sub = counter.onDidChange(cb);
+
     counter.countAll([{isResolved: false}, {isResolved: false}]);
 
     assert.strictEqual(counter.getTotalCount(), 2);
+    assert.strictEqual(counter.getResolvedCount(), 0);
+    assert.isTrue(cb.called);
+
+    cb.resetHistory();
+    counter.countAll([{isResolved: false}]);
+
+    assert.strictEqual(counter.getTotalCount(), 1);
     assert.strictEqual(counter.getResolvedCount(), 0);
     assert.isTrue(cb.called);
   });
@@ -34,12 +42,31 @@ describe('ReviewCommentCounter', function() {
     assert.strictEqual(counter.getTotalCount(), 3);
     assert.strictEqual(counter.getResolvedCount(), 3);
     assert.isTrue(cb.called);
+
+    cb.resetHistory();
+    counter.countAll([{isResolved: true}, {isResolved: true}]);
+
+    assert.strictEqual(counter.getTotalCount(), 2);
+    assert.strictEqual(counter.getResolvedCount(), 2);
+    assert.isTrue(cb.called);
   });
 
-  it('does not fire the change listener if no threads were found', function() {
+  it('does not fire the change listener if the total and resolved counts did not change', function() {
     const cb = sinon.spy();
     sub = counter.onDidChange(cb);
     counter.countAll([]);
+    assert.isFalse(cb.called);
+
+    counter.countAll([{isResolved: true}, {isResolved: false}]);
+    assert.strictEqual(counter.getTotalCount(), 2);
+    assert.strictEqual(counter.getResolvedCount(), 1);
+    assert.isTrue(cb.called);
+
+    cb.resetHistory();
+
+    counter.countAll([{isResolved: false}, {isResolved: true}]);
+    assert.strictEqual(counter.getTotalCount(), 2);
+    assert.strictEqual(counter.getResolvedCount(), 1);
     assert.isFalse(cb.called);
   });
 });
