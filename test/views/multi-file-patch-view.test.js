@@ -7,9 +7,12 @@ import {cloneRepository, buildRepository} from '../helpers';
 import {EXPANDED, COLLAPSED, TOO_LARGE} from '../../lib/models/patch/patch';
 import MultiFilePatchView from '../../lib/views/multi-file-patch-view';
 import {multiFilePatchBuilder} from '../builder/patch';
+import {aggregatedReviewsBuilder} from '../builder/graphql/aggregated-reviews-builder';
 import {nullFile} from '../../lib/models/patch/file';
 import FilePatch from '../../lib/models/patch/file-patch';
 import RefHolder from '../../lib/models/ref-holder';
+import AggregatedReviewsContainer from '../../lib/containers/aggregated-reviews-container';
+import PullRequestReviewCommentThreadView from '../../lib/views/pr-review-comment-thread-view';
 import CommitPreviewItem from '../../lib/items/commit-preview-item';
 import ChangedFileItem from '../../lib/items/changed-file-item';
 import IssueishDetailItem from '../../lib/items/issueish-detail-item';
@@ -64,6 +67,7 @@ describe('MultiFilePatchView', function() {
       tooltips: atomEnv.tooltips,
 
       selectedRowsChanged: () => {},
+      switchToIssueish: () => {},
 
       diveIntoMirrorPatch: () => {},
       surface: () => {},
@@ -266,9 +270,63 @@ describe('MultiFilePatchView', function() {
     assert.isTrue(multiFilePatch.expandFilePatch.calledWith(fp0));
   });
 
-  it('renders a PullRequestsReviewsContainer if itemType is IssueishDetailItem', function() {
+  it('fetches review comment threads if itemType is IssueishDetailItem', function() {
     const wrapper = shallow(buildApp({itemType: IssueishDetailItem}));
-    assert.lengthOf(wrapper.find('ForwardRef(Relay(PullRequestReviewsController))'), 1);
+
+    const payload = aggregatedReviewsBuilder()
+      .addReviewThread(b => {
+        b.thread(t => t.isResolved(true));
+        b.addComment();
+      })
+      .addReviewThread(b => {
+        b.thread(t => t.isResolved(false));
+        b.addComment();
+        b.addComment();
+        b.addComment();
+      })
+      .addReviewThread(b => {
+        b.thread(t => t.isResolved(true));
+      })
+      .addReviewThread(b => {
+        b.thread(t => t.isResolved(false));
+        b.addComment();
+        b.addComment();
+      })
+      .build();
+    const reviewsWrapper = wrapper.find(AggregatedReviewsContainer).renderProp('children')(payload);
+
+    const commentViews = reviewsWrapper.find(PullRequestReviewCommentThreadView);
+    assert.lengthOf(commentViews, 3);
+    assert.lengthOf(commentViews.at(0).prop('comments'), 1);
+    assert.lengthOf(commentViews.at(1).prop('comments'), 3);
+    assert.lengthOf(commentViews.at(2).prop('comments'), 2);
+  });
+
+  it('increments a comment counter when comment threads are loaded if one is provided', function() {
+    const commentCounter = {
+      countAll: sinon.spy(),
+    };
+
+    const wrapper = shallow(buildApp({itemType: IssueishDetailItem, commentCounter}));
+
+    const payload = aggregatedReviewsBuilder()
+      .addReviewThread(b => {
+        b.thread(t => t.isResolved(true));
+        b.addComment();
+      })
+      .addReviewThread(b => {
+        b.thread(t => t.isResolved(true));
+      })
+      .addReviewThread(b => {
+        b.thread(t => t.isResolved(false));
+        b.addComment();
+        b.addComment();
+      })
+      .build();
+    wrapper.find(AggregatedReviewsContainer).prop('handleResults')(payload);
+
+    const threads = payload.commentThreads.map(e => e.thread);
+    assert.isTrue(commentCounter.countAll.calledWith([threads[0], threads[2]]));
   });
 
   it('renders the file patch within an editor', function() {
