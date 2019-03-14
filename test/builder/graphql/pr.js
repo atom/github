@@ -5,12 +5,18 @@ import {UserBuilder} from './user';
 import {createConnectionBuilderClass} from './connection';
 import {nextID} from '../id-sequence';
 
+export const ReactionGroupBuilder = createSpecBuilderClass('ReactionGroup', {
+  content: {default: 'ROCKET'},
+  users: {default: createConnectionBuilderClass('ReactingUserConnectionBuilder', UserBuilder)},
+});
+
 export const CommentBuilder = createSpecBuilderClass('PullRequestReviewCommentBuilder', {
   __typename: {default: 'PullRequestReviewComment'},
   id: {default: nextID},
   path: {default: 'first.txt'},
   position: {default: 0, nullable: true},
   author: {linked: UserBuilder},
+  reactionGroups: {linked: ReactionGroupBuilder, plural: true, singularName: 'reactionGroup'},
   url: {default: 'https://github.com/atom/github/pull/1829/files#r242224689'},
   createdAt: {default: '2018-12-27T17:51:17Z'},
   bodyHTML: {default: 'Lorem ipsum dolor sit amet, te urbanitas appellantur est.'},
@@ -35,6 +41,7 @@ export const ReviewBuilder = createSpecBuilderClass('PullRequestReviewBuilder', 
   state: {default: 'COMMENTED'},
   author: {linked: UserBuilder},
   comments: {linked: CommentConnectionBuilder},
+  reactionGroups: {linked: ReactionGroupBuilder, plural: true, singularName: 'reactionGroup'},
 });
 
 export const PullRequestBuilder = createSpecBuilderClass('PullRequestBuilder', {
