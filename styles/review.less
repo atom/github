@@ -62,33 +62,25 @@
     padding: 0 @component-padding;
     font-weight: 600;
     border-left: 1px solid @panel-heading-border-color;
+    color: @text-color-subtle;
     white-space: nowrap;
     background: none;
     cursor: default;
-    color: @text-color-highlight;
 
-    &:disabled {
-      color: @text-color-subtle;
-    }
-
-    &:active {
-      background-color: @button-background-color-hover;
+    &:not([disabled]) {
+      color: @text-color-highlight;
+      &:hover {
+        background-color: @background-color-highlight;
+      }
+      &.icon:before {
+        color: @text-color-highlight;
+      }
     }
 
     &.icon:before {
       margin-right: 0;
-      color: @text-color-highlight;
       text-align: center;
       font-size: 1.15em;
-    }
-
-    &--fullWidth {
-      border-left: none;
-      border-bottom: 1px solid @panel-heading-border-color;
-    }
-
-    &--iconOnly:before {
-      width: auto;
     }
   }
 
