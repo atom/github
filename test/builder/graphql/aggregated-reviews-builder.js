@@ -39,10 +39,12 @@ class AggregatedReviewsBuilder {
     const subBuilder = {
       thread(block0 = () => {}) {
         threadBlock = block0;
+        return subBuilder;
       },
 
       addComment(block0 = () => {}) {
         commentBlocks.push(block0);
+        return subBuilder;
       },
     };
     block(subBuilder);
