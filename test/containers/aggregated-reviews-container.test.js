@@ -15,7 +15,6 @@ describe('AggregatedReviewsContainer', function() {
   function buildApp(override = {}) {
     const props = {
       pullRequest: pullRequestBuilder(pullRequestQuery).build(),
-      children: () => {},
       ...override,
     };
 
@@ -24,20 +23,30 @@ describe('AggregatedReviewsContainer', function() {
 
   it('reports errors from review summaries or review threads', function() {
     const children = sinon.stub().returns(null);
-    const wrapper = shallow(buildApp({children}));
+    const handleResults = sinon.spy();
+    const wrapper = shallow(buildApp({children, handleResults}));
 
     assert.isTrue(children.calledWith({errors: [], summaries: [], commentThreads: [], loading: true}));
+    assert.isTrue(handleResults.calledWith({errors: [], summaries: [], commentThreads: [], loading: true}));
 
     const summaryError = new Error('everything is on fire');
     wrapper.find(ReviewSummariesAccumulator).prop('handleResults')(summaryError, [], false);
 
     assert.isTrue(children.calledWith({errors: [summaryError], summaries: [], commentThreads: [], loading: true}));
+    assert.isTrue(handleResults.calledWith({errors: [summaryError], summaries: [], commentThreads: [], loading: true}));
 
     const threadError0 = new Error('tripped over a power cord');
     const threadError1 = new Error('cosmic rays');
     wrapper.find(ReviewThreadsAccumulator).prop('handleResults')([threadError0, threadError1], [], new Map(), false);
 
     assert.isTrue(children.calledWith({
+      errors: [summaryError, threadError0, threadError1],
+      summaries: [],
+      commentThreads: [],
+      loading: false,
+    }));
+
+    assert.isTrue(handleResults.calledWith({
       errors: [summaryError, threadError0, threadError1],
       summaries: [],
       commentThreads: [],
@@ -56,11 +65,18 @@ describe('AggregatedReviewsContainer', function() {
     const batch0 = pullRequest0.reviews.edges.map(e => e.node);
 
     const children = sinon.stub().returns(null);
-    const wrapper = shallow(buildApp({children}));
+    const handleResults = sinon.spy();
+    const wrapper = shallow(buildApp({children, handleResults}));
 
     wrapper.find(ReviewSummariesAccumulator).prop('handleResults')(null, batch0.slice(), true);
 
     assert.isTrue(children.calledWith({
+      errors: [],
+      summaries: [batch0[1], batch0[2], batch0[0]],
+      commentThreads: [],
+      loading: true,
+    }));
+    assert.isTrue(handleResults.calledWith({
       errors: [],
       summaries: [batch0[1], batch0[2], batch0[0]],
       commentThreads: [],
@@ -77,12 +93,14 @@ describe('AggregatedReviewsContainer', function() {
 
     wrapper.find(ReviewSummariesAccumulator).prop('handleResults')(null, [...batch0.slice(), ...batch1.slice()], false);
 
-    assert.isTrue(children.calledWith({
+    const payload = {
       errors: [],
       summaries: [batch1[1], batch0[1], batch0[2], batch0[0], batch1[0]],
       commentThreads: [],
       loading: true,
-    }));
+    };
+    assert.isTrue(children.calledWith(payload));
+    assert.isTrue(handleResults.calledWith(payload));
   });
 
   it('collects and aggregates review threads and comments', function() {
@@ -123,13 +141,14 @@ describe('AggregatedReviewsContainer', function() {
     ]);
 
     const children = sinon.spy();
-    const wrapper = shallow(buildApp({pullRequest, children}));
+    const handleResults = sinon.spy();
+    const wrapper = shallow(buildApp({pullRequest, children, handleResults}));
 
     wrapper.find(ReviewThreadsAccumulator).prop('handleResults')(
       [], threads, commentMap, false,
     );
 
-    assert.isTrue(children.calledWith({
+    const payload = {
       errors: [],
       summaries: [],
       commentThreads: [
@@ -138,6 +157,9 @@ describe('AggregatedReviewsContainer', function() {
         {thread: threads[2], comments: thread2.comments.edges.map(e => e.node)},
       ],
       loading: true,
-    }));
+    };
+
+    assert.isTrue(children.calledWith(payload));
+    assert.isTrue(handleResults.calledWith(payload));
   });
 });
