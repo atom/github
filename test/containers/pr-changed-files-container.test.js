@@ -25,6 +25,9 @@ describe('PullRequestChangedFilesContainer', function() {
         tooltips={{}}
         config={{}}
         localRepository={{}}
+        reviewCommentsLoading={false}
+        reviewCommentThreads={[]}
+        onOpenFilesTab={() => {}}
         {...overrideProps}
       />
     );
