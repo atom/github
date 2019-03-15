@@ -72,13 +72,13 @@ describe('ReviewsController', function() {
     assert.strictEqual(opWrapper.find(ReviewsView).prop('extra'), extra);
   });
 
-  describe('switchToIssueish', function() {
+  describe('openIssueish', function() {
     it('opens an IssueishDetailItem for a different issueish', async function() {
       const wrapper = shallow(buildApp({
         endpoint: getEndpoint('github.enterprise.horse'),
       }));
       const opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
-      await opWrapper.find(ReviewsView).prop('switchToIssueish')('owner', 'repo', 10);
+      await opWrapper.find(ReviewsView).prop('openIssueish')('owner', 'repo', 10);
 
       assert.include(
         atomEnv.workspace.getPaneItems().map(item => item.getURI()),
@@ -99,7 +99,7 @@ describe('ReviewsController', function() {
         workdirContextPool,
       }));
       const opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
-      await opWrapper.find(ReviewsView).prop('switchToIssueish')('owner', 'repo', 10);
+      await opWrapper.find(ReviewsView).prop('openIssueish')('owner', 'repo', 10);
 
       assert.include(
         atomEnv.workspace.getPaneItems().map(item => item.getURI()),
@@ -127,7 +127,7 @@ describe('ReviewsController', function() {
       }));
 
       const opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
-      await opWrapper.find(ReviewsView).prop('switchToIssueish')('owner', 'repo', 10);
+      await opWrapper.find(ReviewsView).prop('openIssueish')('owner', 'repo', 10);
 
       assert.include(
         atomEnv.workspace.getPaneItems().map(item => item.getURI()),
