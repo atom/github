@@ -6,13 +6,21 @@ import CommitDetailItem from '../../lib/items/commit-detail-item';
 import {BareIssueishDetailController} from '../../lib/controllers/issueish-detail-controller';
 import PullRequestCheckoutController from '../../lib/controllers/pr-checkout-controller';
 import PullRequestDetailView from '../../lib/views/pr-detail-view';
+import IssueishDetailItem from '../../lib/items/issueish-detail-item';
+import RefHolder from '../../lib/models/ref-holder';
 import EnableableOperation from '../../lib/models/enableable-operation';
-import {issueishDetailControllerProps} from '../fixtures/props/issueish-pane-props';
+import BranchSet from '../../lib/models/branch-set';
+import RemoteSet from '../../lib/models/remote-set';
+import {getEndpoint} from '../../lib/models/endpoint';
+import {cloneRepository, buildRepository} from '../helpers';
+import {repositoryBuilder} from '../builder/graphql/repository';
+
+import repositoryQuery from '../../lib/controllers/__generated__/issueishDetailController_repository.graphql';
 
 describe('IssueishDetailController', function() {
-  let atomEnv;
+  let atomEnv, localRepository;
 
-  beforeEach(function() {
+  beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
 
     atomEnv.workspace.addOpener(uri => {
@@ -24,72 +32,131 @@ describe('IssueishDetailController', function() {
 
       return undefined;
     });
+
+    localRepository = await buildRepository(await cloneRepository());
   });
 
   afterEach(function() {
     atomEnv.destroy();
   });
 
-  function buildApp(opts, overrideProps = {}) {
-    const props = issueishDetailControllerProps(opts, {workspace: atomEnv.workspace, ...overrideProps});
+  function buildApp(override = {}) {
+    const props = {
+      relay: {},
+      repository: repositoryBuilder(repositoryQuery).build(),
+
+      localRepository,
+      branches: new BranchSet(),
+      remotes: new RemoteSet(),
+      isMerging: false,
+      isRebasing: false,
+      isAbsent: false,
+      isLoading: false,
+      isPresent: true,
+      workdirPath: localRepository.getWorkingDirectoryPath(),
+      issueishNumber: 100,
+
+      reviewCommentsLoading: false,
+      reviewCommentsTotalCount: 0,
+      reviewCommentsResolvedCount: 0,
+      reviewCommentThreads: [],
+
+      endpoint: getEndpoint('github.com'),
+      token: '1234',
+
+      workspace: atomEnv.workspace,
+      commands: atomEnv.commands,
+      keymaps: atomEnv.keymaps,
+      tooltips: atomEnv.tooltips,
+      config: atomEnv.config,
+
+      onTitleChange: () => {},
+      switchToIssueish: () => {},
+      destroy: () => {},
+
+      itemType: IssueishDetailItem,
+      refEditor: new RefHolder(),
+
+      selectedTab: 0,
+      onTabSelected: () => {},
+      onOpenFilesTab: () => {},
+
+      ...override,
+    };
+
     return <BareIssueishDetailController {...props} />;
   }
 
   it('updates the pane title for a pull request on mount', function() {
     const onTitleChange = sinon.stub();
-    shallow(buildApp({
-      repositoryName: 'reponame',
-      ownerLogin: 'ownername',
-      issueishNumber: 12,
-      pullRequestTitle: 'the title',
-    }, {onTitleChange}));
+    const repository = repositoryBuilder(repositoryQuery)
+      .name('reponame')
+      .owner(u => u.login('ownername'))
+      .issue(i => i.__typename('PullRequest'))
+      .pullRequest(pr => pr.number(12).title('the title'))
+      .build();
+
+    shallow(buildApp({repository, onTitleChange}));
 
     assert.isTrue(onTitleChange.calledWith('PR: ownername/reponame#12 — the title'));
   });
 
   it('updates the pane title for an issue on mount', function() {
     const onTitleChange = sinon.stub();
-    shallow(buildApp({
-      repositoryName: 'reponame',
-      ownerLogin: 'ownername',
-      issueKind: 'Issue',
-      issueishNumber: 34,
-      omitPullRequestData: true,
-      issueTitle: 'the title',
-    }, {onTitleChange}));
+    const repository = repositoryBuilder(repositoryQuery)
+      .name('reponame')
+      .owner(u => u.login('ownername'))
+      .issue(i => i.number(34).title('the title'))
+      .pullRequest(pr => pr.__typename('Issue'))
+      .build();
+
+    shallow(buildApp({repository, onTitleChange}));
+
     assert.isTrue(onTitleChange.calledWith('Issue: ownername/reponame#34 — the title'));
   });
 
   it('updates the pane title on update', function() {
     const onTitleChange = sinon.stub();
-    const wrapper = shallow(buildApp({
-      repositoryName: 'reponame',
-      ownerLogin: 'ownername',
-      issueishNumber: 12,
-      pullRequestTitle: 'the title',
-    }, {onTitleChange}));
+    const repository0 = repositoryBuilder(repositoryQuery)
+      .name('reponame')
+      .owner(u => u.login('ownername'))
+      .issue(i => i.__typename('PullRequest'))
+      .pullRequest(pr => pr.number(12).title('the title'))
+      .build();
+
+    const wrapper = shallow(buildApp({repository: repository0, onTitleChange}));
+
     assert.isTrue(onTitleChange.calledWith('PR: ownername/reponame#12 — the title'));
 
-    wrapper.setProps(issueishDetailControllerProps({
-      repositoryName: 'different',
-      ownerLogin: 'new',
-      issueishNumber: 34,
-      pullRequestTitle: 'the title',
-    }, {onTitleChange}));
+    const repository1 = repositoryBuilder(repositoryQuery)
+      .name('different')
+      .owner(u => u.login('new'))
+      .issue(i => i.__typename('PullRequest'))
+      .pullRequest(pr => pr.number(34).title('the title'))
+      .build();
+
+    wrapper.setProps({repository: repository1});
 
     assert.isTrue(onTitleChange.calledWith('PR: new/different#34 — the title'));
   });
 
   it('leaves the title alone and renders a message if no repository was found', function() {
     const onTitleChange = sinon.stub();
-    const wrapper = shallow(buildApp({}, {onTitleChange, repository: null, issueishNumber: 123}));
+
+    const wrapper = shallow(buildApp({onTitleChange, repository: null, issueishNumber: 123}));
+
     assert.isFalse(onTitleChange.called);
     assert.match(wrapper.find('div').text(), /#123 not found/);
   });
 
   it('leaves the title alone and renders a message if no issueish was found', function() {
     const onTitleChange = sinon.stub();
-    const wrapper = shallow(buildApp({omitIssueData: true, omitPullRequestData: true}, {onTitleChange, issueishNumber: 123}));
+    const repository = repositoryBuilder(repositoryQuery)
+      .nullPullRequest()
+      .nullIssue()
+      .build();
+
+    const wrapper = shallow(buildApp({onTitleChange, issueishNumber: 123, repository}));
     assert.isFalse(onTitleChange.called);
     assert.match(wrapper.find('div').text(), /#123 not found/);
   });
@@ -100,7 +167,7 @@ describe('IssueishDetailController', function() {
 
       const checkoutOp = new EnableableOperation(() => {}).disable("I don't feel like it");
 
-      const wrapper = shallow(buildApp({}, {workdirPath: __dirname}));
+      const wrapper = shallow(buildApp({workdirPath: __dirname}));
       const checkoutWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(checkoutOp);
       await checkoutWrapper.find(PullRequestDetailView).prop('openCommit')({sha: '1234'});
     });
