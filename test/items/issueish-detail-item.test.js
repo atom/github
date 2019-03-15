@@ -187,6 +187,25 @@ describe('IssueishDetailItem', function() {
       assert.isTrue(wrapper.find('IssueishDetailContainer').prop('repository').isAbsent());
     });
 
+    it('preserves the current repository when switching if possible, even if others match', async function() {
+      const workdir = await cloneRepository();
+      const repo = workdirContextPool.add(workdir).getRepository();
+      await repo.getLoadPromise();
+      await repo.addRemote('upstream', 'https://github.com/atom/atom.git');
+
+      const wrapper = mount(buildApp({workdirContextPool}));
+      await atomEnv.workspace.open(IssueishDetailItem.buildURI('github.com', 'atom', 'atom', 1, workdir));
+      wrapper.update();
+
+      await wrapper.find('IssueishDetailContainer').prop('switchToIssueish')('atom', 'atom', 100);
+      wrapper.update();
+
+      assert.strictEqual(wrapper.find('IssueishDetailContainer').prop('owner'), 'atom');
+      assert.strictEqual(wrapper.find('IssueishDetailContainer').prop('repo'), 'atom');
+      assert.strictEqual(wrapper.find('IssueishDetailContainer').prop('issueishNumber'), 100);
+      assert.strictEqual(wrapper.find('IssueishDetailContainer').prop('repository'), repo);
+    });
+
     it('records an event after switching', async function() {
       const wrapper = mount(buildApp({workdirContextPool}));
       await atomEnv.workspace.open(IssueishDetailItem.buildURI('host.com', 'me', 'original', 1, __dirname));
