@@ -183,6 +183,57 @@ describe('WorkdirContextPool', function() {
     });
   });
 
+  describe('getMatchingContext', function() {
+    let dirs;
+
+    beforeEach(async function() {
+      dirs = await Promise.all(
+        [1, 2, 3].map(() => cloneRepository()),
+      );
+    });
+
+    async function addRepoRemote(context, name, url) {
+      const repo = context.getRepository();
+      await repo.getLoadPromise();
+      await repo.addRemote(name, url);
+    }
+
+    it('returns a single resident context that has a repository with a matching remote', async function() {
+      const matchingContext = pool.add(dirs[0]);
+      await addRepoRemote(matchingContext, 'upstream', 'git@github.com:atom/github.git');
+
+      const nonMatchingContext0 = pool.add(dirs[1]);
+      await addRepoRemote(nonMatchingContext0, 'up', 'git@github.com:atom/atom.git');
+
+      pool.add(dirs[2]);
+
+      assert.strictEqual(await pool.getMatchingContext('github.com', 'atom', 'github'), matchingContext);
+    });
+
+    it('returns a null context when no contexts have suitable repositories', async function() {
+      const context0 = pool.add(dirs[0]);
+      await addRepoRemote(context0, 'upstream', 'git@github.com:atom/atom.git');
+
+      pool.add(dirs[1]);
+
+      const match = await pool.getMatchingContext('github.com', 'atom', 'github');
+      assert.isFalse(match.isPresent());
+    });
+
+    it('returns a null context when more than one context has a suitable repository', async function() {
+      const context0 = pool.add(dirs[0]);
+      await addRepoRemote(context0, 'upstream', 'git@github.com:atom/github.git');
+
+      const context1 = pool.add(dirs[1]);
+      await addRepoRemote(context1, 'upstream', 'git@github.com:atom/github.git');
+
+      pool.add(dirs[2]);
+
+      const match = await pool.getMatchingContext('github.com', 'atom', 'github');
+      assert.isFalse(match.isPresent());
+    });
+  });
+
   describe('clear', function() {
     it('removes all resident contexts', async function() {
       const [dir0, dir1, dir2] = await Promise.all([
