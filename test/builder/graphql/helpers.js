@@ -28,6 +28,24 @@ class Spec {
         return fn(node);
       }
     });
+
+    // Discover and (recursively) flatten any inline fragment spreads in-place.
+    const flattenInlineFragments = selections => {
+      const inlineSpreads = new Map();
+      for (let i = selections.length - 1; i >= 0; i--) {
+        if (selections[i].kind === 'InlineFragment') {
+          inlineSpreads.set(i, selections[i].selections);
+        }
+      }
+      for (const [index, subSelections] of inlineSpreads) {
+        flattenInlineFragments(subSelections);
+        selections.splice(index, 1, ...subSelections);
+      }
+    };
+
+    for (const node of nodes) {
+      flattenInlineFragments(node.selections);
+    }
   }
 
   // Query all of our query specs for the names of selected fields that match a certain "kind". Field kinds include
