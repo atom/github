@@ -5,6 +5,7 @@ import {QueryRenderer} from 'react-relay';
 import IssueishDetailContainer from '../../lib/containers/issueish-detail-container';
 import {cloneRepository, buildRepository} from '../helpers';
 import {queryBuilder} from '../builder/graphql/query';
+import {aggregatedReviewsBuilder} from '../builder/graphql/aggregated-reviews-builder';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import RefHolder from '../../lib/models/ref-holder';
 import {getEndpoint} from '../../lib/models/endpoint';
@@ -12,6 +13,7 @@ import {InMemoryStrategy, UNAUTHENTICATED, INSUFFICIENT} from '../../lib/shared/
 import ObserveModel from '../../lib/views/observe-model';
 import IssueishDetailItem from '../../lib/items/issueish-detail-item';
 import IssueishDetailController from '../../lib/controllers/issueish-detail-controller';
+import AggregatedReviewsContainer from '../../lib/containers/aggregated-reviews-container';
 
 import rootQuery from '../../lib/containers/__generated__/issueishDetailContainerQuery.graphql';
 
@@ -164,7 +166,7 @@ describe('IssueishDetailContainer', function() {
     assert.isTrue(loginModel.setToken.calledWith('https://github.enterprise.horse', '1234'));
   });
 
-  it('passes GraphQL query results to its IssueishDetailController', async function() {
+  it('renders an IssueishDetailContainer with GraphQL results for an issue', async function() {
     const wrapper = shallow(buildApp({
       owner: 'smashwilson',
       repo: 'pushbot',
@@ -183,7 +185,9 @@ describe('IssueishDetailContainer', function() {
     assert.strictEqual(variables.repoName, 'pushbot');
     assert.strictEqual(variables.issueishNumber, 4000);
 
-    const props = queryBuilder(rootQuery).build();
+    const props = queryBuilder(rootQuery)
+      .repository(r => r.issueish(i => i.issue()))
+      .build();
     const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({
       error: null, props, retry: () => {},
     });
@@ -192,6 +196,158 @@ describe('IssueishDetailContainer', function() {
 
     // GraphQL query results
     assert.strictEqual(controller.prop('repository'), props.repository);
+
+    // Null data for aggregated comment threads
+    assert.isFalse(controller.prop('reviewCommentsLoading'));
+    assert.strictEqual(controller.prop('reviewCommentsTotalCount'), 0);
+    assert.strictEqual(controller.prop('reviewCommentsResolvedCount'), 0);
+    assert.lengthOf(controller.prop('reviewCommentThreads'), 0);
+
+    // Requested repository attributes
+    assert.strictEqual(controller.prop('branches'), repoData.branches);
+
+    // The local repository, passed with a different name to not collide with the GraphQL result
+    assert.strictEqual(controller.prop('localRepository'), repository);
+    assert.strictEqual(controller.prop('workdirPath'), repository.getWorkingDirectoryPath());
+
+    // The GitHub OAuth token
+    assert.strictEqual(controller.prop('token'), '1234');
+  });
+
+  it('renders an IssueishDetailController while aggregating reviews for a pull request', async function() {
+    const wrapper = shallow(buildApp({
+      owner: 'smashwilson',
+      repo: 'pushbot',
+      issueishNumber: 4000,
+    }));
+
+    const tokenWrapper = wrapper.find(ObserveModel).renderProp('children')({token: '1234'});
+
+    const repoData = await tokenWrapper.find(ObserveModel).prop('fetchData')(
+      tokenWrapper.find(ObserveModel).prop('model'),
+    );
+    const repoWrapper = tokenWrapper.find(ObserveModel).renderProp('children')(repoData);
+
+    const props = queryBuilder(rootQuery)
+      .repository(r => r.issueish(i => i.pullRequest()))
+      .build();
+    const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({
+      error: null, props, retry: () => {},
+    });
+
+    const reviews = aggregatedReviewsBuilder().loading(true).build();
+    const reviewsWrapper = resultWrapper.find(AggregatedReviewsContainer).renderProp('children')(reviews);
+
+    const controller = reviewsWrapper.find(IssueishDetailController);
+
+    // GraphQL query results
+    assert.strictEqual(controller.prop('repository'), props.repository);
+
+    // Null data for aggregated comment threads
+    assert.isTrue(controller.prop('reviewCommentsLoading'));
+    assert.strictEqual(controller.prop('reviewCommentsTotalCount'), 0);
+    assert.strictEqual(controller.prop('reviewCommentsResolvedCount'), 0);
+    assert.lengthOf(controller.prop('reviewCommentThreads'), 0);
+
+    // Requested repository attributes
+    assert.strictEqual(controller.prop('branches'), repoData.branches);
+
+    // The local repository, passed with a different name to not collide with the GraphQL result
+    assert.strictEqual(controller.prop('localRepository'), repository);
+    assert.strictEqual(controller.prop('workdirPath'), repository.getWorkingDirectoryPath());
+
+    // The GitHub OAuth token
+    assert.strictEqual(controller.prop('token'), '1234');
+  });
+
+  it('renders an error view if the review aggregation fails', async function() {
+    const wrapper = shallow(buildApp({
+      endpoint: getEndpoint('github.enterprise.horse'),
+    }));
+
+    const tokenWrapper = wrapper.find(ObserveModel).renderProp('children')({token: '1234'});
+
+    const repoData = await tokenWrapper.find(ObserveModel).prop('fetchData')(
+      tokenWrapper.find(ObserveModel).prop('model'),
+    );
+    const repoWrapper = tokenWrapper.find(ObserveModel).renderProp('children')(repoData);
+
+    const props = queryBuilder(rootQuery)
+      .repository(r => r.issueish(i => i.pullRequest()))
+      .build();
+    const retry = sinon.spy();
+    const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({
+      error: null, props, retry,
+    });
+
+    const reviews = aggregatedReviewsBuilder()
+      .addError(new Error("It's not DNS"))
+      .addError(new Error("There's no way it's DNS"))
+      .addError(new Error('It was DNS'))
+      .build();
+    const reviewsWrapper = resultWrapper.find(AggregatedReviewsContainer).renderProp('children')(reviews);
+
+    const errorView = reviewsWrapper.find('ErrorView');
+    assert.strictEqual(errorView.prop('title'), 'Unable to fetch review comments');
+    assert.deepEqual(errorView.prop('descriptions'), [
+      "Error: It's not DNS",
+      "Error: There's no way it's DNS",
+      'Error: It was DNS',
+    ]);
+
+    errorView.prop('retry')();
+    assert.isTrue(retry.called);
+
+    sinon.stub(loginModel, 'removeToken').resolves();
+    await errorView.prop('logout')();
+    assert.isTrue(loginModel.removeToken.calledWith('https://github.enterprise.horse'));
+  });
+
+  it('passes GraphQL query results and aggregated reviews to its IssueishDetailController', async function() {
+    const wrapper = shallow(buildApp({
+      owner: 'smashwilson',
+      repo: 'pushbot',
+      issueishNumber: 4000,
+    }));
+
+    const tokenWrapper = wrapper.find(ObserveModel).renderProp('children')({token: '1234'});
+
+    const repoData = await tokenWrapper.find(ObserveModel).prop('fetchData')(
+      tokenWrapper.find(ObserveModel).prop('model'),
+    );
+    const repoWrapper = tokenWrapper.find(ObserveModel).renderProp('children')(repoData);
+
+    const variables = repoWrapper.find(QueryRenderer).prop('variables');
+    assert.strictEqual(variables.repoOwner, 'smashwilson');
+    assert.strictEqual(variables.repoName, 'pushbot');
+    assert.strictEqual(variables.issueishNumber, 4000);
+
+    const props = queryBuilder(rootQuery)
+      .repository(r => r.issueish(i => i.pullRequest()))
+      .build();
+    const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({
+      error: null, props, retry: () => {},
+    });
+
+    const reviews = aggregatedReviewsBuilder()
+      .addReviewThread(b => b.thread(t => t.isResolved(true)).addComment())
+      .addReviewThread(b => b.thread(t => t.isResolved(false)).addComment().addComment())
+      .addReviewThread(b => b.thread(t => t.isResolved(false)))
+      .addReviewThread(b => b.thread(t => t.isResolved(false)).addComment())
+      .addReviewThread(b => b.thread(t => t.isResolved(true)))
+      .build();
+    const reviewsWrapper = resultWrapper.find(AggregatedReviewsContainer).renderProp('children')(reviews);
+
+    const controller = reviewsWrapper.find(IssueishDetailController);
+
+    // GraphQL query results
+    assert.strictEqual(controller.prop('repository'), props.repository);
+
+    // Aggregated comment thread data
+    assert.isFalse(controller.prop('reviewCommentsLoading'));
+    assert.strictEqual(controller.prop('reviewCommentsTotalCount'), 3);
+    assert.strictEqual(controller.prop('reviewCommentsResolvedCount'), 1);
+    assert.lengthOf(controller.prop('reviewCommentThreads'), 3);
 
     // Requested repository attributes
     assert.strictEqual(controller.prop('branches'), repoData.branches);
