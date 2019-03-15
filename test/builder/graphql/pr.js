@@ -47,6 +47,7 @@ export const ReviewBuilder = createSpecBuilderClass('PullRequestReviewBuilder', 
 export const PullRequestBuilder = createSpecBuilderClass('PullRequestBuilder', {
   __typename: {default: 'PullRequest'},
   number: {default: 123},
+  title: {default: 'the title'},
   headRefName: {default: 'head-ref'},
   url: {default: 'https://github.com/aaa/bbb/pull/1'},
   repository: {linked: RepositoryBuilder},
