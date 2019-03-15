@@ -7,6 +7,7 @@ import {BareIssueishDetailController} from '../../lib/controllers/issueish-detai
 import PullRequestCheckoutController from '../../lib/controllers/pr-checkout-controller';
 import PullRequestDetailView from '../../lib/views/pr-detail-view';
 import IssueishDetailItem from '../../lib/items/issueish-detail-item';
+import ReviewsItem from '../../lib/items/reviews-item';
 import RefHolder from '../../lib/models/ref-holder';
 import EnableableOperation from '../../lib/models/enableable-operation';
 import BranchSet from '../../lib/models/branch-set';
@@ -184,6 +185,56 @@ describe('IssueishDetailController', function() {
         reporterProxy.addEvent.calledWith(
           'open-commit-in-pane', {package: 'github', from: 'BareIssueishDetailController'},
         ),
+      );
+    });
+  });
+
+  describe('openReviews', function() {
+    it('opens a ReviewsItem corresponding to our pull request', async function() {
+      const repository = repositoryBuilder(repositoryQuery)
+        .owner(o => o.login('me'))
+        .name('my-bullshit')
+        .issue(i => i.__typename('PullRequest'))
+        .build();
+
+      const wrapper = shallow(buildApp({
+        repository,
+        endpoint: getEndpoint('github.enterprise.horse'),
+        issueishNumber: 100,
+        workdirPath: __dirname,
+      }));
+      const checkoutWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(
+        new EnableableOperation(() => {}),
+      );
+      await checkoutWrapper.find(PullRequestDetailView).prop('openReviews')();
+
+      assert.include(
+        atomEnv.workspace.getPaneItems().map(item => item.getURI()),
+        ReviewsItem.buildURI('github.enterprise.horse', 'me', 'my-bullshit', 100, __dirname),
+      );
+    });
+
+    it('opens a ReviewsItem for a pull request that has no local workdir', async function() {
+      const repository = repositoryBuilder(repositoryQuery)
+        .owner(o => o.login('me'))
+        .name('my-bullshit')
+        .issue(i => i.__typename('PullRequest'))
+        .build();
+
+      const wrapper = shallow(buildApp({
+        repository,
+        endpoint: getEndpoint('github.enterprise.horse'),
+        issueishNumber: 100,
+        workdirPath: null,
+      }));
+      const checkoutWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(
+        new EnableableOperation(() => {}),
+      );
+      await checkoutWrapper.find(PullRequestDetailView).prop('openReviews')();
+
+      assert.include(
+        atomEnv.workspace.getPaneItems().map(item => item.getURI()),
+        ReviewsItem.buildURI('github.enterprise.horse', 'me', 'my-bullshit', 100, null),
       );
     });
   });
