@@ -24,6 +24,7 @@ describe('ReviewsView', function() {
       repository: {pullRequest: {}},
       checkoutOp: new EnableableOperation(() => {}).disable(checkoutStates.CURRENT),
       contextLines: 4,
+      openIssueish: () => {},
       ...override,
     };
 
@@ -63,6 +64,28 @@ describe('ReviewsView', function() {
     assert.lengthOf(wrapper.find('details.github-Review'), 2);
   });
 
+  it('calls openIssueish when clicking on an issueish link in a review summary', function() {
+    const openIssueish = sinon.spy();
+
+    const {summaries} = aggregatedReviewsBuilder()
+      .addReviewSummary(r => {
+        r.bodyHTML('hey look a link <a href="https://github.com/aaa/bbb/pulls/123">#123</a>').id(0);
+      })
+      .build();
+
+    const wrapper = shallow(buildApp({openIssueish}))
+      .find(AggregatedReviewsContainer)
+      .renderProp('children')({errors: [], summaries, commentThreads: []});
+
+    wrapper.find('GithubDotcomMarkdown').prop('switchToIssueish')('aaa', 'bbb', 123);
+    assert.isTrue(openIssueish.calledWith('aaa', 'bbb', 123));
+
+    wrapper.find('GithubDotcomMarkdown').prop('openIssueishLinkInNewTab')({
+      target: {dataset: {url: 'https://github.com/ccc/ddd/issues/654'}},
+    });
+    assert.isTrue(openIssueish.calledWith('ccc', 'ddd', 654));
+  });
+
   it('renders reviews with correct data');
 
   describe('checkout button', function() {
@@ -93,10 +116,12 @@ describe('ReviewsView', function() {
       })
       .build();
 
-    let wrapper;
+    let wrapper, openIssueish;
 
     beforeEach(function() {
-      wrapper = shallow(buildApp())
+      openIssueish = sinon.spy();
+
+      wrapper = shallow(buildApp({openIssueish}))
         .find(AggregatedReviewsContainer)
         .renderProp('children')({errors, summaries, commentThreads});
     });
@@ -193,6 +218,18 @@ describe('ReviewsView', function() {
       assert.strictEqual(comment.find('.github-Review-username').prop('href'), 'https://github.com/user0');
       assert.strictEqual(comment.find('.github-Review-username').text(), 'user0');
       assert.strictEqual(comment.find('GithubDotcomMarkdown').prop('html'), 'i have opinions.');
+    });
+
+    it('handles issueish link clicks on comment bodies', function() {
+      const comment = wrapper.find('.github-Review-comment').at(1);
+
+      comment.find('GithubDotcomMarkdown').prop('switchToIssueish')('aaa', 'bbb', 100);
+      assert.isTrue(openIssueish.calledWith('aaa', 'bbb', 100));
+
+      comment.find('GithubDotcomMarkdown').prop('openIssueishLinkInNewTab')({
+        target: {dataset: {url: 'https://github.com/ccc/ddd/pulls/1'}},
+      });
+      assert.isTrue(openIssueish.calledWith('ccc', 'ddd', 1));
     });
 
     it('renders progress bar', function() {
