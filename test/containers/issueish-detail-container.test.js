@@ -236,6 +236,7 @@ describe('IssueishDetailContainer', function() {
     });
 
     const reviews = aggregatedReviewsBuilder().loading(true).build();
+    assert.strictEqual(resultWrapper.find(AggregatedReviewsContainer).prop('pullRequest'), props.repository.issueish);
     const reviewsWrapper = resultWrapper.find(AggregatedReviewsContainer).renderProp('children')(reviews);
 
     const controller = reviewsWrapper.find(IssueishDetailController);
