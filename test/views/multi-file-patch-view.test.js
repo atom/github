@@ -270,63 +270,65 @@ describe('MultiFilePatchView', function() {
     assert.isTrue(multiFilePatch.expandFilePatch.calledWith(fp0));
   });
 
-  it('fetches review comment threads if itemType is IssueishDetailItem', function() {
-    const wrapper = shallow(buildApp({itemType: IssueishDetailItem}));
+  describe('review comments', function() {
+    it('renders review comment threads if itemType is IssueishDetailItem', function() {
+      const payload = aggregatedReviewsBuilder()
+        .addReviewThread(b => {
+          b.thread(t => t.isResolved(true));
+          b.addComment();
+        })
+        .addReviewThread(b => {
+          b.thread(t => t.isResolved(false));
+          b.addComment();
+          b.addComment();
+          b.addComment();
+        })
+        .addReviewThread(b => {
+          b.thread(t => t.isResolved(false));
+          b.addComment();
+          b.addComment();
+        })
+        .build();
 
-    const payload = aggregatedReviewsBuilder()
-      .addReviewThread(b => {
-        b.thread(t => t.isResolved(true));
-        b.addComment();
-      })
-      .addReviewThread(b => {
-        b.thread(t => t.isResolved(false));
-        b.addComment();
-        b.addComment();
-        b.addComment();
-      })
-      .addReviewThread(b => {
-        b.thread(t => t.isResolved(true));
-      })
-      .addReviewThread(b => {
-        b.thread(t => t.isResolved(false));
-        b.addComment();
-        b.addComment();
-      })
-      .build();
-    const reviewsWrapper = wrapper.find(AggregatedReviewsContainer).renderProp('children')(payload);
+      const wrapper = shallow(buildApp({
+        reviewCommentsLoading: false,
+        reviewCommentsTotalCount: 3,
+        reviewCommentsResolvedCount: 1,
+        reviewCommentThreads: payload.commentThreads,
+        itemType: IssueishDetailItem,
+      }));
 
-    const commentViews = reviewsWrapper.find(PullRequestReviewCommentThreadView);
-    assert.lengthOf(commentViews, 3);
-    assert.lengthOf(commentViews.at(0).prop('comments'), 1);
-    assert.lengthOf(commentViews.at(1).prop('comments'), 3);
-    assert.lengthOf(commentViews.at(2).prop('comments'), 2);
-  });
+      const commentViews = wrapper.find(PullRequestReviewCommentThreadView);
+      assert.lengthOf(commentViews, 3);
+      assert.lengthOf(commentViews.at(0).prop('comments'), 1);
+      assert.lengthOf(commentViews.at(1).prop('comments'), 3);
+      assert.lengthOf(commentViews.at(2).prop('comments'), 2);
+    });
 
-  it('increments a comment counter when comment threads are loaded if one is provided', function() {
-    const commentCounter = {
-      countAll: sinon.spy(),
-    };
+    it('does not render threads until they finish loading', function() {
+      const payload = aggregatedReviewsBuilder()
+        .addReviewThread(b => {
+          b.thread(t => t.isResolved(true));
+          b.addComment();
+        })
+        .addReviewThread(b => {
+          b.thread(t => t.isResolved(false));
+          b.addComment();
+          b.addComment();
+          b.addComment();
+        })
+        .build();
 
-    const wrapper = shallow(buildApp({itemType: IssueishDetailItem, commentCounter}));
+      const wrapper = shallow(buildApp({
+        reviewCommentsLoading: true,
+        reviewCommentsTotalCount: 3,
+        reviewCommentsResolvedCount: 1,
+        reviewCommentThreads: payload.commentThreads,
+        itemType: IssueishDetailItem,
+      }));
 
-    const payload = aggregatedReviewsBuilder()
-      .addReviewThread(b => {
-        b.thread(t => t.isResolved(true));
-        b.addComment();
-      })
-      .addReviewThread(b => {
-        b.thread(t => t.isResolved(true));
-      })
-      .addReviewThread(b => {
-        b.thread(t => t.isResolved(false));
-        b.addComment();
-        b.addComment();
-      })
-      .build();
-    wrapper.find(AggregatedReviewsContainer).prop('handleResults')(payload);
-
-    const threads = payload.commentThreads.map(e => e.thread);
-    assert.isTrue(commentCounter.countAll.calledWith([threads[0], threads[2]]));
+      assert.isFalse(wrapper.find(PullRequestReviewCommentThreadView).exists());
+    });
   });
 
   it('renders the file patch within an editor', function() {
