@@ -13,7 +13,7 @@ import EnableableOperation from '../../lib/models/enableable-operation';
 import BranchSet from '../../lib/models/branch-set';
 import RemoteSet from '../../lib/models/remote-set';
 import {getEndpoint} from '../../lib/models/endpoint';
-import {cloneRepository, buildRepository} from '../helpers';
+import {cloneRepository, buildRepository, registerGitHubOpener} from '../helpers';
 import {repositoryBuilder} from '../builder/graphql/repository';
 
 import repositoryQuery from '../../lib/controllers/__generated__/issueishDetailController_repository.graphql';
@@ -23,17 +23,7 @@ describe('IssueishDetailController', function() {
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
-
-    atomEnv.workspace.addOpener(uri => {
-      if (uri.startsWith('atom-github://')) {
-        return {
-          getURI() { return uri; },
-        };
-      }
-
-      return undefined;
-    });
-
+    registerGitHubOpener(atomEnv);
     localRepository = await buildRepository(await cloneRepository());
   });
 

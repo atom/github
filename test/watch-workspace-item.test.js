@@ -1,6 +1,8 @@
 import {watchWorkspaceItem} from '../lib/watch-workspace-item';
 import URIPattern from '../lib/atom/uri-pattern';
 
+import {registerGitHubOpener} from './helpers';
+
 describe('watchWorkspaceItem', function() {
   let sub, atomEnv, workspace, component;
 
@@ -13,22 +15,7 @@ describe('watchWorkspaceItem', function() {
       setState: sinon.stub().callsFake((updater, cb) => cb && cb()),
     };
 
-    workspace.addOpener(uri => {
-      if (uri.startsWith('atom-github://')) {
-        return {
-          getURI() { return uri; },
-
-          getElement() {
-            if (!this.element) {
-              this.element = document.createElement('div');
-            }
-            return this.element;
-          },
-        };
-      } else {
-        return undefined;
-      }
-    });
+    registerGitHubOpener(atomEnv);
   });
 
   afterEach(function() {
