@@ -4,7 +4,7 @@ import EnableableOperation from '../../lib/models/enableable-operation';
 import {checkoutStates} from '../../lib/controllers/pr-checkout-controller';
 import CheckoutButton from '../../lib/views/checkout-button';
 
-describe.only('Checkout button', function() {
+describe('Checkout button', function() {
 
   function buildApp(overrideProps = {}) {
     return (
