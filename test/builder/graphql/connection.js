@@ -5,6 +5,10 @@ const PageInfoBuilder = createSpecBuilderClass('PageInfo', {
   endCursor: {default: null, nullable: true},
 });
 
+export const ConnectionCountBuilder = createSpecBuilderClass('ConnectionCountBuilder', {
+  totalCount: {default: 0},
+});
+
 export function createConnectionBuilderClass(name, NodeBuilder) {
   const EdgeBuilder = createSpecBuilderClass('Edge', {
     cursor: {default: 'zzz'},

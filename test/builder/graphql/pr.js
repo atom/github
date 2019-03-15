@@ -2,12 +2,12 @@ import {createSpecBuilderClass} from './helpers';
 
 import {RepositoryBuilder} from './repository';
 import {UserBuilder} from './user';
-import {createConnectionBuilderClass} from './connection';
+import {createConnectionBuilderClass, ConnectionCountBuilder} from './connection';
 import {nextID} from '../id-sequence';
 
 export const ReactionGroupBuilder = createSpecBuilderClass('ReactionGroup', {
   content: {default: 'ROCKET'},
-  users: {default: createConnectionBuilderClass('ReactingUserConnectionBuilder', UserBuilder)},
+  users: {linked: createConnectionBuilderClass('ReactingUserConnectionBuilder', UserBuilder)},
 });
 
 export const CommentBuilder = createSpecBuilderClass('PullRequestReviewCommentBuilder', {
@@ -45,15 +45,29 @@ export const ReviewBuilder = createSpecBuilderClass('PullRequestReviewBuilder', 
 });
 
 export const PullRequestBuilder = createSpecBuilderClass('PullRequestBuilder', {
+  id: {default: nextID},
   __typename: {default: 'PullRequest'},
   number: {default: 123},
   title: {default: 'the title'},
+  baseRefName: {default: 'base-ref'},
   headRefName: {default: 'head-ref'},
-  url: {default: 'https://github.com/aaa/bbb/pull/1'},
+  isCrossRepository: {default: false},
+  changedFiles: {default: 5},
+  state: {default: 'OPEN'},
+  bodyHTML: {default: '', nullable: true},
+  countedCommits: {linked: ConnectionCountBuilder},
+  url: {default: f => {
+    const ownerLogin = (f.repository && f.repository.owner && f.repository.owner.login) || 'aaa';
+    const repoName = (f.repository && f.repository.name) || 'bbb';
+    const number = f.number || 1;
+    return `https://github.com/${ownerLogin}/${repoName}/pull/${number}`;
+  }},
+  author: {linked: UserBuilder},
   repository: {linked: RepositoryBuilder},
   headRepository: {linked: RepositoryBuilder, nullable: true},
   reviews: {linked: createConnectionBuilderClass('ReviewConnection', ReviewBuilder)},
   reviewThreads: {linked: createConnectionBuilderClass('ReviewThreadConnection', ReviewThreadBuilder)},
+  reactionGroups: {linked: ReactionGroupBuilder, plural: true, singularName: 'reactionGroup'},
 });
 
 export function reviewThreadBuilder(...nodes) {
