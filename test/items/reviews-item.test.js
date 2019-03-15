@@ -84,6 +84,13 @@ describe('ReviewsItem', function() {
     assert.strictEqual(wrapper.find('ReviewsContainer').prop('repository'), repository);
   });
 
+  it('uses an absent repository if no workdir is provided', async function() {
+    const wrapper = mount(buildPaneApp());
+    await open(wrapper, {workdir: null});
+
+    assert.isTrue(wrapper.find('ReviewsContainer').prop('repository').isAbsent());
+  });
+
   it('returns a title containing the pull request number', async function() {
     const wrapper = mount(buildPaneApp());
     const item = await open(wrapper, {number: 1234});
