@@ -6,14 +6,17 @@ import {cloneRepository, deferSetState} from '../helpers';
 import IssueishDetailItem from '../../lib/items/issueish-detail-item';
 import PaneItem from '../../lib/atom/pane-item';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
-import {issueishPaneItemProps} from '../fixtures/props/issueish-pane-props';
+import GithubLoginModel from '../../lib/models/github-login-model';
+import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('IssueishDetailItem', function() {
-  let atomEnv, subs;
+  let atomEnv, workdirContextPool, subs;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
+    workdirContextPool = new WorkdirContextPool();
+
     subs = new CompositeDisposable();
   });
 
@@ -22,8 +25,22 @@ describe('IssueishDetailItem', function() {
     atomEnv.destroy();
   });
 
-  function buildApp(overrideProps = {}) {
-    const props = issueishPaneItemProps(overrideProps);
+  function buildApp(override = {}) {
+    const props = {
+      workdirContextPool,
+      loginModel: new GithubLoginModel(InMemoryStrategy),
+
+      workspace: atomEnv.workspace,
+      commands: atomEnv.commands,
+      keymaps: atomEnv.keymaps,
+      tooltips: atomEnv.tooltips,
+      config: atomEnv.config,
+
+      onTabSelected: () => {},
+      selectedTab: 0,
+
+      ...override,
+    };
 
     return (
       <PaneItem workspace={atomEnv.workspace} uriPattern={IssueishDetailItem.uriPattern}>
@@ -55,11 +72,9 @@ describe('IssueishDetailItem', function() {
   });
 
   describe('issueish switching', function() {
-    let workdirContextPool, atomGithubRepo, atomAtomRepo;
+    let atomGithubRepo, atomAtomRepo;
 
     beforeEach(async function() {
-      workdirContextPool = new WorkdirContextPool();
-
       const atomGithubWorkdir = await cloneRepository();
       atomGithubRepo = workdirContextPool.add(atomGithubWorkdir).getRepository();
       await atomGithubRepo.getLoadPromise();
