@@ -31,6 +31,20 @@
 
   // Top Header ------------------------------------------
 
+  &-topHeader {
+    display: flex;
+    align-items: center;
+    padding: 0 @component-padding;
+    font-weight: 600;
+    border-bottom: 1px solid @panel-heading-border-color;
+    cursor: default;
+    color: @text-color-subtle;
+
+    .icon:before {
+      margin-right: @component-padding / 1.2;
+    }
+  }
+
   &-headerTitle {
     flex: 1;
     text-overflow: ellipsis;
@@ -38,55 +52,24 @@
     overflow: hidden;
   }
 
-  &-topHeader {
-    display: flex;
-    align-items: center;
-    padding: 0 0 0 @component-padding;
-    font-weight: 600;
-    border-bottom: 1px solid @panel-heading-border-color;
-    cursor: default;
-    color: @text-color-subtle;
-
-    .icon {
-      text-align: center;
-      &:before {
-        color: @text-color-subtle;
-        margin-right: @component-padding / 1.2;
-      }
+  &-clickable {
+    cursor: pointer;
+    font-weight: 400;
+    &:hover {
+      color: @text-color-highlight;
+      text-decoration: underline;
+    }
+    &.icon:hover:before {
+      color: @text-color-highlight;
     }
   }
 
   &-headerButton {
-    height: 2.5em;
+    height: 3em;
     border: none;
-    padding: 0 @component-padding;
+    padding: 0;
     font-weight: 600;
-    border-left: 1px solid @panel-heading-border-color;
-    color: @text-color-subtle;
-    white-space: nowrap;
     background: none;
-    cursor: default;
-
-    &:not([disabled]) {
-      color: @text-color;
-      &:hover {
-        background-color: @background-color-highlight;
-      }
-      &.icon:before {
-        color: @text-color;
-      }
-    }
-
-    &.icon:before {
-      margin-right: 0;
-      text-align: center;
-      font-size: 1.15em;
-    }
-  }
-
-  &-checkoutButton.icon:before {
-    font-size: 1em;
-    text-align: left;
   }
 
   // Reviews sections ------------------------------------
