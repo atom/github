@@ -31,6 +31,12 @@ describe('ReviewsItem', function() {
     const props = {
       workdirContextPool: pool,
       loginModel: new GithubLoginModel(InMemoryStrategy),
+
+      workspace: atomEnv.workspace,
+      config: atomEnv.config,
+      commands: atomEnv.commands,
+      tooltips: atomEnv.tooltips,
+
       ...override,
     };
 
