@@ -1,8 +1,10 @@
-import {createSpecBuilderClass} from './helpers';
+import {createSpecBuilderClass, defer} from './helpers';
 import {nextID} from '../id-sequence';
 
 import {RefBuilder} from './ref';
 import {UserBuilder} from './user';
+
+const IssueishBuilder = defer('./issueish', 'IssueishBuilder');
 
 export const RepositoryBuilder = createSpecBuilderClass('RepositoryBuilder', {
   id: {default: nextID},
@@ -12,6 +14,7 @@ export const RepositoryBuilder = createSpecBuilderClass('RepositoryBuilder', {
   owner: {linked: UserBuilder},
   defaultBranchRef: {linked: RefBuilder},
   ref: {linked: RefBuilder},
+  issueish: {linked: IssueishBuilder},
 });
 
 export function repositoryBuilder(...nodes) {
