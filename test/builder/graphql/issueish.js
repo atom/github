@@ -2,19 +2,21 @@ import {PullRequestBuilder} from './pr';
 import {IssueBuilder} from './issue';
 
 export class IssueishBuilder {
+  static resolve() { return this; }
+
   constructor(...args) {
     this.args = args;
     this._value = null;
   }
 
-  issue(block = () => {}) {
+  beIssue(block = () => {}) {
     const b = new IssueBuilder(...this.args);
     block(b);
     this._value = b.build();
     return this;
   }
 
-  pullRequest(block = () => {}) {
+  bePullRequest(block = () => {}) {
     const b = new PullRequestBuilder(...this.args);
     block(b);
     this._value = b.build();

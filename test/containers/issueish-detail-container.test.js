@@ -186,7 +186,7 @@ describe('IssueishDetailContainer', function() {
     assert.strictEqual(variables.issueishNumber, 4000);
 
     const props = queryBuilder(rootQuery)
-      .repository(r => r.issueish(i => i.issue()))
+      .repository(r => r.issueish(i => i.beIssue()))
       .build();
     const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({
       error: null, props, retry: () => {},
@@ -229,7 +229,7 @@ describe('IssueishDetailContainer', function() {
     const repoWrapper = tokenWrapper.find(ObserveModel).renderProp('children')(repoData);
 
     const props = queryBuilder(rootQuery)
-      .repository(r => r.issueish(i => i.pullRequest()))
+      .repository(r => r.issueish(i => i.bePullRequest()))
       .build();
     const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({
       error: null, props, retry: () => {},
@@ -274,7 +274,7 @@ describe('IssueishDetailContainer', function() {
     const repoWrapper = tokenWrapper.find(ObserveModel).renderProp('children')(repoData);
 
     const props = queryBuilder(rootQuery)
-      .repository(r => r.issueish(i => i.pullRequest()))
+      .repository(r => r.issueish(i => i.bePullRequest()))
       .build();
     const retry = sinon.spy();
     const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({
@@ -324,7 +324,7 @@ describe('IssueishDetailContainer', function() {
     assert.strictEqual(variables.issueishNumber, 4000);
 
     const props = queryBuilder(rootQuery)
-      .repository(r => r.issueish(i => i.pullRequest()))
+      .repository(r => r.issueish(i => i.bePullRequest()))
       .build();
     const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({
       error: null, props, retry: () => {},
