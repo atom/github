@@ -94,7 +94,6 @@ describe('ReviewsView', function() {
   });
 
   describe('comment threads', function() {
-
     const {errors, summaries, commentThreads} = aggregatedReviewsBuilder()
       .addReviewSummary(r => r.id(0))
       .addReviewThread(t => {
@@ -153,7 +152,6 @@ describe('ReviewsView', function() {
       });
 
       describe('navigation buttons', function() {
-
         it('a pair of "Open Diff" and "Jump To File" buttons per thread', function() {
           assert.isTrue(wrapper.find('details.github-Review').everyWhere(thread =>
             thread.find('.github-Review-navButton.icon-code').length === 1 && thread.find('.github-Review-navButton.icon-diff').length === 1,
@@ -161,7 +159,6 @@ describe('ReviewsView', function() {
         });
 
         describe('when PR is checked out', function() {
-
           const openFile = sinon.spy();
           const openDiff = sinon.spy();
 
@@ -183,7 +180,6 @@ describe('ReviewsView', function() {
         });
 
         describe('when PR is not checked out', function() {
-
           const openFile = sinon.spy();
           const openDiff = sinon.spy();
 
@@ -237,7 +233,5 @@ describe('ReviewsView', function() {
       assert.strictEqual(wrapper.find('.github-Reviews-count').text(), 'Resolved 1 of 3');
       assert.include(wrapper.find('progress.github-Reviews-progessBar').props(), {value: 1, max: 3});
     });
-
   });
-
 });
