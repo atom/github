@@ -22,6 +22,9 @@ export const CommentBuilder = createSpecBuilderClass('PullRequestReviewCommentBu
   bodyHTML: {default: 'Lorem ipsum dolor sit amet, te urbanitas appellantur est.'},
   replyTo: {default: null, nullable: true},
   isMinimized: {default: false},
+  minimizedReason: {default: null, nullable: true},
+  viewerCanReact: {default: true},
+  viewerCanMinimize: {default: true},
 });
 
 export const CommentConnectionBuilder = createConnectionBuilderClass('PullRequestReviewCommentConnectionBuilder', CommentBuilder);
@@ -30,6 +33,8 @@ export const ReviewThreadBuilder = createSpecBuilderClass('ReviewThreadBuilder',
   __typename: {default: 'PullRequestReviewThread'},
   id: {default: nextID},
   isResolved: {default: false},
+  viewerCanResolve: {default: f => !f.isResolved},
+  viewerCanUnresolve: {default: f => !!f.isResolved},
   comments: {linked: CommentConnectionBuilder},
 });
 
