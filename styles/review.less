@@ -390,8 +390,14 @@
     padding-left: @component-padding + @avatar-size + 5px; // space for avatar
   }
 
-  &-comment  {
+  &-comment {
     margin-bottom: @component-padding*1.5;
+
+    &--hidden {
+      color: @text-color-subtle;
+      display: flex;
+      align-items: center;
+    }
   }
 
   &-header {
