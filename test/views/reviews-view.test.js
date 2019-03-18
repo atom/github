@@ -101,7 +101,7 @@ describe('ReviewsView', function() {
           c.id(0).path('dir/file0').position(10).bodyHTML('i have opinions.').author(a => a.login('user0').avatarUrl('user0.jpg')),
         );
         t.addComment(c =>
-          c.id(1).path('file0').position(10).bodyHTML('i disagree.').author(a => a.login('user1').avatarUrl('user1.jpg')),
+          c.id(1).path('file0').position(10).bodyHTML('i disagree.').author(a => a.login('user1').avatarUrl('user1.jpg')).isMinimized(true),
         );
         return t;
       }).addReviewThread(
@@ -131,6 +131,12 @@ describe('ReviewsView', function() {
       assert.lengthOf(threads.at(0).find('.github-Review-comment'), 2);
       assert.lengthOf(threads.at(1).find('.github-Review-comment'), 1);
       assert.lengthOf(threads.at(2).find('.github-Review-comment'), 1);
+    });
+
+    it('hides minimized comment content', function() {
+      const thread = wrapper.find('details.github-Review').at(0);
+      const comment = thread.find('.github-Review-comment--hidden');
+      assert.strictEqual(comment.find('em').text(), 'This comment was hidden');
     });
 
     describe('each thread', function() {
@@ -217,7 +223,7 @@ describe('ReviewsView', function() {
     });
 
     it('handles issueish link clicks on comment bodies', function() {
-      const comment = wrapper.find('.github-Review-comment').at(1);
+      const comment = wrapper.find('.github-Review-comment').at(2);
 
       comment.find('GithubDotcomMarkdown').prop('switchToIssueish')('aaa', 'bbb', 100);
       assert.isTrue(openIssueish.calledWith('aaa', 'bbb', 100));
