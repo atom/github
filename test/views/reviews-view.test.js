@@ -3,10 +3,11 @@ import {shallow} from 'enzyme';
 import sinon from 'sinon';
 
 import ReviewsView from '../../lib/views/reviews-view';
-import {aggregatedReviewsBuilder} from '../builder/graphql/aggregated-reviews-builder';
 import AggregatedReviewsContainer from '../../lib/containers/aggregated-reviews-container';
-import {checkoutStates} from '../../lib/controllers/pr-checkout-controller';
 import EnableableOperation from '../../lib/models/enableable-operation';
+import {aggregatedReviewsBuilder} from '../builder/graphql/aggregated-reviews-builder';
+import {multiFilePatchBuilder} from '../builder/patch';
+import {checkoutStates} from '../../lib/controllers/pr-checkout-controller';
 
 describe('ReviewsView', function() {
   let atomEnv;
@@ -22,8 +23,26 @@ describe('ReviewsView', function() {
   function buildApp(override = {}) {
     const props = {
       repository: {pullRequest: {}},
-      checkoutOp: new EnableableOperation(() => {}).disable(checkoutStates.CURRENT),
+
+      multiFilePatch: multiFilePatchBuilder().build().multiFilePatch,
       contextLines: 4,
+
+      checkoutOp: new EnableableOperation(() => {}).disable(checkoutStates.CURRENT),
+      number: 100,
+      repo: 'github',
+      owner: 'atom',
+      workdir: __dirname,
+
+      workspace: atomEnv.workspace,
+      config: atomEnv.config,
+      commands: atomEnv.commands,
+      tooltips: atomEnv.tooltips,
+
+      openFile: () => {},
+      openDiff: () => {},
+      openPR: () => {},
+      moreContext: () => {},
+      lessContext: () => {},
       openIssueish: () => {},
       ...override,
     };
@@ -190,7 +209,7 @@ describe('ReviewsView', function() {
           const openDiff = sinon.spy();
 
           beforeEach(function() {
-            const checkoutOp = {isEnabled: () => true};
+            const checkoutOp = new EnableableOperation(() => {});
             wrapper = shallow(buildApp({openFile, openDiff, checkoutOp}))
               .find(AggregatedReviewsContainer)
               .renderProp('children')({errors, summaries, commentThreads});
