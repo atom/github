@@ -15,7 +15,7 @@ describe('EmojiReactionsView', function() {
     wrapper = shallow(<EmojiReactionsView reactionGroups={reactionGroups} />);
   });
   it('renders reaction groups', function() {
-    const groups = wrapper.find('.github-IssueishDetailView-reactionsGroup');
+    const groups = wrapper.find('.github-reactionsGroup');
     assert.lengthOf(groups.findWhere(n => /👍/u.test(n.text()) && /\b10\b/.test(n.text())), 1);
     assert.lengthOf(groups.findWhere(n => /👎/u.test(n.text()) && /\b5\b/.test(n.text())), 1);
     assert.lengthOf(groups.findWhere(n => /🚀/u.test(n.text()) && /\b42\b/.test(n.text())), 1);
@@ -24,7 +24,7 @@ describe('EmojiReactionsView', function() {
   });
   it('gracefully skips unknown emoji', function() {
     assert.isFalse(wrapper.text().includes(11));
-    const groups = wrapper.find('.github-IssueishDetailView-reactionsGroup');
+    const groups = wrapper.find('.github-reactionsGroup');
     assert.lengthOf(groups, 4);
   });
 });
