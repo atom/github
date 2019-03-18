@@ -43,7 +43,7 @@ class Spec {
       }
     };
 
-    for (const node of nodes) {
+    for (const node of this.nodes) {
       flattenInlineFragments(node.selections);
     }
   }
