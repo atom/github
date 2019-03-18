@@ -167,6 +167,12 @@ describe('ReviewsView', function() {
         assert.strictEqual(thread.find('.github-Review-lineNr').text(), '10');
       });
 
+      it('omits the / when there is no directory', function() {
+        const thread = wrapper.find('details.github-Review').at(1);
+        assert.isFalse(thread.exists('.github-Review-path'));
+        assert.strictEqual(thread.find('.github-Review-file').text(), 'file1');
+      });
+
       it('renders a PatchPreviewView per comment thread', function() {
         assert.isTrue(wrapper.find('details.github-Review').everyWhere(thread => thread.find('PatchPreviewView').length === 1));
         assert.include(wrapper.find('PatchPreviewView').at(0).props(), {
