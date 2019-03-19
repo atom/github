@@ -41,7 +41,7 @@
   "dependencies": {
     "@atom/babel-plugin-chai-assert-async": "1.0.0",
     "@atom/babel7-transpiler": "1.0.0-1",
-    "@babel/generator": "7.3.4",
+    "@babel/generator": "7.4.0",
     "@babel/plugin-proposal-class-properties": "7.3.4",
     "@babel/plugin-proposal-object-rest-spread": "7.3.4",
     "@babel/preset-env": "7.3.4",
