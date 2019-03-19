@@ -1,13 +1,28 @@
 import {createSpecBuilderClass} from './helpers';
+import {createConnectionBuilderClass} from './connection';
+import {createUnionBuilderClass} from './union';
+import {nextID} from '../id-sequence';
 
 import {RepositoryBuilder} from './repository';
 import {UserBuilder} from './user';
-import {createConnectionBuilderClass} from './connection';
-import {nextID} from '../id-sequence';
+import {ReactionGroupBuilder} from './reaction-group';
+import {
+  CommitBuilder,
+  CommitCommentThreadBuilder,
+  CrossReferencedEventBuilder,
+  HeadRefForcePushedEventBuilder,
+  IssueCommentBuilder,
+  MergedEventBuilder,
+} from './timeline';
 
-export const ReactionGroupBuilder = createSpecBuilderClass('ReactionGroup', {
-  content: {default: 'ROCKET'},
-  users: {linked: createConnectionBuilderClass('ReactingUser', UserBuilder)},
+const PullRequestTimelineItemBuilder = createUnionBuilderClass('PullRequestTimelineItem', {
+  beCommit: CommitBuilder,
+  beCommitCommentThread: CommitCommentThreadBuilder,
+  beCrossReferencedEvent: CrossReferencedEventBuilder,
+  beHeadRefForcePushedEvent: HeadRefForcePushedEventBuilder,
+  beIssueComment: IssueCommentBuilder,
+  beMergedEvent: MergedEventBuilder,
+  default: 'beIssueComment',
 });
 
 export const CommentBuilder = createSpecBuilderClass('PullRequestReviewComment', {
@@ -51,6 +66,10 @@ export const ReviewBuilder = createSpecBuilderClass('PullRequestReview', {
 
 export const CommitConnectionBuilder = createConnectionBuilderClass('PullRequestCommit', CommentBuilder);
 
+export const PullRequestCommitBuilder = createSpecBuilderClass('PullRequestCommit', {
+  //
+});
+
 export const PullRequestBuilder = createSpecBuilderClass('PullRequest', {
   id: {default: nextID},
   __typename: {default: 'PullRequest'},
@@ -62,6 +81,7 @@ export const PullRequestBuilder = createSpecBuilderClass('PullRequest', {
   changedFiles: {default: 5},
   state: {default: 'OPEN'},
   bodyHTML: {default: '', nullable: true},
+  createdAt: {default: '2019-01-01T10:00:00Z'},
   countedCommits: {linked: CommitConnectionBuilder},
   url: {default: f => {
     const ownerLogin = (f.repository && f.repository.owner && f.repository.owner.login) || 'aaa';
@@ -72,8 +92,12 @@ export const PullRequestBuilder = createSpecBuilderClass('PullRequest', {
   author: {linked: UserBuilder},
   repository: {linked: RepositoryBuilder},
   headRepository: {linked: RepositoryBuilder, nullable: true},
+  headRepositoryOwner: {linked: UserBuilder},
+  commits: {linked: createConnectionBuilderClass('PullRequestCommit', PullRequestCommitBuilder)},
+  recentCommits: {linked: createConnectionBuilderClass('PullRequestCommit', PullRequestCommitBuilder)},
   reviews: {linked: createConnectionBuilderClass('ReviewConnection', ReviewBuilder)},
   reviewThreads: {linked: createConnectionBuilderClass('ReviewThreadConnection', ReviewThreadBuilder)},
+  timeline: {linked: createConnectionBuilderClass('PullRequestTimeline', PullRequestTimelineItemBuilder)},
   reactionGroups: {linked: ReactionGroupBuilder, plural: true, singularName: 'reactionGroup'},
 });
 
