@@ -2,15 +2,15 @@ import {createSpecBuilderClass} from './helpers';
 
 import {RepositoryBuilder} from './repository';
 import {UserBuilder} from './user';
-import {createConnectionBuilderClass, ConnectionCountBuilder} from './connection';
+import {createConnectionBuilderClass} from './connection';
 import {nextID} from '../id-sequence';
 
 export const ReactionGroupBuilder = createSpecBuilderClass('ReactionGroup', {
   content: {default: 'ROCKET'},
-  users: {linked: createConnectionBuilderClass('ReactingUserConnectionBuilder', UserBuilder)},
+  users: {linked: createConnectionBuilderClass('ReactingUser', UserBuilder)},
 });
 
-export const CommentBuilder = createSpecBuilderClass('PullRequestReviewCommentBuilder', {
+export const CommentBuilder = createSpecBuilderClass('PullRequestReviewComment', {
   __typename: {default: 'PullRequestReviewComment'},
   id: {default: nextID},
   path: {default: 'first.txt'},
@@ -27,9 +27,9 @@ export const CommentBuilder = createSpecBuilderClass('PullRequestReviewCommentBu
   viewerCanMinimize: {default: true},
 });
 
-export const CommentConnectionBuilder = createConnectionBuilderClass('PullRequestReviewCommentConnectionBuilder', CommentBuilder);
+export const CommentConnectionBuilder = createConnectionBuilderClass('PullRequestReviewComment', CommentBuilder);
 
-export const ReviewThreadBuilder = createSpecBuilderClass('ReviewThreadBuilder', {
+export const ReviewThreadBuilder = createSpecBuilderClass('PullRequestReviewThread', {
   __typename: {default: 'PullRequestReviewThread'},
   id: {default: nextID},
   isResolved: {default: false},
@@ -38,7 +38,7 @@ export const ReviewThreadBuilder = createSpecBuilderClass('ReviewThreadBuilder',
   comments: {linked: CommentConnectionBuilder},
 });
 
-export const ReviewBuilder = createSpecBuilderClass('PullRequestReviewBuilder', {
+export const ReviewBuilder = createSpecBuilderClass('PullRequestReview', {
   __typename: {default: 'PullRequestReview'},
   id: {default: nextID},
   submittedAt: {default: '2018-12-28T20:40:55Z'},
@@ -49,7 +49,9 @@ export const ReviewBuilder = createSpecBuilderClass('PullRequestReviewBuilder', 
   reactionGroups: {linked: ReactionGroupBuilder, plural: true, singularName: 'reactionGroup'},
 });
 
-export const PullRequestBuilder = createSpecBuilderClass('PullRequestBuilder', {
+export const CommitConnectionBuilder = createConnectionBuilderClass('PullRequestCommit', CommentBuilder);
+
+export const PullRequestBuilder = createSpecBuilderClass('PullRequest', {
   id: {default: nextID},
   __typename: {default: 'PullRequest'},
   number: {default: 123},
@@ -60,7 +62,7 @@ export const PullRequestBuilder = createSpecBuilderClass('PullRequestBuilder', {
   changedFiles: {default: 5},
   state: {default: 'OPEN'},
   bodyHTML: {default: '', nullable: true},
-  countedCommits: {linked: ConnectionCountBuilder},
+  countedCommits: {linked: CommitConnectionBuilder},
   url: {default: f => {
     const ownerLogin = (f.repository && f.repository.owner && f.repository.owner.login) || 'aaa';
     const repoName = (f.repository && f.repository.name) || 'bbb';

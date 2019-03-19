@@ -1,6 +1,6 @@
 import {createSpecBuilderClass} from './helpers';
 
-export const IssueBuilder = createSpecBuilderClass('IssueBuilder', {
+export const IssueBuilder = createSpecBuilderClass('Issue', {
   __typename: {default: 'Issue'},
   title: {default: 'Something is wrong'},
   number: {default: 123},

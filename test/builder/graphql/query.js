@@ -1,4 +1,5 @@
 import {createSpecBuilderClass} from './helpers';
+export {getSpecRegistry} from './helpers';
 
 import {RepositoryBuilder} from './repository';
 import {PullRequestBuilder} from './pr';
@@ -22,7 +23,7 @@ class SearchResultItemBuilder {
   }
 }
 
-const SearchResultBuilder = createSpecBuilderClass('SearchResultItemCollection', {
+const SearchResultBuilder = createSpecBuilderClass('SearchResultItemConnection', {
   issueCount: {default: 0},
   nodes: {linked: SearchResultItemBuilder, plural: true, singularName: 'node'},
 });
@@ -32,6 +33,12 @@ const QueryBuilder = createSpecBuilderClass('QueryBuilder', {
   search: {linked: SearchResultBuilder},
 });
 
-export function queryBuilder(...nodes) {
-  return new QueryBuilder(nodes);
+export function queryBuilder(node, specRegistry = null) {
+  const options = {};
+
+  if (specRegistry) {
+    options.specRegistry = specRegistry;
+  }
+
+  return new QueryBuilder([node], options);
 }

@@ -8,7 +8,7 @@ import {IssueBuilder} from './issue';
 const PullRequestBuilder = defer('./pr', 'PullRequestBuilder');
 const IssueishBuilder = defer('./issueish', 'IssueishBuilder');
 
-export const RepositoryBuilder = createSpecBuilderClass('RepositoryBuilder', {
+export const RepositoryBuilder = createSpecBuilderClass('Repository', {
   id: {default: nextID},
   name: {default: 'the-repository'},
   url: {default: f => `https://github.com/${f.owner.login}/${f.name}`},

@@ -1,6 +1,6 @@
 import {createSpecBuilderClass} from './helpers';
 
-export const UserBuilder = createSpecBuilderClass('UserBuilder', {
+export const UserBuilder = createSpecBuilderClass('User', {
   login: {default: 'someone'},
   avatarUrl: {default: 'https://avatars3.githubusercontent.com/u/17565?s=32&v=4'},
   url: {default: f => {

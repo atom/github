@@ -25,7 +25,7 @@ export class IssueishBuilder {
 
   build() {
     if (this._value === null) {
-      this._value = new IssueBuilder(...this.args).build();
+      this.beIssue();
     }
 
     return this._value;

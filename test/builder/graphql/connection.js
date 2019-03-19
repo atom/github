@@ -5,17 +5,13 @@ const PageInfoBuilder = createSpecBuilderClass('PageInfo', {
   endCursor: {default: null, nullable: true},
 });
 
-export const ConnectionCountBuilder = createSpecBuilderClass('ConnectionCountBuilder', {
-  totalCount: {default: 0},
-});
-
 export function createConnectionBuilderClass(name, NodeBuilder) {
-  const EdgeBuilder = createSpecBuilderClass('Edge', {
+  const EdgeBuilder = createSpecBuilderClass(`${name}Edge`, {
     cursor: {default: 'zzz'},
     node: {linked: NodeBuilder},
   });
 
-  return createSpecBuilderClass(name, {
+  return createSpecBuilderClass(`${name}Connection`, {
     pageInfo: {linked: PageInfoBuilder},
     edges: {linked: EdgeBuilder, plural: true, singularName: 'edge'},
     nodes: {linked: NodeBuilder, plural: true, singularName: 'node'},

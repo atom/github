@@ -125,14 +125,14 @@ it("will fail because this field is not included in this component's fragment", 
 
 By convention, GraphQL builders should reside in the [`test/builder/graphql`](/test/builder/graphql) directory. Builders are organized into modules by the object type they construct, although some closely interrelated builders may be defined in the same module for convenience, like pull requests and review threads. In general, one builder class should exist for each GraphQL object type that we care about.
 
-GraphQL builders may be constructed with the `createSpecBuilderClass()` method, defined in [`test/builder/graphql/helpers.js`](/test/builder/graphql/helpers.js). It accepts an internal name for the builder, used primarily to generate error messages, and an object describing the behavior of individual fields within that type.
+GraphQL builders may be constructed with the `createSpecBuilderClass()` method, defined in [`test/builder/graphql/helpers.js`](/test/builder/graphql/helpers.js). It accepts the name of the GraphQL type it expects to construct and an object describing the behavior of individual fields within that type.
 
 Each key of the object describes a single field in the GraphQL response that the builder knows how to construct. The value that you provide is a sub-object that customizes the details of that field's construction. The set of keys passed to any single builder should be the **superset** of fields and aliases selected on its type in any query or fragment within the package.
 
 Here's an example that illustrates the behavior of each recognized field description:
 
 ```js
-export const CheckRunBuilder = createSpecBuilderClass('CheckRunBuilder', {
+export const CheckRunBuilder = createSpecBuilderClass('CheckRun', {
   // Simple, scalar field.
   // Generates an accessor method called ".name(_value)" that sets `.name` and returns the builder.
   // The "default" value is used if .name() is not called before `.build()`.
@@ -191,17 +191,17 @@ One common pattern used in GraphQL schema is a [connection type](https://faceboo
 ```js
 import {createConnectionBuilderClass} from './connection';
 
-export const CommentBuilder = createSpecBuilderClass('PullRequestReviewCommentBuilder', {
+export const CommentBuilder = createSpecBuilderClass('PullRequestReviewComment', {
   path: {default: 'first.txt'},
 })
 
 export const CommentConnectionBuilder = createConnectionBuilderClass(
-  'PullRequestReviewCommentConnectionBuilder',
+  'PullRequestReviewComment',
   CommentBuilder,
 );
 
 
-export const ReviewThreadBuilder = createSpecBuilderClass('ReviewThreadBuilder', {
+export const ReviewThreadBuilder = createSpecBuilderClass('PullRequestReviewThread', {
   comments: {linked: CommentConnectionBuilder},
 });
 ```
@@ -240,7 +240,7 @@ const {createSpecBuilderClass, defer} = require('./helpers');
 // * The **exported** name of the builder class
 const PullRequestBuilder = defer('./pr', 'PullRequestBuilder');
 
-const RepositoryBuilder = createSpecBuilderClass({
+const RepositoryBuilder = createSpecBuilderClass('Repository', {
   pullRequest: {linked: PullRequestBuilder},
 
   // ...
