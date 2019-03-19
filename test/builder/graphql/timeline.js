@@ -5,6 +5,15 @@ import {nextID} from '../id-sequence';
 import {UserBuilder} from './user';
 const IssueishBuilder = defer('./issueish', 'IssueishBuilder');
 
+export const StatusContextBuilder = createSpecBuilderClass('StatusContext', {
+  //
+});
+
+export const StatusBuilder = createSpecBuilderClass('Status', {
+  state: {default: 'SUCCESS'},
+  contexts: {linked: StatusContextBuilder, plural: true, singularName: 'context'},
+});
+
 export const CommitBuilder = createSpecBuilderClass('Commit', {
   id: {default: nextID},
   author: {linked: UserBuilder},
@@ -18,6 +27,7 @@ export const CommitBuilder = createSpecBuilderClass('Commit', {
     const sha = f.oid || f.sha || '0000000000000000000000000000000000000000';
     return `https://github.com/atom/github/commit/${sha}`;
   }},
+  status: {linked: StatusBuilder},
 });
 
 export const CommitCommentBuilder = createSpecBuilderClass('CommitComment', {

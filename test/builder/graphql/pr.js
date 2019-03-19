@@ -67,7 +67,7 @@ export const ReviewBuilder = createSpecBuilderClass('PullRequestReview', {
 export const CommitConnectionBuilder = createConnectionBuilderClass('PullRequestCommit', CommentBuilder);
 
 export const PullRequestCommitBuilder = createSpecBuilderClass('PullRequestCommit', {
-  //
+  commit: {linked: CommitBuilder},
 });
 
 export const PullRequestBuilder = createSpecBuilderClass('PullRequest', {
