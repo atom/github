@@ -43,6 +43,13 @@
     .icon:before {
       margin-right: @component-padding / 1.2;
     }
+
+    .icon.refreshing::before {
+      @keyframes github-Reviews-refreshButtonAnimation {
+        100% { transform: rotate(360deg); }
+      }
+      animation: github-Reviews-refreshButtonAnimation 2s linear 30; // limit to 1min in case something gets stuck
+    }
   }
 
   &-headerTitle {
