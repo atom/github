@@ -28,7 +28,7 @@ export class SpecBuilder {
     return new this(typeName => new FragmentSpec(nodes, typeName));
   }
 
-  static onFullQuery(query, debug = false) {
+  static onFullQuery(query) {
     if (!query) {
       /* eslint-disable-next-line no-console */
       console.error(
@@ -36,10 +36,6 @@ export class SpecBuilder {
         "Make sure you're passing GraphQL query text to the builder construction function.",
       );
       throw new Error(`No parsed queries given to ${this.builderName}`);
-    }
-
-    if (debug) {
-      console.log(query);
     }
 
     let rootQuery = null;

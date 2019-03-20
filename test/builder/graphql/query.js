@@ -42,7 +42,7 @@ export function queryBuilder(...nodes) {
 class RelayResponseBuilder extends QueryBuilder {
   static onOperation(op) {
     const doc = parse(new Source(op.text));
-    return this.onFullQuery(doc, op.name === 'issueishSearchContainerQuery');
+    return this.onFullQuery(doc);
   }
 
   build() {
