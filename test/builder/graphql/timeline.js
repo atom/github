@@ -9,6 +9,7 @@ export const StatusContextBuilder = createSpecBuilderClass('StatusContext', {
 });
 
 export const StatusBuilder = createSpecBuilderClass('Status', {
+  id: {default: nextID},
   state: {default: 'SUCCESS'},
   contexts: {linked: StatusContextBuilder, plural: true, singularName: 'context'},
 });
