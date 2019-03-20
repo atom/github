@@ -104,6 +104,16 @@ describe('Decoration', function() {
       assert.equal(child.textContent, 'This is a subtree');
     });
 
+    it('throws an error if `gutterName` prop is not supplied for gutter decorations', function() {
+      const app = (
+        <Decoration editor={editor} decorable={marker} type="gutter">
+          <div className="decoration-subtree">
+            This is a subtree
+          </div>
+        </Decoration>
+      );
+      assert.throws(() => mount(app), 'you are trying to decorate a gutter but did not supply gutterName prop');
+    });
   });
 
   describe('when props update', function() {
