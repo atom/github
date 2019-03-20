@@ -10,5 +10,5 @@ export const UserBuilder = createSpecBuilderClass('User', {
 });
 
 export function userBuilder(...nodes) {
-  return new UserBuilder(nodes);
+  return UserBuilder.onFragmentQuery(nodes);
 }

@@ -100,9 +100,9 @@ export const PullRequestBuilder = createSpecBuilderClass('PullRequest', {
 });
 
 export function reviewThreadBuilder(...nodes) {
-  return new ReviewThreadBuilder(nodes);
+  return ReviewThreadBuilder.onFragmentQuery(nodes);
 }
 
 export function pullRequestBuilder(...nodes) {
-  return new PullRequestBuilder(nodes);
+  return PullRequestBuilder.onFragmentQuery(nodes);
 }

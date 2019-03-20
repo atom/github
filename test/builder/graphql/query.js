@@ -1,3 +1,5 @@
+import {parse, Source} from 'graphql';
+
 import {createSpecBuilderClass} from './base';
 export {getSpecRegistry} from './base';
 
@@ -33,12 +35,21 @@ const QueryBuilder = createSpecBuilderClass('QueryBuilder', {
   search: {linked: SearchResultBuilder},
 });
 
-export function queryBuilder(node, specRegistry = null) {
-  const options = {};
+export function queryBuilder(...nodes) {
+  return QueryBuilder.onFragmentQuery(nodes);
+}
 
-  if (specRegistry) {
-    options.specRegistry = specRegistry;
+class RelayResponseBuilder extends QueryBuilder {
+  static onOperation(op) {
+    const doc = parse(new Source(op.text));
+    return this.onFullQuery(doc, op.name === 'issueishSearchContainerQuery');
   }
 
-  return new QueryBuilder([node], options);
+  build() {
+    return {data: super.build()};
+  }
+}
+
+export function relayResponseBuilder(op) {
+  return RelayResponseBuilder.onOperation(op);
 }

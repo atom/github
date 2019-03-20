@@ -28,5 +28,5 @@ export const IssueBuilder = createSpecBuilderClass('Issue', {
 });
 
 export function issueBuilder(...nodes) {
-  return new IssueBuilder(nodes);
+  return IssueBuilder.onFragmentQuery(nodes);
 }

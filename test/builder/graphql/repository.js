@@ -22,5 +22,5 @@ export const RepositoryBuilder = createSpecBuilderClass('Repository', {
 });
 
 export function repositoryBuilder(...nodes) {
-  return new RepositoryBuilder(nodes);
+  return RepositoryBuilder.onFragmentQuery(nodes);
 }
