@@ -1,4 +1,4 @@
-import {createSpecBuilderClass} from './helpers';
+import {createSpecBuilderClass} from './create-spec-builder';
 
 const PageInfoBuilder = createSpecBuilderClass('PageInfo', {
   hasNextPage: {default: false},

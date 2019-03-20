@@ -1,8 +1,6 @@
 import {nextID} from '../id-sequence';
+import {createSpecBuilderClass, createUnionBuilderClass, createConnectionBuilderClass} from './base';
 
-import {createSpecBuilderClass} from './helpers';
-import {createUnionBuilderClass} from './union';
-import {createConnectionBuilderClass} from './connection';
 import {ReactionGroupBuilder} from './reaction-group';
 import {UserBuilder} from './user';
 import {CommitBuilder, CrossReferencedEventBuilder, IssueCommentBuilder} from './timeline';

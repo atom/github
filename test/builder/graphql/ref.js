@@ -1,7 +1,6 @@
-import {createSpecBuilderClass, defer} from './helpers';
-import {createConnectionBuilderClass} from './connection';
+import {createSpecBuilderClass, createConnectionBuilderClass, defer} from './base';
 
-const PullRequestBuilder = defer('./pr', 'PullRequestBuilder');
+const PullRequestBuilder = defer('../pr', 'PullRequestBuilder');
 
 export const RefBuilder = createSpecBuilderClass('Ref', {
   prefix: {default: 'refs/heads/'},

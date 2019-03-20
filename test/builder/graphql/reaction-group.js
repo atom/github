@@ -1,5 +1,4 @@
-import {createSpecBuilderClass} from './helpers';
-import {createConnectionBuilderClass} from './connection';
+import {createSpecBuilderClass, createConnectionBuilderClass} from './base';
 
 import {UserBuilder} from './user';
 

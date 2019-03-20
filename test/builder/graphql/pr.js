@@ -1,6 +1,4 @@
-import {createSpecBuilderClass} from './helpers';
-import {createConnectionBuilderClass} from './connection';
-import {createUnionBuilderClass} from './union';
+import {createSpecBuilderClass, createConnectionBuilderClass, createUnionBuilderClass} from './base';
 import {nextID} from '../id-sequence';
 
 import {RepositoryBuilder} from './repository';

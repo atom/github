@@ -1,12 +1,12 @@
-import {createSpecBuilderClass, defer} from './helpers';
+import {createSpecBuilderClass, defer} from './base';
 import {nextID} from '../id-sequence';
 
 import {RefBuilder} from './ref';
 import {UserBuilder} from './user';
 import {IssueBuilder} from './issue';
 
-const PullRequestBuilder = defer('./pr', 'PullRequestBuilder');
-const IssueishBuilder = defer('./issueish', 'IssueishBuilder');
+const PullRequestBuilder = defer('../pr', 'PullRequestBuilder');
+const IssueishBuilder = defer('../issueish', 'IssueishBuilder');
 
 export const RepositoryBuilder = createSpecBuilderClass('Repository', {
   id: {default: nextID},

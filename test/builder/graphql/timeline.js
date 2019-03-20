@@ -1,9 +1,8 @@
-import {createSpecBuilderClass, defer} from './helpers';
-import {createConnectionBuilderClass} from './connection';
+import {createSpecBuilderClass, createConnectionBuilderClass, defer} from './base';
 import {nextID} from '../id-sequence';
 
 import {UserBuilder} from './user';
-const IssueishBuilder = defer('./issueish', 'IssueishBuilder');
+const IssueishBuilder = defer('../issueish', 'IssueishBuilder');
 
 export const StatusContextBuilder = createSpecBuilderClass('StatusContext', {
   //

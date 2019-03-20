@@ -1,4 +1,4 @@
-import {createSpecBuilderClass} from './helpers';
+import {createSpecBuilderClass} from './base';
 
 export const UserBuilder = createSpecBuilderClass('User', {
   login: {default: 'someone'},

@@ -1,5 +1,5 @@
-import {createSpecBuilderClass} from './helpers';
-export {getSpecRegistry} from './helpers';
+import {createSpecBuilderClass} from './base';
+export {getSpecRegistry} from './base';
 
 import {RepositoryBuilder} from './repository';
 import {PullRequestBuilder} from './pr';
