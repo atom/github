@@ -1,5 +1,4 @@
-import {Spec} from './spec';
-import {nullSpecRegistry} from './spec-registry';
+import {FragmentSpec, QuerySpec} from './spec';
 import {makeDefaultGetterName} from './names';
 
 // Private symbol used to identify what fields within a Builder have been populated (by a default setter or an
@@ -15,25 +14,55 @@ export class SpecBuilder {
     return this;
   }
 
-  // Construct a SpecBuilder that builds an instance corresponding to a single GraphQL schema type, including only
-  // the fields selected by "nodes".
-  constructor(nodes, options = {}) {
-    this.options = {
-      specRegistry: nullSpecRegistry,
-      ...options,
-    };
-
+  static onFragmentQuery(nodes) {
     if (!nodes || nodes.length === 0) {
       /* eslint-disable-next-line no-console */
       console.error(
-        `No parsed queries given to ${this.builderName}.\n` +
+        `No parsed query fragments given to \`${this.builderName}.onFragmentQuery()\`.\n` +
         "Make sure you're passing a compiled Relay query (__generated__/*.graphql.js module)" +
         ' to the builder construction function.',
       );
       throw new Error(`No parsed queries given to ${this.builderName}`);
     }
 
-    this.spec = new Spec(nodes, this.typeName, this.options.specRegistry);
+    return new this(typeName => new FragmentSpec(nodes, typeName));
+  }
+
+  static onFullQuery(query, debug = false) {
+    if (!query) {
+      /* eslint-disable-next-line no-console */
+      console.error(
+        `No parsed GraphQL queries given to \`${this.builderName}.onFullQuery()\`.\n` +
+        "Make sure you're passing GraphQL query text to the builder construction function.",
+      );
+      throw new Error(`No parsed queries given to ${this.builderName}`);
+    }
+
+    if (debug) {
+      console.log(query);
+    }
+
+    let rootQuery = null;
+    const fragmentsByName = new Map();
+    for (const definition of query.definitions) {
+      if (definition.kind === 'OperationDefinition' && definition.operation === 'query') {
+        rootQuery = definition;
+      } else if (definition.kind === 'FragmentDefinition') {
+        fragmentsByName.set(definition.name.value, definition);
+      }
+    }
+
+    if (rootQuery === null) {
+      throw new Error('Parsed query contained no root query');
+    }
+
+    return new this(typeName => new QuerySpec(rootQuery, typeName, fragmentsByName));
+  }
+
+  // Construct a SpecBuilder that builds an instance corresponding to a single GraphQL schema type, including only
+  // the fields selected by "nodes".
+  constructor(specFn) {
+    this.spec = specFn(this.typeName);
 
     this.knownScalarFieldNames = new Set(this.spec.getRequestedScalarFields());
     this.knownLinkedFieldNames = new Set(this.spec.getRequestedLinkedFields());
@@ -99,7 +128,8 @@ export class SpecBuilder {
     }
 
     const Resolved = Builder.resolve();
-    const builder = new Resolved(this.spec.getLinkedNodes(fieldName), this.options);
+    const specFn = this.spec.getLinkedSpecCreator(fieldName);
+    const builder = new Resolved(specFn);
     block(builder);
     this.fields[fieldName] = builder.build();
 
@@ -125,7 +155,8 @@ export class SpecBuilder {
     }
 
     const Resolved = Builder.resolve();
-    const builder = new Resolved(this.spec.getLinkedNodes(fieldName), this.options);
+    const specFn = this.spec.getLinkedSpecCreator(fieldName);
+    const builder = new Resolved(specFn);
     block(builder);
     this.fields[fieldName].push(builder.build());
 
