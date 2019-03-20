@@ -79,12 +79,12 @@ export class SpecBuilder {
     if (!this.knownScalarFieldNames.has(fieldName)) {
       /* eslint-disable-next-line no-console */
       console.error(
-        `Unrecognized scalar field name ${fieldName} in ${this.builderName}\n` +
+        `Unselected scalar field name ${fieldName} in ${this.builderName}\n` +
         `"${fieldName}" may not be included in the GraphQL fragments you passed to this builder.\n` +
         'It may also be present, but as a linked field, in which case the builder definitions should be updated.\n' +
         'Otherwise, try re-running "npm run relay" to regenerate the compiled GraphQL modules.',
       );
-      throw new Error(`Unrecognized field name ${fieldName} in ${this.builderName}`);
+      throw new Error(`Unselected field name ${fieldName} in ${this.builderName}`);
     }
     this.fields[fieldName] = value;
     return this;
@@ -96,12 +96,12 @@ export class SpecBuilder {
     if (!this.knownScalarFieldNames.has(fieldName)) {
       /* eslint-disable-next-line no-console */
       console.error(
-        `Unrecognized scalar field name ${fieldName} in ${this.builderName}\n` +
+        `Unselected scalar field name ${fieldName} in ${this.builderName}\n` +
         `"${fieldName}" may not be included in the GraphQL fragments you passed to this builder.\n` +
         'It may also be present, but as a linked field, in which case the builder definitions should be updated.\n' +
         'Otherwise, try re-running "npm run relay" to regenerate the compiled GraphQL modules.',
       );
-      throw new Error(`Unrecognized field name ${fieldName} in ${this.builderName}`);
+      throw new Error(`Unselected field name ${fieldName} in ${this.builderName}`);
     }
 
     if (this.fields[fieldName] === UNSET) {
