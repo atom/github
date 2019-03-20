@@ -28,13 +28,19 @@ describe('EditorCommentDecorationsController', function() {
     atomEnv.destroy();
   });
 
-  it('creates line decorations for lines with comments', function() {
+  it('creates a marker for each comment', function() {
+    wrapper = shallow(buildApp({editor}));
+    const markers = wrapper.find(Marker);
+    assert.lengthOf(markers, 2);
+  });
+
+  it('creates a line decoration for each line with a comment', function() {
     wrapper = shallow(buildApp({editor}));
     const decorations = wrapper.find(Decoration);
     assert.lengthOf(decorations.findWhere(decoration => decoration.prop('type') === 'line'), 2);
   });
 
-  it('creates gutter decorations for lines with comments', function() {
+  it('creates a gutter decoration for each line with a comment', function() {
     wrapper = shallow(buildApp({editor}));
     const decorations = wrapper.find(Decoration);
     assert.lengthOf(decorations.findWhere(decoration => decoration.prop('type') === 'gutter'), 2);
