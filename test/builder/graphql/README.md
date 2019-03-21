@@ -121,6 +121,81 @@ it("will fail because this field is not included in this component's fragment", 
 })
 ```
 
+### Integration tests
+
+Within our [integration tests](/test/integration), rather than constructing data to mimic what Relay is expected to provide a single component, we need to mimic what Relay itself expects to see from the live GraphQL API. These tests use the `expectRelayQuery()` method to supply this mock data to Relay's network layer. However, the format of the response data differs from the props passed to any component wrapped in a fragment container:
+
+* Relay implicitly selects `id` and `__typename` fields on certain GraphQL types (but not all of them).
+* Data from non-inline fragment spreads are included in-place.
+* The top-level object is wrapped in a `{data: }` sandwich.
+
+To generate mock data consistent with the final GraphQL query, use the special `relayResponseBuilder()`. The Relay response builder is able to parse the actual query text and use _that_ instead of a pre-parsed relay-compiler fragment to choose which fields to include.
+
+```js
+import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
+import {relayResponseBuilder} from '../builder/graphql/query';
+
+describe('integration: doing a thing', function() {
+  function expectSomeQuery() {
+    return expectRelayQuery({
+      name: 'someContainerQuery',
+      variables: {
+        one: 1,
+        two: 'two',
+      },
+    }, op => {
+      return relayResponseBuilder(op)
+        .repository(r => {
+          // These builders operate as before
+          r.name('pushbot');
+        })
+        .build();
+    })
+  }
+
+  // ...
+});
+```
+
+⚠️ One major problem to watch for: if two queries used by the same integration test return data for _the same field_, you _must ensure that the IDs of the objects built at that field are the same_. Otherwise, you'll mess up Relay's store and start to see `undefined` for fields extracted from props.
+
+For example:
+
+```js
+import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
+import {relayResponseBuilder} from '../builder/graphql/query';
+
+describe('integration: doing a thing', function() {
+  const repositoryID = 'repository0';
+
+  // query { repository(name: 'x', owner: 'y') { pullRequest(number: 123) { id } } }
+  function expectQueryOne() {
+    return expectRelayQuery({name: 'containerOneQuery'}, op => {
+      return relayResponseBuilder(op)
+        .repository(r => {
+          r.id(repositoryID); // <-- MUST MATCH
+          r.pullRequest(pr => pr.number(123));
+        })
+        .build();
+    })
+  }
+
+  // query { repository(name: 'x', owner: 'y') { issue(number: 456) { id } } }
+  function expectQueryTwo() {
+    return expectRelayQuery({name: 'containerTwoQuery'}, op => {
+      return relayResponseBuilder(op)
+        .repository(r => {
+          r.id(repositoryID); // <-- MUST MATCH
+          r.issue(i => i.number(456));
+        })
+        .build();
+    })
+  }
+
+  // ...
+});
+```
+
 ## Writing builders
 
 By convention, GraphQL builders should reside in the [`test/builder/graphql`](/test/builder/graphql) directory. Builders are organized into modules by the object type they construct, although some closely interrelated builders may be defined in the same module for convenience, like pull requests and review threads. In general, one builder class should exist for each GraphQL object type that we care about.
