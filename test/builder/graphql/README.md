@@ -207,7 +207,7 @@ Each key of the object describes a single field in the GraphQL response that the
 Here's an example that illustrates the behavior of each recognized field description:
 
 ```js
-import {createSpecBuilderClass} from './base/create-spec-builder';
+import {createSpecBuilderClass} from './base';
 
 export const CheckRunBuilder = createSpecBuilderClass('CheckRun', {
   // Simple, scalar field.
@@ -267,7 +267,7 @@ export function checkRunBuilder(...nodes) {
 One common pattern used in GraphQL schema is a [connection type](https://facebook.github.io/relay/graphql/connections.htm) for traversing a paginated collection. The `createConnectionBuilderClass()` method constructs the builders needed, saving a little bit of boilerplate.
 
 ```js
-import {createConnectionBuilderClass} from './base/create-connection-builder';
+import {createConnectionBuilderClass} from './base';
 
 export const CommentBuilder = createSpecBuilderClass('PullRequestReviewComment', {
   path: {default: 'first.txt'},
@@ -309,8 +309,7 @@ const reviewThread = reviewThreadBuilder(query)
 Sometimes, a GraphQL field's type will be specified as an interface which many concrete types may implement. To allow callers to construct the linked object as one of the concrete types, use a _union builder class_:
 
 ```js
-import {createSpecBuilderClass} from './base/create-spec-builder';
-import {createUnionBuilderClass} from './base/create-union-builder';
+import {createSpecBuilderClass, createUnionBuilderClass} from './base';
 
 // A pair of builders for concrete types
 
@@ -357,7 +356,7 @@ When writing builders, you'll often hit a situation where two builders in two so
 To resolve this, on either side, use the `defer()` helper to lazily load the builder when it's used:
 
 ```js
-const {createSpecBuilderClass, defer} = require('./helpers');
+const {createSpecBuilderClass, defer} = require('./base');
 
 // defer() accepts:
 // * The module to load **relative to the ./helpers module**
