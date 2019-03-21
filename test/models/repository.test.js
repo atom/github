@@ -159,6 +159,46 @@ describe('Repository', function() {
     assert.isTrue(repository.showStatusBarTiles());
   });
 
+  describe('getCurrentGitHubRemote', function() {
+    let workdir, repository;
+    beforeEach(async function() {
+      workdir = await cloneRepository('three-files');
+      repository = new Repository(workdir);
+      await repository.getLoadPromise();
+    });
+    it('gets current GitHub remote if remote is configured', async function() {
+      await repository.addRemote('yes0', 'git@github.com:atom/github.git');
+
+      const remote = await repository.getCurrentGitHubRemote();
+      assert.strictEqual(remote.url, 'git@github.com:atom/github.git');
+      assert.strictEqual(remote.name, 'yes0');
+    });
+
+    it('returns null remote no remotes exist', async function() {
+      const remote = await repository.getCurrentGitHubRemote();
+      assert.isFalse(remote.isPresent());
+    });
+
+    it('returns null remote if only non-GitHub remotes exist', async function() {
+      await repository.addRemote('no0', 'https://sourceforge.net/some/repo.git');
+      const remote = await repository.getCurrentGitHubRemote();
+      assert.isFalse(remote.isPresent());
+    });
+
+    it('returns null remote if no remotes are configured and multiple GitHub remotes exist', async function() {
+      await repository.addRemote('yes0', 'git@github.com:atom/github.git');
+      await repository.addRemote('yes1', 'git@github.com:smashwilson/github.git');
+      const remote = await repository.getCurrentGitHubRemote();
+      assert.isFalse(remote.isPresent());
+    });
+
+    it('returns null remote before repository has loaded', async function() {
+      const loadingRepository = new Repository(workdir);
+      const remote = await loadingRepository.getCurrentGitHubRemote();
+      assert.isFalse(remote.isPresent());
+    });
+  });
+
   describe('getGitDirectoryPath', function() {
     it('returns the correct git directory path', async function() {
       const workingDirPath = await cloneRepository('three-files');
