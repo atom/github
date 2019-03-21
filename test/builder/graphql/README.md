@@ -207,6 +207,8 @@ Each key of the object describes a single field in the GraphQL response that the
 Here's an example that illustrates the behavior of each recognized field description:
 
 ```js
+import {createSpecBuilderClass} from './base/create-spec-builder';
+
 export const CheckRunBuilder = createSpecBuilderClass('CheckRun', {
   // Simple, scalar field.
   // Generates an accessor method called ".name(_value)" that sets `.name` and returns the builder.
@@ -255,7 +257,7 @@ export const CheckRunBuilder = createSpecBuilderClass('CheckRun', {
 // By convention, I export a method that creates each top-level builder type. (It makes the method call read slightly
 // cleaner.)
 export function checkRunBuilder(...nodes) {
-  return new CheckRunBuilder(nodes);
+  return CheckRunBuilder.onFragmentQuery(nodes);
 }
 ```
 
@@ -264,7 +266,7 @@ export function checkRunBuilder(...nodes) {
 One common pattern used in GraphQL schema is a [connection type](https://facebook.github.io/relay/graphql/connections.htm) for traversing a paginated collection. The `createConnectionBuilderClass()` method constructs the builders needed, saving a little bit of boilerplate.
 
 ```js
-import {createConnectionBuilderClass} from './connection';
+import {createConnectionBuilderClass} from './base/create-connection-builder';
 
 export const CommentBuilder = createSpecBuilderClass('PullRequestReviewComment', {
   path: {default: 'first.txt'},
@@ -298,6 +300,52 @@ const reviewThread = reviewThreadBuilder(query)
   // Can also populate the direct "nodes" link
   .addNode(c => c.path('file1.txt'));
   .totalCount(100) // Will be inferred from `.addNode` or `.addEdge` calls if either are configured
+  .build();
+```
+
+### Union types
+
+Sometimes, a GraphQL field's type will be specified as an interface which many concrete types may implement. To allow callers to construct the linked object as one of the concrete types, use a _union builder class_:
+
+```js
+import {createSpecBuilderClass} from './base/create-spec-builder';
+import {createUnionBuilderClass} from './base/create-union-builder';
+
+// A pair of builders for concrete types
+
+const IssueBuilder = createSpecBuilderClass('Issue', {
+  number: {default: 100},
+});
+
+const PullRequestBuilder = createSpecBuilderClass('PullRequest', {
+  number: {default: 200},
+});
+
+// A union builder that may construct either of them.
+// The convention is to specify each alternative as "beTypeName()".
+
+const IssueishBuilder = createUnionBuilderClass('Issueish', {
+  beIssue: IssueBuilder,
+  bePullRequest: PullRequestBuilder,
+  default: 'beIssue',
+});
+
+// Another builder that uses the union builder as a linked type
+
+const RepositoryBuilder = createSpecBuilderClass('Repository', {
+  issueOrPullRequest: {linked: IssueishBuilder},
+});
+```
+
+The concrete type for a specific response may be chosen by calling one of the "be" methods on the union builder, which behaves just like a linked field:
+
+```js
+repositoryBuilder(someFragment)
+  .issueOrPullRequest(u => {
+    u.bePullRequest(pr => {
+      pr.number(300);
+    });
+  })
   .build();
 ```
 
