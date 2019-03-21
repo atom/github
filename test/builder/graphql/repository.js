@@ -19,7 +19,7 @@ export const RepositoryBuilder = createSpecBuilderClass('Repository', {
   issue: {linked: IssueBuilder, nullable: true},
   pullRequest: {linked: PullRequestBuilder, nullable: true},
   issueish: {linked: IssueishBuilder, nullable: true},
-});
+}, 'Node & ProjectOwner & RegistryPackageOwner & Subscribable & Starrable & UniformResourceLocatable & RepositoryInfo');
 
 export function repositoryBuilder(...nodes) {
   return RepositoryBuilder.onFragmentQuery(nodes);

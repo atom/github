@@ -30,7 +30,7 @@ const SearchResultBuilder = createSpecBuilderClass('SearchResultItemConnection',
   nodes: {linked: SearchResultItemBuilder, plural: true, singularName: 'node'},
 });
 
-const QueryBuilder = createSpecBuilderClass('QueryBuilder', {
+const QueryBuilder = createSpecBuilderClass('Query', {
   repository: {linked: RepositoryBuilder},
   search: {linked: SearchResultBuilder},
 });

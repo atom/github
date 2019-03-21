@@ -38,7 +38,7 @@ export const CommentBuilder = createSpecBuilderClass('PullRequestReviewComment',
   minimizedReason: {default: null, nullable: true},
   viewerCanReact: {default: true},
   viewerCanMinimize: {default: true},
-});
+}, 'Node & Comment & Deletable & Updatable & UpdatableComment & Reactable & RepositoryNode');
 
 export const CommentConnectionBuilder = createConnectionBuilderClass('PullRequestReviewComment', CommentBuilder);
 
@@ -49,7 +49,7 @@ export const ReviewThreadBuilder = createSpecBuilderClass('PullRequestReviewThre
   viewerCanResolve: {default: f => !f.isResolved},
   viewerCanUnresolve: {default: f => !!f.isResolved},
   comments: {linked: CommentConnectionBuilder},
-});
+}, 'Node');
 
 export const ReviewBuilder = createSpecBuilderClass('PullRequestReview', {
   __typename: {default: 'PullRequestReview'},
@@ -60,14 +60,14 @@ export const ReviewBuilder = createSpecBuilderClass('PullRequestReview', {
   author: {linked: UserBuilder},
   comments: {linked: CommentConnectionBuilder},
   reactionGroups: {linked: ReactionGroupBuilder, plural: true, singularName: 'reactionGroup'},
-});
+}, 'Node & Comment & Deletable & Updatable & UpdatableComment & Reactable & RepositoryNode');
 
 export const CommitConnectionBuilder = createConnectionBuilderClass('PullRequestCommit', CommentBuilder);
 
 export const PullRequestCommitBuilder = createSpecBuilderClass('PullRequestCommit', {
   id: {default: nextID},
   commit: {linked: CommitBuilder},
-});
+}, 'Node & UniformResourceLocatable');
 
 export const PullRequestBuilder = createSpecBuilderClass('PullRequest', {
   id: {default: nextID},
@@ -98,7 +98,10 @@ export const PullRequestBuilder = createSpecBuilderClass('PullRequest', {
   reviewThreads: {linked: createConnectionBuilderClass('ReviewThreadConnection', ReviewThreadBuilder)},
   timeline: {linked: createConnectionBuilderClass('PullRequestTimeline', PullRequestTimelineItemBuilder)},
   reactionGroups: {linked: ReactionGroupBuilder, plural: true, singularName: 'reactionGroup'},
-});
+},
+'Node & Assignable & Closable & Comment & Updatable & UpdatableComment & Labelable & Lockable & Reactable & ' +
+'RepositoryNode & Subscribable & UniformResourceLocatable',
+);
 
 export function reviewThreadBuilder(...nodes) {
   return ReviewThreadBuilder.onFragmentQuery(nodes);

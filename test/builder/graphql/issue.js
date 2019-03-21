@@ -25,7 +25,10 @@ export const IssueBuilder = createSpecBuilderClass('Issue', {
     const id = f.id || '1';
     return `https://github.com/atom/github/issue/${id}`;
   }},
-});
+},
+'Node & Assignable & Closable & Comment & Updatable & UpdatableComment & Labelable & Lockable & Reactable & ' +
+  'RepositoryNode & Subscribable & UniformResourceLocatable',
+);
 
 export function issueBuilder(...nodes) {
   return IssueBuilder.onFragmentQuery(nodes);
