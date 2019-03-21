@@ -251,8 +251,9 @@ export const CheckRunBuilder = createSpecBuilderClass('CheckRun', {
   // set to the builder instance, so you can use this to define things like arbitrary, composite field setters, or field
   // aliases.
   extra: {custom: function() {}},
-})
 
+// (Optional) a String describing the interfaces implemented by this type in the schema, separated by &.
+}, 'Node & UniformResourceLocatable');
 
 // By convention, I export a method that creates each top-level builder type. (It makes the method call read slightly
 // cleaner.)
