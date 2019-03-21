@@ -72,6 +72,7 @@
     "underscore-plus": "1.6.8",
     "what-the-diff": "0.5.0",
     "what-the-status": "1.0.3",
+    "whats-my-line": "file:../hubkit/whats-my-line",
     "yubikiri": "2.0.0"
   },
   "devDependencies": {
