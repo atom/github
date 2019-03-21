@@ -5,22 +5,171 @@ import {setup, teardown} from './helpers';
 import {PAGE_SIZE} from '../../lib/helpers';
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import GitShellOutStrategy from '../../lib/git-shell-out-strategy';
-import {createRepositoryResult} from '../fixtures/factories/repository-result';
-import IDGenerator from '../fixtures/factories/id-generator';
-import {createPullRequestsResult, createPullRequestDetailResult} from '../fixtures/factories/pull-request-result';
+import {relayResponseBuilder} from '../builder/graphql/query';
 
 describe('integration: check out a pull request', function() {
-  let context, wrapper, atomEnv, workspaceElement, git, idGen, repositoryID;
+  let context, wrapper, atomEnv, workspaceElement, git;
+  let repositoryID, headRefID;
+
+  function expectRepositoryQuery() {
+    return expectRelayQuery({
+      name: 'remoteContainerQuery',
+      variables: {
+        owner: 'owner',
+        name: 'repo',
+      },
+    }, op => {
+      return relayResponseBuilder(op)
+        .repository(r => r.id(repositoryID))
+        .build();
+    });
+  }
+
+  function expectCurrentPullRequestQuery() {
+    return expectRelayQuery({
+      name: 'currentPullRequestContainerQuery',
+      variables: {
+        headOwner: 'owner',
+        headName: 'repo',
+        headRef: 'refs/heads/pr-head',
+        first: 5,
+      },
+    }, op => {
+      return relayResponseBuilder(op)
+        .repository(r => {
+          r.id(repositoryID);
+          r.ref(ref => ref.id(headRefID));
+        })
+        .build();
+    });
+  }
+
+  function expectIssueishSearchQuery() {
+    return expectRelayQuery({
+      name: 'issueishSearchContainerQuery',
+      variables: {
+        query: 'repo:owner/repo type:pr state:open',
+        first: 20,
+      },
+    }, op => {
+      return relayResponseBuilder(op)
+        .search(s => {
+          s.issueCount(10);
+          for (const n of [0, 1, 2]) {
+            s.addNode(r => r.bePullRequest(pr => pr.number(n)));
+          }
+        })
+        .build();
+    });
+  }
+
+  function expectIssueishDetailQuery() {
+    return expectRelayQuery({
+      name: 'issueishDetailContainerQuery',
+      variables: {
+        repoOwner: 'owner',
+        repoName: 'repo',
+        issueishNumber: 1,
+        timelineCount: PAGE_SIZE,
+        timelineCursor: null,
+        commitCount: PAGE_SIZE,
+        commitCursor: null,
+        reviewCount: PAGE_SIZE,
+        reviewCursor: null,
+        threadCount: PAGE_SIZE,
+        threadCursor: null,
+        commentCount: PAGE_SIZE,
+        commentCursor: null,
+      },
+    }, op => {
+      return relayResponseBuilder(op)
+        .repository(r => {
+          r.id(repositoryID);
+          r.name('repo');
+          r.owner(o => o.login('owner'));
+          r.issueish(b => {
+            b.bePullRequest(pr => {
+              pr.id('pr1');
+            });
+          });
+          r.nullIssue();
+          r.pullRequest(pr => {
+            pr.id('pr1');
+            pr.number(1);
+            pr.title('Pull Request 1');
+            pr.headRefName('pr-head');
+            pr.headRepository(hr => {
+              hr.name('repo');
+              hr.owner(o => o.login('owner'));
+            });
+            pr.recentCommits(conn => conn.addEdge());
+          });
+        })
+        .build();
+    });
+  }
+
+  function expectMentionableUsersQuery() {
+    return expectRelayQuery({
+      name: 'GetMentionableUsers',
+      variables: {
+        owner: 'owner',
+        name: 'repo',
+        first: 100,
+        after: null,
+      },
+    }, {
+      repository: {
+        mentionableUsers: {
+          nodes: [{login: 'smashwilson', email: 'smashwilson@github.com', name: 'Me'}],
+          pageInfo: {hasNextPage: false, endCursor: 'zzz'},
+        },
+      },
+    });
+  }
+
+  function expectCommentDecorationsQuery() {
+    return expectRelayQuery({
+      name: 'commentDecorationsContainerQuery',
+      variables: {
+        headOwner: 'owner',
+        headName: 'repo',
+        headRef: 'refs/heads/pr-head',
+        reviewCount: 50,
+        reviewCursor: null,
+        threadCount: 50,
+        threadCursor: null,
+        commentCount: 50,
+        commentCursor: null,
+        first: 1,
+      },
+    }, op => {
+      return relayResponseBuilder(op)
+        .repository(r => {
+          r.id(repositoryID);
+          r.ref(ref => ref.id(headRefID));
+        })
+        .build();
+    });
+  }
 
   beforeEach(async function() {
+    repositoryID = 'repository0';
+    headRefID = 'headref0';
+
+    expectRepositoryQuery().resolve();
+    expectIssueishSearchQuery().resolve();
+    expectIssueishDetailQuery().resolve();
+    expectMentionableUsersQuery().resolve();
+    expectCurrentPullRequestQuery().resolve();
+    expectCommentDecorationsQuery().resolve();
+
     context = await setup({
       initialRoots: ['three-files'],
     });
     wrapper = context.wrapper;
     atomEnv = context.atomEnv;
     workspaceElement = context.workspaceElement;
-    idGen = new IDGenerator();
-    repositoryID = idGen.generate('repository');
 
     await context.loginModel.setToken('https://api.github.com', 'good-token');
 
@@ -57,141 +206,7 @@ describe('integration: check out a pull request', function() {
     await teardown(context);
   });
 
-  function expectRepositoryQuery() {
-    return expectRelayQuery({
-      name: 'remoteContainerQuery',
-      variables: {
-        owner: 'owner',
-        name: 'repo',
-      },
-    }, {
-      repository: createRepositoryResult({id: repositoryID}),
-    });
-  }
-
-  function expectCurrentPullRequestQuery() {
-    return expectRelayQuery({
-      name: 'currentPullRequestContainerQuery',
-      variables: {
-        headOwner: 'owner',
-        headName: 'repo',
-        headRef: 'refs/heads/pr-head',
-        first: 5,
-      },
-    }, {
-      repository: {
-        id: repositoryID,
-        ref: {
-          id: idGen.generate('ref'),
-          associatedPullRequests: {
-            totalCount: 0,
-            nodes: [],
-          },
-        },
-      },
-    });
-  }
-
-  function expectIssueishSearchQuery() {
-    return expectRelayQuery({
-      name: 'issueishSearchContainerQuery',
-      variables: {
-        query: 'repo:owner/repo type:pr state:open',
-        first: 20,
-      },
-    }, {
-      search: {
-        issueCount: 10,
-        nodes: createPullRequestsResult(
-          {number: 0},
-          {number: 1},
-          {number: 2},
-        ),
-      },
-    });
-  }
-
-  function expectIssueishDetailQuery() {
-    const result = {
-      repository: {
-        id: repositoryID,
-        name: 'repo',
-        owner: {
-          __typename: 'User',
-          id: 'user0',
-          login: 'owner',
-        },
-        pullRequest: createPullRequestDetailResult({
-          number: 1,
-          title: 'Pull Request 1',
-          headRefName: 'pr-head',
-          headRepositoryName: 'repo',
-          headRepositoryLogin: 'owner',
-        }),
-      },
-    };
-
-    return expectRelayQuery({
-      name: 'issueishDetailContainerQuery',
-      variables: {
-        repoOwner: 'owner',
-        repoName: 'repo',
-        issueishNumber: 1,
-        timelineCount: PAGE_SIZE,
-        timelineCursor: null,
-        commitCount: PAGE_SIZE,
-        commitCursor: null,
-        reviewCount: PAGE_SIZE,
-        reviewCursor: null,
-        commentCount: PAGE_SIZE,
-        commentCursor: null,
-      },
-    }, result);
-  }
-
-  function expectMentionableUsersQuery() {
-    return expectRelayQuery({
-      name: 'GetMentionableUsers',
-      variables: {
-        owner: 'owner',
-        name: 'repo',
-        first: 100,
-        after: null,
-      },
-    }, {
-      repository: {
-        mentionableUsers: {
-          nodes: [{login: 'smashwilson', email: 'smashwilson@github.com', name: 'Me'}],
-          pageInfo: {hasNextPage: false, endCursor: 'zzz'},
-        },
-      },
-    });
-  }
-
-  // achtung! this test is flaky
   it('opens a pane item for a pull request by clicking on an entry in the GitHub tab', async function() {
-    this.retries(5); // FLAKE
-
-    const {resolve: resolve0, promise: promise0} = expectRepositoryQuery();
-    resolve0();
-    await promise0;
-
-    const {resolve: resolve1, promise: promise1} = expectIssueishSearchQuery();
-    resolve1();
-    await promise1;
-
-    const {resolve: resolve2, promise: promise2} = expectIssueishDetailQuery();
-    resolve2();
-    await promise2;
-
-    const {resolve: resolve3, promise: promise3} = expectMentionableUsersQuery();
-    resolve3();
-    await promise3;
-
-    const {resolve: resolve4, promise: promise4} = expectCurrentPullRequestQuery();
-    resolve4();
-    await promise4;
-
     // Open the GitHub tab and wait for results to be rendered
     await atomEnv.commands.dispatch(workspaceElement, 'github:toggle-github-tab');
     await assert.async.isTrue(wrapper.update().find('.github-IssueishList-item').exists());
