@@ -6,6 +6,7 @@ steps:
 - powershell: |
     Set-StrictMode -Version Latest
     if ($env:SSH_PRIVATEKEY) {
+      New-Item -ItemType "directory" -Path "${env:HOMEDRIVE}${env:HOMEPATH}\.ssh"
       $env:SSH_PRIVATEKEY > "${env:HOMEDRIVE}${env:HOMEPATH}\.ssh\id_rsa"
     }
 

@@ -4,7 +4,11 @@ parameters:
 
 steps:
 - bash: |
-    if [ -n "${SSH_PRIVATEKEY}" ]; then echo "${SSH_PRIVATEKEY}" > ${HOME}/.ssh/id_rsa; fi
+    if [ -n "${SSH_PRIVATEKEY}" ]; then
+      mkdir -p ${HOME}/.ssh/
+      chmod 700 ${HOME}/.ssh/
+      echo "${SSH_PRIVATEKEY}" > ${HOME}/.ssh/id_rsa
+    fi
     curl -s -L "https://atom.io/download/mac?channel=${ATOM_CHANNEL}" \
       -H 'Accept: application/octet-stream' \
       -o "atom.zip"
