@@ -22,10 +22,12 @@ import {makeDefaultGetterName, makeNullableFunctionName, makeAdderFunctionName} 
 // * "custom" installs its value as a method on the generated Builder with the provided field name.
 //
 // See the README in this directory for examples.
-export function createSpecBuilderClass(typeName, fieldDescriptions) {
+export function createSpecBuilderClass(typeName, fieldDescriptions, interfaces = '') {
   class Builder extends SpecBuilder {}
   Builder.prototype.typeName = typeName;
   Builder.prototype.builderName = typeName + 'Builder';
+
+  Builder.prototype.allTypeNames = new Set([typeName, ...interfaces.split(/\s*&\s*/)]);
 
   // These functions are used to install functions on the Builder class that implement specific access patterns. They're
   // implemented here as inner functions to avoid the use of function literals within a loop.

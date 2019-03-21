@@ -25,7 +25,7 @@ export class SpecBuilder {
       throw new Error(`No parsed queries given to ${this.builderName}`);
     }
 
-    return new this(typeName => new FragmentSpec(nodes, typeName));
+    return new this(typeNameSet => new FragmentSpec(nodes, typeNameSet));
   }
 
   static onFullQuery(query) {
@@ -52,13 +52,13 @@ export class SpecBuilder {
       throw new Error('Parsed query contained no root query');
     }
 
-    return new this(typeName => new QuerySpec(rootQuery, typeName, fragmentsByName));
+    return new this(typeNameSet => new QuerySpec(rootQuery, typeNameSet, fragmentsByName));
   }
 
   // Construct a SpecBuilder that builds an instance corresponding to a single GraphQL schema type, including only
   // the fields selected by "nodes".
   constructor(specFn) {
-    this.spec = specFn(this.typeName);
+    this.spec = specFn(this.allTypeNames);
 
     this.knownScalarFieldNames = new Set(this.spec.getRequestedScalarFields());
     this.knownLinkedFieldNames = new Set(this.spec.getRequestedLinkedFields());

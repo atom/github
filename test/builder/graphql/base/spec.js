@@ -29,7 +29,7 @@ export class FragmentSpec extends Spec {
 
   // Normalize an Array of "node" objects imported from *.graphql.js files. Wrap them in a Spec instance to take
   // advantage of query methods.
-  constructor(nodes, typeName) {
+  constructor(nodes, typeNameSet) {
     super();
 
     const gettersByKind = {
@@ -63,7 +63,7 @@ export class FragmentSpec extends Spec {
         if (selections[i].kind === 'InlineFragment') {
           // Replace inline fragments in-place with their selected fields *if* the GraphQL type name matches.
 
-          if (selections[i].type !== typeName) {
+          if (!typeNameSet.has(selections[i].type)) {
             continue;
           }
           spreads.set(i, selections[i].selections);
@@ -118,16 +118,15 @@ export class FragmentSpec extends Spec {
     if (subNodes.length === 0) {
       throw new Error(`Unable to find linked field ${name}`);
     }
-    return typeName => new FragmentSpec(subNodes, typeName);
+    return typeNameSet => new FragmentSpec(subNodes, typeNameSet);
   }
 }
 
 export class QuerySpec extends Spec {
-  constructor(root, typeName, fragmentsByName) {
+  constructor(root, typeNameSet, fragmentsByName) {
     super();
 
     this.root = root;
-    this.typeName = typeName;
     this.fragmentsByName = fragmentsByName;
 
     // Discover and (recursively) flatten any fragment spreads in-place.
@@ -137,7 +136,7 @@ export class QuerySpec extends Spec {
         if (selections[i].kind === 'InlineFragment') {
           // Replace inline fragments in-place with their selected fields *if* the GraphQL type name matches.
 
-          if (selections[i].typeCondition.kind !== 'NamedType' || selections[i].typeCondition.name.value !== typeName) {
+          if (selections[i].typeCondition.kind !== 'NamedType' || !typeNameSet.has(selections[i].typeCondition.name.value)) {
             continue;
           }
           spreads.set(i, selections[i].selectionSet.selections);
@@ -149,7 +148,7 @@ export class QuerySpec extends Spec {
           if (!fragment) {
             throw new Error(`Reference to unknown fragment: ${selections[i].name.value}`);
           }
-          if (fragment.typeCondition.kind !== 'NamedType' || fragment.typeCondition.name.value !== typeName) {
+          if (fragment.typeCondition.kind !== 'NamedType' || !typeNameSet.has(fragment.typeCondition.name.value)) {
             continue;
           }
 
@@ -192,7 +191,7 @@ export class QuerySpec extends Spec {
 
       const fieldName = (selection.alias || selection.name).value;
       if (fieldName === name) {
-        return typeName => new QuerySpec(selection, typeName, this.fragmentsByName);
+        return typeNameSet => new QuerySpec(selection, typeNameSet, this.fragmentsByName);
       }
     }
 
