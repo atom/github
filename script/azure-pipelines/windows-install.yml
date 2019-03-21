@@ -5,12 +5,6 @@ parameters:
 steps:
 - powershell: |
     Set-StrictMode -Version Latest
-    if ($env:SSH_PRIVATEKEY) {
-      New-Item -ItemType "directory" -Path "${env:HOMEDRIVE}${env:HOMEPATH}\.ssh"
-      "github.com ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==" > "${env:HOMEDRIVE}${env:HOMEPATH}\.ssh\known_hosts"
-      $env:SSH_PRIVATEKEY > "${env:HOMEDRIVE}${env:HOMEPATH}\.ssh\id_rsa"
-    }
-
     $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
 
     Write-Host "Downloading latest Atom release"
@@ -22,7 +16,6 @@ steps:
   displayName: install Atom
   env:
     ATOM_CHANNEL: ${{ parameters.atom_channel }}
-    SSH_PRIVATEKEY: $(ssh.privateKey)
 - powershell: |
     Set-StrictMode -Version Latest
     $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
