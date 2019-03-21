@@ -1,7 +1,6 @@
 import {parse, Source} from 'graphql';
 
 import {createSpecBuilderClass} from './base';
-export {getSpecRegistry} from './base';
 
 import {RepositoryBuilder} from './repository';
 import {PullRequestBuilder} from './pr';
