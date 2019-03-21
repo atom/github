@@ -5,6 +5,10 @@ parameters:
 steps:
 - powershell: |
     Set-StrictMode -Version Latest
+    if ($env:SSH_PRIVATEKEY) {
+      $env:SSH_PRIVATEKEY > "${env:HOMEDRIVE}${env:HOMEPATH}\.ssh\id_rsa"
+    }
+
     $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
 
     Write-Host "Downloading latest Atom release"
@@ -16,6 +20,7 @@ steps:
   displayName: install Atom
   env:
     ATOM_CHANNEL: ${{ parameters.atom_channel }}
+    SSH_PRIVATEKEY: $(ssh.privateKey)
 - powershell: |
     Set-StrictMode -Version Latest
     $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"

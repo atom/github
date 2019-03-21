@@ -4,6 +4,7 @@ parameters:
 
 steps:
 - bash: |
+    if [ -n "${SSH_PRIVATEKEY}" ]; then echo "${SSH_PRIVATEKEY}" > ${HOME}/.ssh/id_rsa; fi
     curl -s -L "https://atom.io/download/deb?channel=${ATOM_CHANNEL}" \
       -H 'Accept: application/octet-stream' \
       -o 'atom-amd64.deb'
@@ -13,6 +14,7 @@ steps:
   displayName: install Atom
   env:
     ATOM_CHANNEL: ${{ parameters.atom_channel }}
+    SSH_PRIVATEKEY: $(ssh.privateKey)
 - bash: |
     "/tmp/atom/usr/share/${ATOM_NAME}/resources/app/apm/bin/apm" ci
   displayName: install dependencies
