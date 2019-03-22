@@ -2,18 +2,29 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import {BareEmojiReactionsView} from '../../lib/views/emoji-reactions-view';
+import ReactionPickerView from '../../lib/views/reaction-picker-view';
 import {issueBuilder} from '../builder/graphql/issue';
 
 import reactableQuery from '../../lib/views/__generated__/emojiReactionsView_reactable.graphql';
 
 describe('EmojiReactionsView', function() {
+  let atomEnv;
+
+  beforeEach(function() {
+    atomEnv = global.buildAtomEnvironment();
+  });
+
+  afterEach(function() {
+    atomEnv.destroy();
+  });
+
   function buildApp(override = {}) {
     return (
       <BareEmojiReactionsView
+        reactable={issueBuilder(reactableQuery).build()}
         addReaction={() => {}}
         removeReaction={() => {}}
-        openReactionPicker={() => {}}
-        reactable={issueBuilder(reactableQuery).build()}
+        tooltips={atomEnv.tooltips}
         {...override}
       />
     );
@@ -104,19 +115,7 @@ describe('EmojiReactionsView', function() {
 
     const wrapper = shallow(buildApp({reactable}));
     assert.isTrue(wrapper.exists('.github-EmojiReactions-add'));
-  });
-
-  it('opens the reaction picker when the "add emoji" control is clicked', function() {
-    const openReactionPicker = sinon.spy();
-    const reactable = issueBuilder(reactableQuery)
-      .id('aaa')
-      .addReactionGroup(group => group.content('THUMBS_UP').users(u => u.totalCount(0)))
-      .build();
-
-    const wrapper = shallow(buildApp({openReactionPicker, reactable}));
-    wrapper.find('.github-EmojiReactions-add').simulate('click');
-
-    assert.isTrue(openReactionPicker.calledWith('aaa'));
+    assert.isTrue(wrapper.find(ReactionPickerView).exists());
   });
 
   it('does not display the "add emoji" control if all reaction groups are nonempty', function() {
@@ -129,6 +128,7 @@ describe('EmojiReactionsView', function() {
 
     const wrapper = shallow(buildApp({reactable}));
     assert.isFalse(wrapper.exists('.github-EmojiReactions-add'));
+    assert.isFalse(wrapper.find(ReactionPickerView).exists());
   });
 
   it('disables the "add emoji" control if the viewer cannot react', function() {
