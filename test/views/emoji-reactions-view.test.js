@@ -12,6 +12,7 @@ describe('EmojiReactionsView', function() {
       <BareEmojiReactionsView
         addReaction={() => {}}
         removeReaction={() => {}}
+        openReactionPicker={() => {}}
         reactable={issueBuilder(reactableQuery).build()}
         {...override}
       />
@@ -54,8 +55,8 @@ describe('EmojiReactionsView', function() {
 
     const wrapper = shallow(buildApp({reactable}));
 
-    assert.isTrue(wrapper.find('.github-EmojiReactions-group.rocket').hasClass('btn-info'));
-    assert.isFalse(wrapper.find('.github-EmojiReactions-group.eyes').hasClass('btn-info'));
+    assert.isTrue(wrapper.find('.github-EmojiReactions-group.rocket').hasClass('selected'));
+    assert.isFalse(wrapper.find('.github-EmojiReactions-group.eyes').hasClass('selected'));
   });
 
   it('adds a reaction to an existing emoji on click', function() {
@@ -71,7 +72,7 @@ describe('EmojiReactionsView', function() {
     assert.isTrue(addReaction.calledWith('THUMBS_UP'));
   });
 
-  it('remotes a reaction from an existing emoji on click', function() {
+  it('removes a reaction from an existing emoji on click', function() {
     const removeReaction = sinon.spy();
 
     const reactable = issueBuilder(reactableQuery)
@@ -95,9 +96,49 @@ describe('EmojiReactionsView', function() {
     assert.isTrue(wrapper.find('.github-EmojiReactions-group.thumbs_up').prop('disabled'));
   });
 
-  it('displays an "add emoji" control if at least one reaction group is empty');
+  it('displays an "add emoji" control if at least one reaction group is empty', function() {
+    const reactable = issueBuilder(reactableQuery)
+      .addReactionGroup(group => group.content('THUMBS_UP').users(u => u.totalCount(2)))
+      .addReactionGroup(group => group.content('THUMBS_DOWN').users(u => u.totalCount(0)))
+      .build();
 
-  it('does not display the "add emoji" control if all reaction groups are nonempty');
+    const wrapper = shallow(buildApp({reactable}));
+    assert.isTrue(wrapper.exists('.github-EmojiReactions-add'));
+  });
 
-  it('does not display the "add emoji" control if the viewer cannot react');
+  it('opens the reaction picker when the "add emoji" control is clicked', function() {
+    const openReactionPicker = sinon.spy();
+    const reactable = issueBuilder(reactableQuery)
+      .id('aaa')
+      .addReactionGroup(group => group.content('THUMBS_UP').users(u => u.totalCount(0)))
+      .build();
+
+    const wrapper = shallow(buildApp({openReactionPicker, reactable}));
+    wrapper.find('.github-EmojiReactions-add').simulate('click');
+
+    assert.isTrue(openReactionPicker.calledWith('aaa'));
+  });
+
+  it('does not display the "add emoji" control if all reaction groups are nonempty', function() {
+    const reactable = issueBuilder(reactableQuery)
+      .addReactionGroup(group => group.content('THUMBS_UP').users(u => u.totalCount(1)))
+      .addReactionGroup(group => group.content('THUMBS_DOWN').users(u => u.totalCount(1)))
+      .addReactionGroup(group => group.content('ROCKET').users(u => u.totalCount(1)))
+      .addReactionGroup(group => group.content('EYES').users(u => u.totalCount(1)))
+      .build();
+
+    const wrapper = shallow(buildApp({reactable}));
+    assert.isFalse(wrapper.exists('.github-EmojiReactions-add'));
+  });
+
+  it('disables the "add emoji" control if the viewer cannot react', function() {
+    const reactable = issueBuilder(reactableQuery)
+      .viewerCanReact(false)
+      .addReactionGroup(group => group.content('THUMBS_UP').users(u => u.totalCount(1)))
+      .addReactionGroup(group => group.content('THUMBS_DOWN').users(u => u.totalCount(0)))
+      .build();
+
+    const wrapper = shallow(buildApp({reactable}));
+    assert.isTrue(wrapper.find('.github-EmojiReactions-add').prop('disabled'));
+  });
 });
