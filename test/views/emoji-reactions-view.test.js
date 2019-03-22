@@ -7,15 +7,6 @@ import {issueBuilder} from '../builder/graphql/issue';
 import reactableQuery from '../../lib/views/__generated__/emojiReactionsView_reactable.graphql';
 
 describe('EmojiReactionsView', function() {
-  const reactionGroups = [
-    {content: 'THUMBS_UP', users: {totalCount: 10}},
-    {content: 'THUMBS_DOWN', users: {totalCount: 5}},
-    {content: 'ROCKET', users: {totalCount: 42}},
-    {content: 'EYES', users: {totalCount: 13}},
-    {content: 'AVOCADO', users: {totalCount: 11}},
-    {content: 'LAUGH', users: {totalCount: 0}},
-  ];
-
   function buildApp(override = {}) {
     return (
       <BareEmojiReactionsView
