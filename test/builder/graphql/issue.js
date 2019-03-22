@@ -20,6 +20,7 @@ export const IssueBuilder = createSpecBuilderClass('Issue', {
   bodyHTML: {default: '<h1>HI</h1>'},
   author: {linked: UserBuilder},
   reactionGroups: {linked: ReactionGroupBuilder, plural: true, singularName: 'reactionGroup'},
+  viewerCanReact: {default: true},
   timeline: {linked: createConnectionBuilderClass('IssueTimeline', IssueTimelineItemBuilder)},
   url: {default: f => {
     const id = f.id || '1';

@@ -28,6 +28,7 @@ export const CommentBuilder = createSpecBuilderClass('PullRequestReviewComment',
   id: {default: nextID},
   path: {default: 'first.txt'},
   position: {default: 0, nullable: true},
+  diffHunk: {default: '@ -1,4 +1,5 @@'},
   author: {linked: UserBuilder},
   reactionGroups: {linked: ReactionGroupBuilder, plural: true, singularName: 'reactionGroup'},
   url: {default: 'https://github.com/atom/github/pull/1829/files#r242224689'},
@@ -48,6 +49,7 @@ export const ReviewThreadBuilder = createSpecBuilderClass('PullRequestReviewThre
   isResolved: {default: false},
   viewerCanResolve: {default: f => !f.isResolved},
   viewerCanUnresolve: {default: f => !!f.isResolved},
+  resolvedBy: {linked: UserBuilder},
   comments: {linked: CommentConnectionBuilder},
 }, 'Node');
 
