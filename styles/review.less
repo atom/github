@@ -314,9 +314,14 @@
     height: @nav-size;
     padding: 0;
     border: none;
+
     background-color: transparent;
     cursor: default;
     flex-basis: 50%;
+
+    &.outdated {
+      border-bottom: 1px solid @base-border-color;
+    }
     &:last-child {
       border-left: 1px solid @base-border-color;
     }
