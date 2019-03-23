@@ -2,7 +2,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import {BareEmojiReactionsView} from '../../lib/views/emoji-reactions-view';
-import ReactionPickerView from '../../lib/views/reaction-picker-view';
+import ReactionPickerController from '../../lib/controllers/reaction-picker-controller';
 import {issueBuilder} from '../builder/graphql/issue';
 
 import reactableQuery from '../../lib/views/__generated__/emojiReactionsView_reactable.graphql';
@@ -115,7 +115,7 @@ describe('EmojiReactionsView', function() {
 
     const wrapper = shallow(buildApp({reactable}));
     assert.isTrue(wrapper.exists('.github-EmojiReactions-add'));
-    assert.isTrue(wrapper.find(ReactionPickerView).exists());
+    assert.isTrue(wrapper.find(ReactionPickerController).exists());
   });
 
   it('does not display the "add emoji" control if all reaction groups are nonempty', function() {
@@ -128,7 +128,7 @@ describe('EmojiReactionsView', function() {
 
     const wrapper = shallow(buildApp({reactable}));
     assert.isFalse(wrapper.exists('.github-EmojiReactions-add'));
-    assert.isFalse(wrapper.find(ReactionPickerView).exists());
+    assert.isFalse(wrapper.find(ReactionPickerController).exists());
   });
 
   it('disables the "add emoji" control if the viewer cannot react', function() {
