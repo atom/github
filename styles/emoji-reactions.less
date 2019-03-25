@@ -7,5 +7,15 @@
     &:first-child {
       border-color: transparent;
     }
+
+    &:focus.btn {
+      border-color: transparent;
+      box-shadow: none;
+      color: @text-color-info;
+    }
+
+    &:hover {
+      color: lighten(@text-color-subtle, 10%);
+    }
   }
 }
