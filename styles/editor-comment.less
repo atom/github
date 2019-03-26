@@ -1,12 +1,45 @@
+@import "ui-variables.less";
+@import "syntax-variables.less";
+
+@gh-comment-line: mix(@background-color-info, @syntax-background-color, 20%);
+@gh-comment-line-cursor: mix(@background-color-info, @syntax-cursor-line, 40%);
 
 atom-text-editor {
-  .github-editorCommentHighlight {
-    background-color: #EEE8AA;
+  .line.github-editorCommentHighlight {
+    background-color: @gh-comment-line;
+
+    &.cursor-line {
+      background-color: @gh-comment-line-cursor;
+    }
+  }
+
+  .line-number.line-number.github-editorCommentHighlight {
+    background-color: @gh-comment-line;
+
+    &.cursor-line {
+      background-color: @gh-comment-line;
+    }
   }
 }
 
+.gutter[gutter-name="github-comment-icon"] {
+  width: 1.4em;
+}
+
 .github-editorCommentGutterIcon {
+  background-color: @gh-comment-line;
+
+  &.decoration {
+    width: 100%;
+  }
+
+  &.react-atom-decoration {
+    width: 100%;
+    text-align: center;
+    padding: 0 @component-padding/4;
+  }
+
   .icon-comment::before {
-    padding-right: 5px;
+    margin-right: 0;
   }
 }
