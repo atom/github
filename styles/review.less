@@ -447,26 +447,20 @@
 
   &-reply {
     margin-top: @component-padding;
-  }
 
-  &-replyInput {
-    width: 100%;
-    height: 2.125em; // one line
-    min-height: 2.125em;
-    resize: vertical;
+    atom-text-editor {
+      width: 100%;
+      // height: 2.125em; // one line
+      min-height: 2.125em;
 
-    &:focus {
-      height: 3.75em; // two lines
-    }
-
-    &:focus + .github-ReviewComment-replyButton {
-      display: block;
+      &.is-focused {
+        min-height: 3.75em; // two lines
+      }
     }
   }
 
   &-replyButton {
-    display: none;
-    margin-top: @component-padding;
+    margin-left: @avatar-size + 5px; // match left position of the comment editor
   }
 
 
