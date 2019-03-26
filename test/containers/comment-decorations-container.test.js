@@ -46,9 +46,6 @@ describe('CommentDecorationsContainer', function() {
   it('does not query if no GitHub remotes exist', function() {
   });
 
-  it('', function() {
-
-  });
   describe('when GitHub remote exists', function() {
     it('passes query results to controller', function() {
     });
