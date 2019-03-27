@@ -43,7 +43,13 @@ describe('CommentDecorationsContainer', function() {
     );
   }
 
-  it('does not query if no GitHub remotes exist', function() {
+  it('does not query if no GitHub remotes exist', async function() {
+    const wrapper = shallow(buildApp());
+    const localRepoWrapper = wrapper.find(ObserveModel).renderProp('children')();
+
+    await localRepository.refresh();
+    // why does localRepoWrapper.find(ObserveModel) have no props??
+    const localRepoData = await localRepoWrapper.find(ObserveModel).prop('fetchData');
   });
 
   describe('when GitHub remote exists', function() {
