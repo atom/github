@@ -12,14 +12,6 @@ atom-text-editor {
       background-color: @gh-comment-line-cursor;
     }
   }
-
-  .line-number.line-number.github-editorCommentHighlight {
-    background-color: @gh-comment-line;
-
-    &.cursor-line {
-      background-color: @gh-comment-line;
-    }
-  }
 }
 
 .gutter[gutter-name="github-comment-icon"] {
@@ -27,8 +19,6 @@ atom-text-editor {
 }
 
 .github-editorCommentGutterIcon {
-  background-color: @gh-comment-line;
-
   &.decoration {
     width: 100%;
   }
@@ -44,6 +34,6 @@ atom-text-editor {
     margin: 0;
     height: 100%;
     border: none;
-    background: @gh-comment-line;
+    background: none;
   }
 }
