@@ -219,9 +219,14 @@
   border: 1px solid @base-border-color;
   border-radius: @component-border-radius;
   background-color: @background-color;
+  transition: border-color .5s;
 
   & + & {
     margin-top: @component-padding;
+  }
+
+  &--highlight {
+    border-color: @background-color-info;
   }
 
   // Header ------------------
