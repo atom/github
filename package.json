@@ -102,7 +102,7 @@
     "node-fetch": "2.3.0",
     "nyc": "13.3.0",
     "relay-compiler": "3.0.0",
-    "semver": "5.6.0",
+    "semver": "6.0.0",
     "sinon": "7.3.0",
     "test-until": "1.1.1"
   },
