@@ -197,7 +197,7 @@ describe('Decoration', function() {
     assert.lengthOf(editor.getLineDecorations({class: 'whatever'}), 0);
   });
 
-  it('decorates a parent Marker', function() {
+  it('decorates a parent Marker on a parent TextEditor', function() {
     const wrapper = mount(
       <AtomTextEditor workspace={workspace}>
         <Marker bufferRange={Range.fromObject([[0, 0], [0, 0]])}>
@@ -210,15 +210,48 @@ describe('Decoration', function() {
     assert.lengthOf(theEditor.getLineDecorations({position: 'head', class: 'whatever'}), 1);
   });
 
-  it('decorates a parent MarkerLayer', function() {
-    mount(
+  it('decorates a parent MarkerLayer on a parent TextEditor', function() {
+    let layerID = null;
+    const wrapper = mount(
       <AtomTextEditor workspace={workspace}>
-        <MarkerLayer>
+        <MarkerLayer handleID={id => { layerID = id; }}>
           <Marker bufferRange={Range.fromObject([[0, 0], [0, 0]])} />
           <Decoration type="line" className="something" />
         </MarkerLayer>
       </AtomTextEditor>,
     );
+    const theEditor = wrapper.instance().getModel();
+    const theLayer = theEditor.getMarkerLayer(layerID);
+
+    const layerMap = theEditor.decorationManager.layerDecorationsByMarkerLayer;
+    const decorationSet = layerMap.get(theLayer);
+    assert.strictEqual(decorationSet.size, 1);
+  });
+
+  it('decorates a parent Marker on a prop-provided TextEditor', function() {
+    mount(
+      <Marker editor={editor} bufferRange={[[0, 0], [1, 0]]}>
+        <Decoration editor={editor} type="line" className="something" />
+      </Marker>,
+    );
+
+    assert.lengthOf(editor.getLineDecorations({class: 'something'}), 1);
+  });
+
+  it('decorates a parent MarkerLayer on a prop-provided TextEditor', function() {
+    let layerID = null;
+    mount(
+      <MarkerLayer editor={editor} handleID={id => { layerID = id; }}>
+        <Marker bufferRange={[[0, 0], [1, 0]]} />
+        <Decoration editor={editor} type="line" className="something" />
+      </MarkerLayer>,
+    );
+
+    const theLayer = editor.getMarkerLayer(layerID);
+
+    const layerMap = editor.decorationManager.layerDecorationsByMarkerLayer;
+    const decorationSet = layerMap.get(theLayer);
+    assert.strictEqual(decorationSet.size, 1);
   });
 
   it('does not attempt to decorate a destroyed Marker', function() {
