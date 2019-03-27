@@ -1,7 +1,7 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import ReviewsController from '../../lib/controllers/reviews-controller';
+import {BareReviewsController} from '../../lib/controllers/reviews-controller';
 import PullRequestCheckoutController from '../../lib/controllers/pr-checkout-controller';
 import ReviewsView from '../../lib/views/reviews-view';
 import IssueishDetailItem from '../../lib/items/issueish-detail-item';
@@ -61,7 +61,7 @@ describe('ReviewsController', function() {
       ...override,
     };
 
-    return <ReviewsController {...props} />;
+    return <BareReviewsController {...props} />;
   }
 
   it('renders a ReviewsView inside a PullRequestCheckoutController', function() {
