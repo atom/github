@@ -22,6 +22,8 @@ describe('ReviewThreadsAccumulator', function() {
         isLoading: () => false,
       },
       pullRequest: options.pullRequest,
+      children: () => <div />,
+      onDidRefetch: () => {},
       ...options.props,
     };
 
@@ -45,40 +47,53 @@ describe('ReviewThreadsAccumulator', function() {
 
   it('handles an error from the thread query results', function() {
     const err = new Error('oh no');
-    const handleResults = sinon.spy();
 
-    const wrapper = shallow(buildApp({props: {handleResults}}));
-    const children = wrapper.find('Accumulator').renderProp('children')(err, [], false);
-    assert.isTrue(children.isEmptyRender());
+    const children = sinon.stub().returns(<div className="done" />);
+    const wrapper = shallow(buildApp({props: {children}}));
+    const resultWrapper = wrapper.find('Accumulator').renderProp('children')(err, [], false);
 
-    wrapper.find('Accumulator').prop('handleResults')(err, [], false);
-    assert.isTrue(handleResults.calledWith([err], [], new Map(), false));
+    assert.isTrue(resultWrapper.exists('.done'));
+    assert.isTrue(children.calledWith({
+      errors: [err],
+      commentThreads: [],
+      loading: false,
+    }));
   });
 
-  it('renders a ReviewCommentsAccumulator for each reviewThread', function() {
+  it('recursively renders a ReviewCommentsAccumulator for each reviewThread', function() {
     const pullRequest = pullRequestBuilder(pullRequestQuery)
       .reviewThreads(conn => {
         conn.addEdge();
         conn.addEdge();
       })
       .build();
-    const handleResults = sinon.spy();
     const reviewThreads = pullRequest.reviewThreads.edges.map(e => e.node);
 
-    const wrapper = shallow(buildApp({pullRequest, props: {handleResults}}));
+    const children = sinon.stub().returns(<div className="done" />);
+    const wrapper = shallow(buildApp({pullRequest, props: {children}}));
 
     const args = [null, wrapper.find('Accumulator').prop('resultBatch'), false];
-    const subwrapper = wrapper.find('Accumulator').renderProp('children')(...args);
+    const threadWrapper = wrapper.find('Accumulator').renderProp('children')(...args);
 
-    const commentAccumulators = subwrapper.find(ReviewCommentsAccumulator);
-    assert.strictEqual(commentAccumulators.at(0).prop('reviewThread'), reviewThreads[0]);
-    assert.strictEqual(commentAccumulators.at(1).prop('reviewThread'), reviewThreads[1]);
+    const accumulator0 = threadWrapper.find(ReviewCommentsAccumulator);
+    assert.strictEqual(accumulator0.prop('reviewThread'), reviewThreads[0]);
+    const result0 = {error: null, comments: [1, 2, 3], loading: false};
+    const commentsWrapper0 = accumulator0.renderProp('children')(result0);
 
-    wrapper.find('Accumulator').prop('handleResults')(...args);
+    const accumulator1 = commentsWrapper0.find(ReviewCommentsAccumulator);
+    assert.strictEqual(accumulator1.prop('reviewThread'), reviewThreads[1]);
+    const result1 = {error: null, comments: [10, 20, 30], loading: false};
+    const commentsWrapper1 = accumulator1.renderProp('children')(result1);
 
-    assert.isTrue(handleResults.calledWith(
-      [], reviewThreads, new Map(reviewThreads.map(t => [t, []])), true,
-    ));
+    assert.isTrue(commentsWrapper1.exists('.done'));
+    assert.isTrue(children.calledWith({
+      errors: [],
+      commentThreads: [
+        {thread: reviewThreads[0], comments: [1, 2, 3]},
+        {thread: reviewThreads[1], comments: [10, 20, 30]},
+      ],
+      loading: false,
+    }));
   });
 
   it('handles the arrival of additional review thread batches', function() {
@@ -89,20 +104,30 @@ describe('ReviewThreadsAccumulator', function() {
       })
       .build();
 
-    const handleResults = sinon.spy();
-    const children = sinon.stub().returns(null);
+    const children = sinon.stub().returns(<div className="done" />);
     const batch0 = pr0.reviewThreads.edges.map(e => e.node);
 
-    const wrapper = shallow(buildApp({pullRequest: pr0, props: {handleResults, children}}));
-    wrapper.find('Accumulator').renderProp('children')(null, batch0, true);
-    wrapper.find('Accumulator').prop('handleResults')(null, batch0, true);
+    const wrapper = shallow(buildApp({pullRequest: pr0, props: {children}}));
+    const threadsWrapper0 = wrapper.find('Accumulator').renderProp('children')(null, batch0, true);
+    const comments0Wrapper0 = threadsWrapper0.find(ReviewCommentsAccumulator).renderProp('children')({
+      error: null,
+      comments: [1, 1, 1],
+      loading: false,
+    });
+    comments0Wrapper0.find(ReviewCommentsAccumulator).renderProp('children')({
+      error: null,
+      comments: [2, 2, 2],
+      loading: false,
+    });
 
-    const map0 = new Map([
-      [batch0[0], []], [batch0[1], []],
-    ]);
-    assert.isTrue(handleResults.calledWith([], batch0, map0, true));
-    assert.isTrue(children.calledWith([], batch0, map0, true));
-    handleResults.resetHistory();
+    assert.isTrue(children.calledWith({
+      commentThreads: [
+        {thread: batch0[0], comments: [1, 1, 1]},
+        {thread: batch0[1], comments: [2, 2, 2]},
+      ],
+      errors: [],
+      loading: true,
+    }));
     children.resetHistory();
 
     const pr1 = pullRequestBuilder(pullRequestQuery)
@@ -115,37 +140,32 @@ describe('ReviewThreadsAccumulator', function() {
     const batch1 = pr1.reviewThreads.edges.map(e => e.node);
 
     wrapper.setProps({pullRequest: pr1});
-    wrapper.find('Accumulator').renderProp('children')(null, [...batch0, ...batch1], true);
-    wrapper.find('Accumulator').prop('handleResults')(null, [...batch0, ...batch1], true);
+    const threadsWrapper1 = wrapper.find('Accumulator').renderProp('children')(null, batch1, false);
+    const comments1Wrapper0 = threadsWrapper1.find(ReviewCommentsAccumulator).renderProp('children')({
+      error: null,
+      comments: [1, 1, 1],
+      loading: false,
+    });
+    const comments1Wrapper1 = comments1Wrapper0.find(ReviewCommentsAccumulator).renderProp('children')({
+      error: null,
+      comments: [2, 2, 2],
+      loading: false,
+    });
+    comments1Wrapper1.find(ReviewCommentsAccumulator).renderProp('children')({
+      error: null,
+      comments: [3, 3, 3],
+      loading: false,
+    });
 
-    const map1 = new Map([
-      [batch0[0], []], [batch0[1], []],
-      [batch1[0], []], [batch1[1], []], [batch1[2], []],
-    ]);
-    assert.isTrue(handleResults.calledWith([], [...batch0, ...batch1], map1, true));
-    assert.isTrue(children.calledWith([], [...batch0, ...batch1], map1, true));
-    handleResults.resetHistory();
-    children.resetHistory();
-
-    const pr2 = pullRequestBuilder(pullRequestQuery)
-      .reviewThreads(conn => {
-        conn.addEdge();
-      })
-      .build();
-    const batch2 = pr2.reviewThreads.edges.map(e => e.node);
-
-    wrapper.setProps({pullRequest: pr2});
-    wrapper.find('Accumulator').renderProp('children')(null, [...batch0, ...batch1, ...batch2], false);
-    wrapper.find('Accumulator').prop('handleResults')(null, [...batch0, ...batch1, ...batch2], false);
-
-    const map2 = new Map([
-      [batch0[0], []], [batch0[1], []],
-      [batch1[0], []], [batch1[1], []], [batch1[2], []],
-      [batch2[0], []],
-    ]);
-
-    assert.isTrue(handleResults.calledWith([], [...batch0, ...batch1, ...batch2], map2, true));
-    assert.isTrue(children.calledWith([], [...batch0, ...batch1, ...batch2], map2, true));
+    assert.isTrue(children.calledWith({
+      commentThreads: [
+        {thread: batch1[0], comments: [1, 1, 1]},
+        {thread: batch1[1], comments: [2, 2, 2]},
+        {thread: batch1[2], comments: [3, 3, 3]},
+      ],
+      errors: [],
+      loading: false,
+    }));
   });
 
   it('handles errors from each ReviewCommentsAccumulator', function() {
@@ -157,66 +177,31 @@ describe('ReviewThreadsAccumulator', function() {
       .build();
     const batch = pullRequest.reviewThreads.edges.map(e => e.node);
 
-    const handleResults = sinon.spy();
-    const children = sinon.stub().returns(null);
-    const wrapper = shallow(buildApp({pullRequest, props: {handleResults, children}}));
+    const children = sinon.stub().returns(<div className="done" />);
+    const wrapper = shallow(buildApp({pullRequest, props: {children}}));
 
-    const subwrapper = wrapper.find('Accumulator').renderProp('children')(null, batch, false);
-    wrapper.find('Accumulator').prop('handleResults')(null, batch, false);
+    const threadsWrapper = wrapper.find('Accumulator').renderProp('children')(null, batch, false);
+    const error0 = new Error('oh shit');
+    const commentsWrapper0 = threadsWrapper.find(ReviewCommentsAccumulator).renderProp('children')({
+      error: error0,
+      comments: [],
+      loading: false,
+    });
+    const error1 = new Error('wat');
+    const commentsWrapper1 = commentsWrapper0.find(ReviewCommentsAccumulator).renderProp('children')({
+      error: error1,
+      comments: [],
+      loading: false,
+    });
 
-    const commentAccumulators = subwrapper.find(ReviewCommentsAccumulator);
-
-    const error1 = new Error('oh shit');
-    commentAccumulators.at(1).prop('handleResults')(error1, [], false);
-
-    const map = new Map([
-      [[batch[0], []], [batch[1], []]],
-    ]);
-    assert.isTrue(handleResults.calledWith([error1], batch, map, true));
-    assert.isTrue(children.calledWith([error1], batch, map, true));
-
-    const error0 = new Error('wat');
-    commentAccumulators.at(0).prop('handleResults')(error0, [], false);
-
-    assert.isTrue(handleResults.calledWith([error1, error0], batch, map, false));
-    assert.isTrue(children.calledWith([error1, error0], batch, map, false));
-  });
-
-  it('handles comment results from each ReviewCommentsAccumulator', function() {
-    const pr0 = pullRequestBuilder(pullRequestQuery)
-      .reviewThreads(conn => {
-        conn.addEdge();
-        conn.addEdge();
-      })
-      .build();
-    const batch0 = pr0.reviewThreads.edges.map(e => e.node);
-    const b0comments0 = ['batch 0 thread 0 comment 0', 'batch 0 thread 0 comment 1'];
-    const b0comments1 = ['batch 0 thread 1 comment 0'];
-
-    const handleResults = sinon.spy();
-    const children = sinon.stub().returns(null);
-    const wrapper = shallow(buildApp({pullRequest: pr0, props: {handleResults, children}}));
-
-    const subwrapper0 = wrapper.find('Accumulator').renderProp('children')(null, batch0, false);
-    wrapper.find('Accumulator').prop('handleResults')(null, batch0, false);
-    const commentAccs0 = subwrapper0.find(ReviewCommentsAccumulator);
-
-    commentAccs0.at(1).prop('handleResults')(null, b0comments1, false);
-
-    const map0 = new Map([
-      [batch0[0], []],
-      [batch0[1], b0comments1],
-    ]);
-    assert.isTrue(handleResults.calledWith([], batch0, map0, true));
-    assert.isTrue(children.calledWith([], batch0, map0, true));
-
-    commentAccs0.at(0).prop('handleResults')(null, b0comments0, false);
-
-    const map1 = new Map([
-      [batch0[0], b0comments0],
-      [batch0[1], b0comments1],
-    ]);
-    assert.isTrue(handleResults.calledWith([], batch0, map1, false));
-    assert.isTrue(children.calledWith([], batch0, map1, false));
+    assert.isTrue(commentsWrapper1.exists('.done'));
+    assert.isTrue(children.calledWith({
+      errors: [error0, error1],
+      commentThreads: [
+        {thread: batch[0], comments: []},
+        {thread: batch[1], comments: []},
+      ],
+      loading: false,
+    }));
   });
 });
