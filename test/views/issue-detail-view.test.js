@@ -2,7 +2,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import {BareIssueDetailView} from '../../lib/views/issue-detail-view';
-import EmojiReactionsView from '../../lib/views/emoji-reactions-view';
+import EmojiReactionsController from '../../lib/controllers/emoji-reactions-controller';
 import {issueDetailViewProps} from '../fixtures/props/issueish-pane-props';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
@@ -47,7 +47,7 @@ describe('IssueDetailView', function() {
 
     assert.isTrue(wrapper.find('GithubDotcomMarkdown').someWhere(n => n.prop('html') === '<code>nope</code>'));
 
-    assert.lengthOf(wrapper.find(EmojiReactionsView), 1);
+    assert.lengthOf(wrapper.find(EmojiReactionsController), 1);
 
     assert.isNotNull(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('issue'));
     assert.notOk(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('pullRequest'));
