@@ -22,12 +22,17 @@ describe('ReviewsView', function() {
 
   function buildApp(override = {}) {
     const props = {
-      repository: {pullRequest: {}},
+      relay: {environment: {}},
+      repository: {},
+      pullRequest: {},
 
       multiFilePatch: multiFilePatchBuilder().build().multiFilePatch,
       contextLines: 4,
-
       checkoutOp: new EnableableOperation(() => {}).disable(checkoutStates.CURRENT),
+      summarySectionOpen: true,
+      commentSectionOpen: true,
+      threadIDsOpen: new Set(),
+
       number: 100,
       repo: 'github',
       owner: 'atom',
@@ -44,13 +49,22 @@ describe('ReviewsView', function() {
       moreContext: () => {},
       lessContext: () => {},
       openIssueish: () => {},
+      showSummaries: () => {},
+      hideSummaries: () => {},
+      showComments: () => {},
+      hideComments: () => {},
+      showThreadID: () => {},
+      hideThreadID: () => {},
+      resolveThread: () => {},
+      unresolveThread: () => {},
+      addSingleComment: () => {},
       ...override,
     };
 
     return <ReviewsView {...props} />;
   }
 
-  it('renders a BareAggregatedReviewsContainer', function() {
+  it('renders an AggregatedReviewsContainer', function() {
     const wrapper = shallow(buildApp());
     assert.lengthOf(wrapper.find(AggregatedReviewsContainer), 1);
   });
@@ -185,7 +199,8 @@ describe('ReviewsView', function() {
       describe('navigation buttons', function() {
         it('a pair of "Open Diff" and "Jump To File" buttons per thread', function() {
           assert.isTrue(wrapper.find('details.github-Review').everyWhere(thread =>
-            thread.find('.github-Review-navButton.icon-code').length === 1 && thread.find('.github-Review-navButton.icon-diff').length === 1,
+            thread.find('.github-Review-navButton.icon-code').length === 1 &&
+            thread.find('.github-Review-navButton.icon-diff').length === 1,
           ));
         });
 
@@ -205,8 +220,10 @@ describe('ReviewsView', function() {
           });
 
           it('calls openFile with correct params when when "Jump To File" is clicked', function() {
-            wrapper.find('details.github-Review').at(0).find('.icon-code').simulate('click', {currentTarget: {dataset: {path: 'dir/file0', line: 10}}});
-            assert(openFile.calledWith('dir/file0', 9));
+            wrapper.find('details.github-Review').at(0).find('.icon-code').simulate('click', {
+              currentTarget: {dataset: {path: 'dir/file0', line: 10}},
+            });
+            assert.isTrue(openFile.calledWith('dir/file0', 10));
           });
         });
 
