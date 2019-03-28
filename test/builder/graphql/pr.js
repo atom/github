@@ -100,6 +100,7 @@ export const PullRequestBuilder = createSpecBuilderClass('PullRequest', {
   reviewThreads: {linked: createConnectionBuilderClass('ReviewThreadConnection', ReviewThreadBuilder)},
   timeline: {linked: createConnectionBuilderClass('PullRequestTimeline', PullRequestTimelineItemBuilder)},
   reactionGroups: {linked: ReactionGroupBuilder, plural: true, singularName: 'reactionGroup'},
+  viewerCanReact: {default: true},
 },
 'Node & Assignable & Closable & Comment & Updatable & UpdatableComment & Labelable & Lockable & Reactable & ' +
 'RepositoryNode & Subscribable & UniformResourceLocatable',
