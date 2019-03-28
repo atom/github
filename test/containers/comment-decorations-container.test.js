@@ -15,13 +15,13 @@ import CommentDecorationsContainer from '../../lib/containers/comment-decoration
 import repositoryQuery from '../../lib/containers/__generated__/commentDecorationsContainerQuery.graphql.js';
 
 describe('CommentDecorationsContainer', function() {
-  let atomEnv, workspace, localRepository;
+  let atomEnv, workspace, localRepository, loginModel;
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
     localRepository = await buildRepository(await cloneRepository());
-    await localRepository.getLoadPromise();
+    loginModel = new GithubLoginModel(InMemoryStrategy);
   });
 
   afterEach(function() {
@@ -29,7 +29,6 @@ describe('CommentDecorationsContainer', function() {
   });
 
   function buildApp(overrideProps = {}) {
-
     const {repository} = queryBuilder(repositoryQuery).build();
 
     return (
@@ -37,7 +36,7 @@ describe('CommentDecorationsContainer', function() {
         localRepository={localRepository}
         repository={repository}
         workspace={workspace}
-        loginModel={new GithubLoginModel(InMemoryStrategy)}
+        loginModel={loginModel}
         {...overrideProps}
       />
     );
@@ -45,17 +44,20 @@ describe('CommentDecorationsContainer', function() {
 
   it('does not query if no GitHub remotes exist', async function() {
     const wrapper = shallow(buildApp());
-    const localRepoWrapper = wrapper.find(ObserveModel).renderProp('children')();
 
-    await localRepository.refresh();
-    // why does localRepoWrapper.find(ObserveModel) have no props??
-    const localRepoData = await localRepoWrapper.find(ObserveModel).prop('fetchData');
+    const localRepoData = await wrapper.find(ObserveModel).prop('fetchData')(localRepository);
+    const localRepoWrapper = wrapper.find(ObserveModel).renderProp('children')(localRepoData);
+
+    const token = await localRepoWrapper.find(ObserveModel).prop('fetchData')(loginModel, localRepoData);
+    assert.isNull(token);
+
+    const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')({token: '1234'});
+    assert.isTrue(tokenWrapper.isEmptyRender());
   });
 
   describe('when GitHub remote exists', function() {
     let localRepo, wrapper, localRepoWrapper;
     beforeEach(async function() {
-      const loginModel = new GithubLoginModel(InMemoryStrategy);
       await loginModel.setToken('https://api.github.com', '1234');
 
       localRepo = await buildRepository(await cloneRepository());
@@ -71,12 +73,12 @@ describe('CommentDecorationsContainer', function() {
         remotes: new RemoteSet([origin]),
         currentRemote: origin,
         workingDirectoryPath: 'path/path',
-      }
+      };
       localRepoWrapper = wrapper.find(ObserveModel).renderProp('children')(repoData);
 
-    })
+    });
     it('makes a relay query', function() {
-      const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')({token: '1234'})
+      const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')({token: '1234'});
       assert.lengthOf(tokenWrapper.find(QueryRenderer), 1);
     });
 
