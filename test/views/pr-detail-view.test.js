@@ -4,7 +4,7 @@ import {Tab, Tabs, TabList, TabPanel} from 'react-tabs';
 
 import {BarePullRequestDetailView} from '../../lib/views/pr-detail-view';
 import {checkoutStates} from '../../lib/controllers/pr-checkout-controller';
-import EmojiReactionsView from '../../lib/views/emoji-reactions-view';
+import EmojiReactionsController from '../../lib/controllers/emoji-reactions-controller';
 import PullRequestCommitsView from '../../lib/views/pr-commits-view';
 import PullRequestStatusesView from '../../lib/views/pr-statuses-view';
 import PullRequestTimelineController from '../../lib/controllers/pr-timeline-controller';
@@ -102,9 +102,6 @@ describe('PullRequestDetailView', function() {
       .headRefName('tt/heck-yes')
       .url('https://github.com/user0/repo/pull/100')
       .author(a => a.login('author0').avatarUrl('https://avatars3.githubusercontent.com/u/1'))
-      .addReactionGroup(g => g.content('THUMBS_UP').users(conn => conn.totalCount(10)))
-      .addReactionGroup(g => g.content('THUMBS_DOWN').users(conn => conn.totalCount(5)))
-      .addReactionGroup(g => g.content('LAUGH').users(conn => conn.totalCount(0)))
       .build();
 
     const wrapper = shallow(buildApp({repository, pullRequest}));
@@ -131,7 +128,7 @@ describe('PullRequestDetailView', function() {
 
     assert.isTrue(wrapper.find('GithubDotcomMarkdown').someWhere(n => n.prop('html') === '<code>stuff</code>'));
 
-    assert.lengthOf(wrapper.find(EmojiReactionsView), 1);
+    assert.lengthOf(wrapper.find(EmojiReactionsController), 1);
 
     assert.notOk(wrapper.find(PullRequestTimelineController).prop('issue'));
     assert.isNotNull(wrapper.find(PullRequestTimelineController).prop('pullRequest'));
