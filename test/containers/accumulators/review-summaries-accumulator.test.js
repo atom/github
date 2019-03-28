@@ -24,6 +24,8 @@ describe('ReviewSummariesAccumulator', function() {
         isLoading: () => false,
       },
       pullRequest: builder.build(),
+      onDidRefetch: () => {},
+      children: () => <div />,
       ...options.props,
     };
 
@@ -47,17 +49,29 @@ describe('ReviewSummariesAccumulator', function() {
     );
   });
 
-  it('passes a children render prop', function() {
-    const fn = sinon.spy();
-    const wrapper = shallow(buildApp({props: {children: fn}}));
+  it('calls a children render prop with sorted review summaries', function() {
+    const children = sinon.stub().returns(<div className="done" />);
+    const wrapper = shallow(buildApp({props: {children}}));
 
-    assert.strictEqual(wrapper.find('Accumulator').prop('children'), fn);
-  });
+    const resultWrapper = wrapper.find('Accumulator').renderProp('children')(
+      null,
+      [
+        {submittedAt: '2019-01-01T10:00:00Z'},
+        {submittedAt: '2019-01-05T10:00:00Z'},
+        {submittedAt: '2019-01-02T10:00:00Z'},
+      ],
+      false,
+    );
 
-  it('passes a result handler function', function() {
-    const fn = sinon.spy();
-    const wrapper = shallow(buildApp({props: {handleResults: fn}}));
-
-    assert.strictEqual(wrapper.find('Accumulator').prop('handleResults'), fn);
+    assert.isTrue(resultWrapper.exists('.done'));
+    assert.isTrue(children.calledWith({
+      error: null,
+      summaries: [
+        {submittedAt: '2019-01-01T10:00:00Z'},
+        {submittedAt: '2019-01-02T10:00:00Z'},
+        {submittedAt: '2019-01-05T10:00:00Z'},
+      ],
+      loading: false,
+    }));
   });
 });
