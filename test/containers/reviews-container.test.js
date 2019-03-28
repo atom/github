@@ -3,20 +3,24 @@ import {shallow} from 'enzyme';
 import {QueryRenderer} from 'react-relay';
 
 import ReviewsContainer from '../../lib/containers/reviews-container';
-import Repository from '../../lib/models/repository';
+import ReviewsController from '../../lib/controllers/reviews-controller';
 import {InMemoryStrategy, UNAUTHENTICATED, INSUFFICIENT} from '../../lib/shared/keytar-strategy';
 import GithubLoginModel from '../../lib/models/github-login-model';
+import WorkdirContextPool from '../../lib/models/workdir-context-pool';
 import {getEndpoint} from '../../lib/models/endpoint';
 import {multiFilePatchBuilder} from '../builder/patch';
 import {cloneRepository} from '../helpers';
 
 describe('ReviewsContainer', function() {
-  let atomEnv, repository, loginModel, repoData, queryData;
+  let atomEnv, workdirContextPool, repository, loginModel, repoData, queryData;
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
+
+    workdirContextPool = new WorkdirContextPool();
+
     const workdir = await cloneRepository();
-    repository = new Repository(workdir);
+    repository = workdirContextPool.add(workdir).getRepository();
     await repository.getLoadPromise();
     loginModel = new GithubLoginModel(InMemoryStrategy);
     sinon.stub(loginModel, 'getScopes').resolves(GithubLoginModel.REQUIRED_SCOPES);
@@ -53,10 +57,12 @@ describe('ReviewsContainer', function() {
 
       repository,
       loginModel,
+      workdirContextPool,
 
       workspace: atomEnv.workspace,
       config: atomEnv.config,
       commands: atomEnv.commands,
+      tooltips: atomEnv.tooltips,
 
       ...override,
     };
@@ -148,7 +154,7 @@ describe('ReviewsContainer', function() {
     const repoWrapper = patchWrapper.find('ObserveModel').renderProp('children')(repoData);
     const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: queryData, retry: () => {}});
 
-    assert.strictEqual(resultWrapper.find('ReviewsController').prop('multiFilePatch'), multiFilePatch);
+    assert.strictEqual(resultWrapper.find(ReviewsController).prop('multiFilePatch'), multiFilePatch);
   });
 
   it('passes loaded repository data to the controller', async function() {
@@ -165,8 +171,8 @@ describe('ReviewsContainer', function() {
 
     const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: queryData, retry: () => {}});
 
-    assert.strictEqual(resultWrapper.find('ReviewsController').prop('one'), extraRepoData.one);
-    assert.strictEqual(resultWrapper.find('ReviewsController').prop('two'), extraRepoData.two);
+    assert.strictEqual(resultWrapper.find(ReviewsController).prop('one'), extraRepoData.one);
+    assert.strictEqual(resultWrapper.find(ReviewsController).prop('two'), extraRepoData.two);
   });
 
   it('passes extra properties to the controller', function() {
@@ -181,7 +187,7 @@ describe('ReviewsContainer', function() {
 
     const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: queryData, retry: () => {}});
 
-    assert.strictEqual(resultWrapper.find('ReviewsController').prop('extra'), extra);
+    assert.strictEqual(resultWrapper.find(ReviewsController).prop('extra'), extra);
   });
 
   it('shows an error if the patch cannot be fetched', function() {
