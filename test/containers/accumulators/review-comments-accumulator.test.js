@@ -24,6 +24,8 @@ describe('ReviewCommentsAccumulator', function() {
         isLoading: () => false,
       },
       reviewThread: builder.build(),
+      children: () => <div />,
+      onDidRefetch: () => {},
       ...options.props,
     };
 
@@ -48,16 +50,15 @@ describe('ReviewCommentsAccumulator', function() {
   });
 
   it('passes a child render prop', function() {
-    const fn = sinon.spy();
-    const wrapper = shallow(buildApp({props: {children: fn}}));
+    const children = sinon.stub().returns(<div className="done" />);
+    const wrapper = shallow(buildApp({props: {children}}));
+    const resultWrapper = wrapper.find('Accumulator').renderProp('children')(null, [], false);
 
-    assert.strictEqual(wrapper.find('Accumulator').prop('children'), fn);
-  });
-
-  it('passes a result handler function', function() {
-    const fn = sinon.spy();
-    const wrapper = shallow(buildApp({props: {handleResults: fn}}));
-
-    assert.strictEqual(wrapper.find('Accumulator').prop('handleResults'), fn);
+    assert.isTrue(resultWrapper.exists('.done'));
+    assert.isTrue(children.calledWith({
+      error: null,
+      comments: [],
+      loading: false,
+    }));
   });
 });
