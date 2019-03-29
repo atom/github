@@ -94,6 +94,7 @@
     "eslint-plugin-jsx-a11y": "6.2.1",
     "globby": "9.1.0",
     "hock": "1.3.3",
+    "lodash.isequal": "4.5.0",
     "lodash.isequalwith": "4.4.0",
     "mkdirp": "0.5.1",
     "mocha": "6.0.2",
