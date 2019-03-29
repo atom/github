@@ -268,6 +268,7 @@ export function issueDetailViewProps(opts, overrides = {}) {
     },
 
     switchToIssueish: () => {},
+    reportMutationErrors: () => {},
 
     ...overrides,
   };

@@ -58,6 +58,7 @@ describe('ReviewsView', function() {
       resolveThread: () => {},
       unresolveThread: () => {},
       addSingleComment: () => {},
+      reportMutationErrors: () => {},
       ...override,
     };
 

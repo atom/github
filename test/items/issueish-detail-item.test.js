@@ -38,6 +38,7 @@ describe('IssueishDetailItem', function() {
 
       onTabSelected: () => {},
       selectedTab: 0,
+      reportMutationErrors: () => {},
 
       ...override,
     };

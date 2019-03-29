@@ -59,6 +59,7 @@ describe('PullRequestDetailView', function() {
       openReviews: () => {},
       switchToIssueish: () => {},
       destroy: () => {},
+      reportMutationErrors: () => {},
 
       itemType: IssueishDetailItem,
       refEditor: new RefHolder(),
