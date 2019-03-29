@@ -5,6 +5,12 @@ import {createSpecBuilderClass} from './base';
 import {RepositoryBuilder} from './repository';
 import {PullRequestBuilder} from './pr';
 
+import {
+  AddPullRequestReviewPayloadBuilder,
+  AddPullRequestReviewCommentPayloadBuilder,
+  SubmitPullRequestReviewPayload,
+} from './mutations';
+
 class SearchResultItemBuilder {
   static resolve() { return this; }
 
@@ -32,6 +38,11 @@ const SearchResultBuilder = createSpecBuilderClass('SearchResultItemConnection',
 const QueryBuilder = createSpecBuilderClass('Query', {
   repository: {linked: RepositoryBuilder},
   search: {linked: SearchResultBuilder},
+
+  // Mutations
+  addPullRequestReview: {linked: AddPullRequestReviewPayloadBuilder},
+  addPullRequestReviewComment: {linked: AddPullRequestReviewCommentPayloadBuilder},
+  submitPullRequestReview: {linked: SubmitPullRequestReviewPayload},
 });
 
 export function queryBuilder(...nodes) {
