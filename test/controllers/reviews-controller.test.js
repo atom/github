@@ -23,6 +23,8 @@ import pullRequestQuery from '../../lib/controllers/__generated__/reviewsControl
 import addPrReviewMutation from '../../lib/mutations/__generated__/addPrReviewMutation.graphql';
 import addPrReviewCommentMutation from '../../lib/mutations/__generated__/addPrReviewCommentMutation.graphql';
 import submitPrReviewMutation from '../../lib/mutations/__generated__/submitPrReviewMutation.graphql';
+import resolveThreadMutation from '../../lib/mutations/__generated__/resolveReviewThreadMutation.graphql';
+import unresolveThreadMutation from '../../lib/mutations/__generated__/unresolveReviewThreadMutation.graphql';
 
 describe('ReviewsController', function() {
   let atomEnv, relayEnv, localRepository, noop;
@@ -369,10 +371,120 @@ describe('ReviewsController', function() {
   });
 
   describe('resolving threads', function() {
-    it('creates a notification when the thread cannot be resolved');
+    it('hides the thread, then fires the mutation', async function() {
+      sinon.stub(atomEnv.notifications, 'addError').returns();
+
+      expectRelayQuery({
+        name: resolveThreadMutation.operation.name,
+        variables: {
+          input: {threadId: 'thread0'},
+        },
+      }, op => relayResponseBuilder(op).build()).resolve();
+
+      const wrapper = shallow(buildApp())
+        .find(PullRequestCheckoutController)
+        .renderProp('children')(noop);
+      await wrapper.find(ReviewsView).prop('showThreadID')('thread0');
+
+      assert.isTrue(wrapper.find(ReviewsView).prop('threadIDsOpen').has('thread0'));
+
+      await wrapper.find(ReviewsView).prop('resolveThread')({id: 'thread0', viewerCanResolve: true});
+
+      assert.isFalse(wrapper.find(ReviewsView).prop('threadIDsOpen').has('thread0'));
+      assert.isFalse(atomEnv.notifications.addError.called);
+    });
+
+    it('is a no-op if the viewer cannot resolve the thread', async function() {
+      sinon.stub(atomEnv.notifications, 'addError').returns();
+
+      const wrapper = shallow(buildApp())
+        .find(PullRequestCheckoutController)
+        .renderProp('children')(noop);
+      await wrapper.find(ReviewsView).prop('showThreadID')('thread0');
+
+      await wrapper.find(ReviewsView).prop('resolveThread')({id: 'thread0', viewerCanResolve: false});
+
+      assert.isTrue(wrapper.find(ReviewsView).prop('threadIDsOpen').has('thread0'));
+      assert.isFalse(atomEnv.notifications.addError.called);
+    });
+
+    it('re-shows the thread and creates a notification when the thread cannot be resolved', async function() {
+      sinon.stub(atomEnv.notifications, 'addError').returns();
+
+      expectRelayQuery({
+        name: resolveThreadMutation.operation.name,
+        variables: {
+          input: {threadId: 'thread0'},
+        },
+      }, op => relayResponseBuilder(op).addError('boom').build()).resolve();
+
+      const wrapper = shallow(buildApp())
+        .find(PullRequestCheckoutController)
+        .renderProp('children')(noop);
+      await wrapper.find(ReviewsView).prop('showThreadID')('thread0');
+
+      await wrapper.find(ReviewsView).prop('resolveThread')({id: 'thread0', viewerCanResolve: true});
+
+      assert.isTrue(wrapper.find(ReviewsView).prop('threadIDsOpen').has('thread0'));
+      assert.isTrue(atomEnv.notifications.addError.calledWith(
+        'Unable to resolve the comment thread',
+        {dismissable: true, detail: 'boom'},
+      ));
+    });
   });
 
   describe('unresolving threads', function() {
-    it('creates a notification when the thread cannot be unresolved');
+    it('calls the unresolve mutation', async function() {
+      sinon.stub(atomEnv.notifications, 'addError').returns();
+
+      expectRelayQuery({
+        name: unresolveThreadMutation.operation.name,
+        variables: {
+          input: {threadId: 'thread1'},
+        },
+      }, op => relayResponseBuilder(op).build()).resolve();
+
+      const wrapper = shallow(buildApp())
+        .find(PullRequestCheckoutController)
+        .renderProp('children')(noop);
+
+      await wrapper.find(ReviewsView).prop('unresolveThread')({id: 'thread1', viewerCanUnresolve: true});
+
+      assert.isFalse(atomEnv.notifications.addError.called);
+    });
+
+    it("is a no-op if the viewer can't unresolve the thread", async function() {
+      sinon.stub(atomEnv.notifications, 'addError').returns();
+
+      const wrapper = shallow(buildApp())
+        .find(PullRequestCheckoutController)
+        .renderProp('children')(noop);
+
+      await wrapper.find(ReviewsView).prop('unresolveThread')({id: 'thread1', viewerCanUnresolve: false});
+
+      assert.isFalse(atomEnv.notifications.addError.called);
+    });
+
+    it('creates a notification if the thread cannot be unresolved', async function() {
+      sinon.stub(atomEnv.notifications, 'addError').returns();
+
+      expectRelayQuery({
+        name: unresolveThreadMutation.operation.name,
+        variables: {
+          input: {threadId: 'thread1'},
+        },
+      }, op => relayResponseBuilder(op).addError('ow').build()).resolve();
+
+      const wrapper = shallow(buildApp())
+        .find(PullRequestCheckoutController)
+        .renderProp('children')(noop);
+
+      await wrapper.find(ReviewsView).prop('unresolveThread')({id: 'thread1', viewerCanUnresolve: true});
+
+      assert.isTrue(atomEnv.notifications.addError.calledWith(
+        'Unable to unresolve the comment thread',
+        {dismissable: true, detail: 'ow'},
+      ));
+    });
   });
 });
