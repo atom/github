@@ -62,6 +62,7 @@ export const ReviewBuilder = createSpecBuilderClass('PullRequestReview', {
   state: {default: 'COMMENTED'},
   author: {linked: UserBuilder},
   comments: {linked: CommentConnectionBuilder},
+  viewerCanReact: {default: true},
   reactionGroups: {linked: ReactionGroupBuilder, plural: true, singularName: 'reactionGroup'},
 }, 'Node & Comment & Deletable & Updatable & UpdatableComment & Reactable & RepositoryNode');
 
@@ -79,6 +80,7 @@ export const PullRequestBuilder = createSpecBuilderClass('PullRequest', {
   title: {default: 'the title'},
   baseRefName: {default: 'base-ref'},
   headRefName: {default: 'head-ref'},
+  headRefOid: {default: '0000000000000000000000000000000000000000'},
   isCrossRepository: {default: false},
   changedFiles: {default: 5},
   state: {default: 'OPEN'},
