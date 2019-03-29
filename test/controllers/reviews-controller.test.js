@@ -12,9 +12,20 @@ import WorkdirContextPool from '../../lib/models/workdir-context-pool';
 import {getEndpoint} from '../../lib/models/endpoint';
 import {cloneRepository, buildRepository, registerGitHubOpener} from '../helpers';
 import {multiFilePatchBuilder} from '../builder/patch';
+import {userBuilder} from '../builder/graphql/user';
+import {pullRequestBuilder} from '../builder/graphql/pr';
+import RelayNetworkLayerManager, {expectRelayQuery} from '../../lib/relay-network-layer-manager';
+import {relayResponseBuilder} from '../builder/graphql/query';
+
+import viewerQuery from '../../lib/controllers/__generated__/reviewsController_viewer.graphql';
+import pullRequestQuery from '../../lib/controllers/__generated__/reviewsController_pullRequest.graphql';
+
+import addPrReviewMutation from '../../lib/mutations/__generated__/addPrReviewMutation.graphql';
+import addPrReviewCommentMutation from '../../lib/mutations/__generated__/addPrReviewCommentMutation.graphql';
+import submitPrReviewMutation from '../../lib/mutations/__generated__/submitPrReviewMutation.graphql';
 
 describe('ReviewsController', function() {
-  let atomEnv, localRepository, noop;
+  let atomEnv, relayEnv, localRepository, noop;
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
@@ -23,6 +34,8 @@ describe('ReviewsController', function() {
     localRepository = await buildRepository(await cloneRepository());
 
     noop = new EnableableOperation(() => {});
+
+    relayEnv = RelayNetworkLayerManager.getEnvironmentForHost(getEndpoint('github.com'), '1234');
   });
 
   afterEach(function() {
@@ -31,9 +44,10 @@ describe('ReviewsController', function() {
 
   function buildApp(override = {}) {
     const props = {
-      repository: {
-        pullRequest: {},
-      },
+      relay: {environment: relayEnv},
+      viewer: userBuilder(viewerQuery).build(),
+      repository: {},
+      pullRequest: pullRequestBuilder(pullRequestQuery).build(),
 
       workdirContextPool: new WorkdirContextPool(),
       localRepository,
@@ -57,6 +71,7 @@ describe('ReviewsController', function() {
       config: atomEnv.config,
       commands: atomEnv.commands,
       tooltips: atomEnv.tooltips,
+      notifications: atomEnv.notifications,
 
       ...override,
     };
@@ -180,5 +195,184 @@ describe('ReviewsController', function() {
       const opWrapper2 = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
       assert.strictEqual(opWrapper2.find(ReviewsView).prop('contextLines'), 1);
     });
+  });
+
+  describe('adding a single comment', function() {
+    it('creates a review, attaches the comment, and submits it', async function() {
+      expectRelayQuery({
+        name: addPrReviewMutation.operation.name,
+        variables: {
+          input: {pullRequestId: 'pr0'},
+        },
+      }, op => {
+        return relayResponseBuilder(op)
+          .addPullRequestReview(m => {
+            m.reviewEdge(e => e.node(r => r.id('review0')));
+          })
+          .build();
+      }).resolve();
+
+      expectRelayQuery({
+        name: addPrReviewCommentMutation.operation.name,
+        variables: {
+          input: {body: 'body', inReplyTo: 'comment1', pullRequestReviewId: 'review0'},
+        },
+      }, op => {
+        return relayResponseBuilder(op)
+          .addPullRequestReviewComment(m => {
+            m.commentEdge(e => e.node(c => c.id('comment2')));
+          })
+          .build();
+      }).resolve();
+
+      expectRelayQuery({
+        name: submitPrReviewMutation.operation.name,
+        variables: {
+          input: {pullRequestReviewId: 'review0', event: 'COMMENT'},
+        },
+      }, op => {
+        return relayResponseBuilder(op)
+          .submitPullRequestReview(m => {
+            m.pullRequestReview(r => r.id('review0'));
+          })
+          .build();
+      }).resolve();
+
+      const pullRequest = pullRequestBuilder(pullRequestQuery).id('pr0').build();
+      const wrapper = shallow(buildApp({pullRequest}))
+        .find(PullRequestCheckoutController)
+        .renderProp('children')(noop);
+
+      await wrapper.find(ReviewsView).prop('addSingleComment')('body', 'thread0', 'comment1');
+    });
+
+    it('creates a notification when the review cannot be created', async function() {
+      sinon.stub(atomEnv.notifications, 'addError').returns();
+
+      expectRelayQuery({
+        name: addPrReviewMutation.operation.name,
+        variables: {
+          input: {pullRequestId: 'pr0'},
+        },
+      }, op => {
+        return relayResponseBuilder(op)
+          .addError('Oh no')
+          .build();
+      }).resolve();
+
+      const pullRequest = pullRequestBuilder(pullRequestQuery).id('pr0').build();
+      const wrapper = shallow(buildApp({pullRequest}))
+        .find(PullRequestCheckoutController)
+        .renderProp('children')(noop);
+
+      await wrapper.find(ReviewsView).prop('addSingleComment')('body', 'thread0', 'comment1');
+
+      assert.isTrue(atomEnv.notifications.addError.calledWith(
+        'Unable to submit your comment',
+        {detail: 'Oh no', dismissable: true},
+      ));
+    });
+
+    it('creates a notification when the comment cannot be added', async function() {
+      sinon.stub(atomEnv.notifications, 'addError').returns();
+
+      expectRelayQuery({
+        name: addPrReviewMutation.operation.name,
+        variables: {
+          input: {pullRequestId: 'pr0'},
+        },
+      }, op => {
+        return relayResponseBuilder(op)
+          .addPullRequestReview(m => {
+            m.reviewEdge(e => e.node(r => r.id('review0')));
+          })
+          .build();
+      }).resolve();
+
+      expectRelayQuery({
+        name: addPrReviewCommentMutation.operation.name,
+        variables: {
+          input: {body: 'body', inReplyTo: 'comment1', pullRequestReviewId: 'review0'},
+        },
+      }, op => {
+        return relayResponseBuilder(op)
+          .addError('Kerpow')
+          .addError('Wat')
+          .build();
+      }).resolve();
+
+      const pullRequest = pullRequestBuilder(pullRequestQuery).id('pr0').build();
+      const wrapper = shallow(buildApp({pullRequest}))
+        .find(PullRequestCheckoutController)
+        .renderProp('children')(noop);
+
+      await wrapper.find(ReviewsView).prop('addSingleComment')('body', 'thread0', 'comment1');
+
+      assert.isTrue(atomEnv.notifications.addError.calledWith(
+        'Unable to submit your comment',
+        {detail: 'Kerpow\nWat', dismissable: true},
+      ));
+    });
+
+    it('creates a notification when the review cannot be submitted', async function() {
+      sinon.stub(atomEnv.notifications, 'addError').returns();
+
+      expectRelayQuery({
+        name: addPrReviewMutation.operation.name,
+        variables: {
+          input: {pullRequestId: 'pr0'},
+        },
+      }, op => {
+        return relayResponseBuilder(op)
+          .addPullRequestReview(m => {
+            m.reviewEdge(e => e.node(r => r.id('review0')));
+          })
+          .build();
+      }).resolve();
+
+      expectRelayQuery({
+        name: addPrReviewCommentMutation.operation.name,
+        variables: {
+          input: {body: 'body', inReplyTo: 'comment1', pullRequestReviewId: 'review0'},
+        },
+      }, op => {
+        return relayResponseBuilder(op)
+          .addPullRequestReviewComment(m => {
+            m.commentEdge(e => e.node(c => c.id('comment2')));
+          })
+          .build();
+      }).resolve();
+
+      expectRelayQuery({
+        name: submitPrReviewMutation.operation.name,
+        variables: {
+          input: {pullRequestReviewId: 'review0', event: 'COMMENT'},
+        },
+      }, op => {
+        return relayResponseBuilder(op)
+          .addError('Ouch')
+          .build();
+      }).resolve();
+
+      const pullRequest = pullRequestBuilder(pullRequestQuery).id('pr0').build();
+      const wrapper = shallow(buildApp({pullRequest}))
+        .find(PullRequestCheckoutController)
+        .renderProp('children')(noop);
+
+      await wrapper.find(ReviewsView).prop('addSingleComment')('body', 'thread0', 'comment1');
+
+      assert.isTrue(atomEnv.notifications.addError.calledWith(
+        'Unable to submit your comment',
+        {detail: 'Ouch', dismissable: true},
+      ));
+    });
+  });
+
+  describe('resolving threads', function() {
+    it('creates a notification when the thread cannot be resolved');
+  });
+
+  describe('unresolving threads', function() {
+    it('creates a notification when the thread cannot be unresolved');
   });
 });
