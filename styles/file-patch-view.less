@@ -310,10 +310,14 @@
   .gutter {
     &.old .line-number,
     &.new .line-number,
-    &.icons .line-number {
+    &.icons .line-number,
+    &[gutter-name="github-comment-icon"] .github-editorCommentGutterIcon {
       &.github-FilePatchView-line--selected {
         color: @text-color-selected;
         background: @background-color-selected;
+        &.github-editorCommentGutterIcon {
+          z-index: -1;
+        }
       }
     }
   }
@@ -330,10 +334,14 @@
   .gutter {
     &.old .line-number,
     &.new .line-number,
-    &.icons .line-number {
+    &.icons .line-number,
+    &[gutter-name="github-comment-icon"] .github-editorCommentGutterIcon {
       &.github-FilePatchView-line--selected {
         color: contrast(@button-background-color-selected);
         background: @button-background-color-selected;
+        &.github-editorCommentGutterIcon {
+          z-index: -1;
+        }
       }
     }
   }
