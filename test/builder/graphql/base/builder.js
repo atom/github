@@ -41,7 +41,10 @@ export class SpecBuilder {
     let rootQuery = null;
     const fragmentsByName = new Map();
     for (const definition of query.definitions) {
-      if (definition.kind === 'OperationDefinition' && definition.operation === 'query') {
+      if (
+        definition.kind === 'OperationDefinition' &&
+        (definition.operation === 'query' || definition.operation === 'mutation')
+      ) {
         rootQuery = definition;
       } else if (definition.kind === 'FragmentDefinition') {
         fragmentsByName.set(definition.name.value, definition);
