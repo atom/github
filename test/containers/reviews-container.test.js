@@ -63,6 +63,7 @@ describe('ReviewsContainer', function() {
       config: atomEnv.config,
       commands: atomEnv.commands,
       tooltips: atomEnv.tooltips,
+      reportMutationErrors: () => {},
 
       ...override,
     };
