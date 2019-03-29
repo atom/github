@@ -44,7 +44,22 @@ class RelayResponseBuilder extends QueryBuilder {
     return this.onFullQuery(doc);
   }
 
+  constructor(...args) {
+    super(...args);
+
+    this._errors = [];
+  }
+
+  addError(string) {
+    this._errors.push(string);
+    return this;
+  }
+
   build() {
+    if (this._errors.length > 0) {
+      return {data: null, errors: this._errors};
+    }
+
     return {data: super.build()};
   }
 }
