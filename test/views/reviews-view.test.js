@@ -136,12 +136,14 @@ describe('ReviewsView', function() {
         t.addComment(c =>
           c.id(1).path('file0').position(10).bodyHTML('i disagree.').author(a => a.login('user1').avatarUrl('user1.jpg')).isMinimized(true),
         );
-        return t;
-      }).addReviewThread(
-        t => t.addComment(c =>
+      }).addReviewThread(t => {
+        t.addComment(c =>
           c.id(2).path('file1').position(20).bodyHTML('thanks for all the fish').author(a => a.login('dolphin').avatarUrl('pic-of-dolphin')),
-        ),
-      ).addReviewThread(t => {
+        );
+        t.addComment(c =>
+          c.id(3).path('file1').position(20).bodyHTML('shhhh').state('PENDING'),
+        );
+      }).addReviewThread(t => {
         t.thread(t0 => t0.isResolved(true));
         t.addComment();
         return t;
@@ -162,7 +164,7 @@ describe('ReviewsView', function() {
       const threads = wrapper.find('details.github-Review');
       assert.lengthOf(threads, 3);
       assert.lengthOf(threads.at(0).find('.github-Review-comment'), 2);
-      assert.lengthOf(threads.at(1).find('.github-Review-comment'), 1);
+      assert.lengthOf(threads.at(1).find('.github-Review-comment'), 2);
       assert.lengthOf(threads.at(2).find('.github-Review-comment'), 1);
     });
 
@@ -179,6 +181,18 @@ describe('ReviewsView', function() {
         assert.strictEqual(thread.find('.github-Review-file').text(), '/file0');
         // TODO: FIX ME
         assert.strictEqual(thread.find('.github-Review-lineNr').text(), '10');
+      });
+
+      it('displays a pending badge when the comment is part of a pending review', function() {
+        const thread = wrapper.find('details.github-Review').at(1);
+
+        const comment0 = thread.find('.github-Review-comment').at(0);
+        assert.isFalse(comment0.hasClass('github-Review-comment--pending'));
+        assert.isFalse(comment0.exists('.github-Review-pendingBadge'));
+
+        const comment1 = thread.find('.github-Review-comment').at(1);
+        assert.isTrue(comment1.hasClass('github-Review-comment--pending'));
+        assert.isTrue(comment1.exists('.github-Review-pendingBadge'));
       });
 
       it('omits the / when there is no directory', function() {
