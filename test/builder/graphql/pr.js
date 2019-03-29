@@ -37,6 +37,7 @@ export const CommentBuilder = createSpecBuilderClass('PullRequestReviewComment',
   replyTo: {default: null, nullable: true},
   isMinimized: {default: false},
   minimizedReason: {default: null, nullable: true},
+  state: {default: 'SUBMITTED'},
   viewerCanReact: {default: true},
   viewerCanMinimize: {default: true},
 }, 'Node & Comment & Deletable & Updatable & UpdatableComment & Reactable & RepositoryNode');
