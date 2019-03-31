@@ -96,7 +96,7 @@
     "lodash.isequalwith": "4.4.0",
     "mkdirp": "0.5.1",
     "mocha": "6.0.2",
-    "mocha-junit-reporter": "1.18.0",
+    "mocha-junit-reporter": "1.19.0",
     "mocha-multi-reporters": "1.1.7",
     "mocha-stress": "1.0.0",
     "node-fetch": "2.3.0",
