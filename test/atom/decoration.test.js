@@ -81,7 +81,7 @@ describe.only('Decoration', function() {
       assert.equal(child.textContent, 'This is a subtree');
     });
 
-    it('creates a gutter decoration', function() {
+    it('decorates a gutter after it has been created in the editor', function() {
       const gutterName = 'rubin-starset-memorial-gutter';
       const app = (
         <Decoration editor={editor} decorable={marker} type="gutter" gutterName={gutterName}>
@@ -92,9 +92,13 @@ describe.only('Decoration', function() {
       );
       mount(app);
 
-      // atom doesn't error if you decorate a non existent gutter
-      // so checking for existence here tells us the decorations actually show up.
-      assert.isNotNull(editor.gutterWithName(gutterName));
+      // the gutter has not been created yet at this point
+      assert.isNull(editor.gutterWithName(gutterName));
+      assert.isFalse(editor.decorateMarker.called);
+
+      editor.addGutter({name: gutterName});
+
+      assert.isTrue(editor.decorateMarker.called);
       const args = editor.decorateMarker.firstCall.args;
       assert.equal(args[0], marker);
       assert.equal(args[1].type, 'gutter');
