@@ -4,7 +4,7 @@ import CommentGutterDecorationController from '../../lib/controllers/comment-gut
 import {getEndpoint} from '../../lib/models/endpoint';
 import {Range} from 'atom';
 import * as reporterProxy from '../../lib/reporter-proxy';
-import ReviewsItem from '../../lib/items/reviews-item'
+import ReviewsItem from '../../lib/items/reviews-item';
 
 describe('CommentGutterDecorationController', function() {
   let atomEnv, workspace, editor;
