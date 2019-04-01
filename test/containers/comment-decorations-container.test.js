@@ -13,6 +13,7 @@ import RemoteSet from '../../lib/models/remote-set';
 import {InMemoryStrategy, UNAUTHENTICATED, INSUFFICIENT} from '../../lib/shared/keytar-strategy';
 import CommentDecorationsContainer from '../../lib/containers/comment-decorations-container';
 import repositoryQuery from '../../lib/containers/__generated__/commentDecorationsContainerQuery.graphql.js';
+import CommentDecorationsController from '../../lib/controllers/comment-decorations-controller';
 
 describe('CommentDecorationsContainer', function() {
   let atomEnv, workspace, localRepository, loginModel;
@@ -93,12 +94,41 @@ describe('CommentDecorationsContainer', function() {
     });
 
     it('renders nothing if query errors', function() {
-
+      const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')({token: '1234'});
+      const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({
+        error: 'oh noes', props: null, retry: () => {}});
+      assert.isTrue(resultWrapper.isEmptyRender());
     });
 
     it('renders nothing if query is loading', function() {
-
+      const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')({token: '1234'});
+      const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({
+        error: null, props: null, retry: () => {}});
+      assert.isTrue(resultWrapper.isEmptyRender());
     });
+
+    it('renders nothing if query result does not include repository', function() {
+      const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')({token: '1234'});
+      const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({
+        error: null, props: {oh: 'emgee'}, retry: () => {}});
+      assert.isTrue(resultWrapper.isEmptyRender());
+    });
+
+    it('renders nothing if query result does not include repository ref', function() {
+      const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')({token: '1234'});
+      const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({
+        error: null, props: {repository: {}}, retry: () => {}});
+      assert.isTrue(resultWrapper.isEmptyRender());
+    });
+
+    it('renders the CommentDecorationsController if result includes repository and ref', function() {
+      const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')({token: '1234'});
+      const repository = {ref: {associatedPullRequests: {nodes: []}}};
+      const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({
+        error: null, props: {repository}, retry: () => {}});
+      assert.lengthOf(resultWrapper.find(CommentDecorationsController), 1);
+    });
+
   });
 
 });
