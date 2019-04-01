@@ -1,6 +1,7 @@
 import {createSpecBuilderClass} from './base';
 
 import {CommentBuilder, ReviewBuilder, ReviewThreadBuilder} from './pr';
+import {ReactableBuilder} from './reactable';
 
 const ReviewEdgeBuilder = createSpecBuilderClass('PullRequestReviewEdge', {
   node: {linked: ReviewBuilder},
@@ -28,4 +29,12 @@ export const ResolveReviewThreadPayload = createSpecBuilderClass('ResolveReviewT
 
 export const UnresolveReviewThreadPayload = createSpecBuilderClass('UnresolveReviewThreadPayload', {
   thread: {linked: ReviewThreadBuilder},
+});
+
+export const AddReactionPayloadBuilder = createSpecBuilderClass('AddReactionPayload', {
+  subject: {linked: ReactableBuilder},
+});
+
+export const RemoveReactionPayloadBuilder = createSpecBuilderClass('RemoveReactionPayload', {
+  subject: {linked: ReactableBuilder},
 });
