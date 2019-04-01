@@ -10,7 +10,7 @@ import GithubLoginModel from '../../lib/models/github-login-model';
 import ObserveModel from '../../lib/views/observe-model';
 import Remote from '../../lib/models/remote';
 import RemoteSet from '../../lib/models/remote-set';
-import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
+import {InMemoryStrategy, UNAUTHENTICATED, INSUFFICIENT} from '../../lib/shared/keytar-strategy';
 import CommentDecorationsContainer from '../../lib/containers/comment-decorations-container';
 import repositoryQuery from '../../lib/containers/__generated__/commentDecorationsContainerQuery.graphql.js';
 
@@ -80,6 +80,16 @@ describe('CommentDecorationsContainer', function() {
     it('makes a relay query', function() {
       const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')({token: '1234'});
       assert.lengthOf(tokenWrapper.find(QueryRenderer), 1);
+    });
+
+    it('renders nothing if token is UNAUTHENTICATED', function() {
+      const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')({token: UNAUTHENTICATED});
+      assert.isTrue(tokenWrapper.isEmptyRender());
+    });
+
+    it('renders nothing if token is INSUFFICIENT', function() {
+      const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')({token: INSUFFICIENT});
+      assert.isTrue(tokenWrapper.isEmptyRender());
     });
 
     it('renders nothing if query errors', function() {
