@@ -21,6 +21,7 @@ describe('CommentGutterDecorationController', function() {
       repo: 'repo',
       number: 1337,
       workdir: 'dir/path',
+      parent: 'TheThingThatMadeChildren',
       ...opts,
     };
     return <CommentGutterDecorationController {...props} />;
@@ -66,7 +67,7 @@ describe('CommentGutterDecorationController', function() {
     await assert.async.isTrue(jumpToThread.calledWith('my-thread-will-go-on'));
     assert.isTrue(reporterProxy.addEvent.calledWith('open-review-thread', {
       package: 'github',
-      from: 'CommentGutterDecorationController',
+      from: 'TheThingThatMadeChildren',
     }));
   });
 });
