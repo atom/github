@@ -108,6 +108,26 @@ describe.only('Decoration', function() {
       assert.equal(child.textContent, 'This is a subtree');
     });
 
+    it('does not decorate a non-existent gutter', function() {
+      const gutterName = 'rubin-starset-memorial-gutter';
+      const app = (
+        <Decoration editor={editor} decorable={marker} type="gutter" gutterName={gutterName}>
+          <div className="decoration-subtree">
+            This is a subtree
+          </div>
+        </Decoration>
+      );
+      mount(app);
+
+      assert.isNull(editor.gutterWithName(gutterName));
+      assert.isFalse(editor.decorateMarker.called);
+
+      editor.addGutter({name: 'another-gutter-name'});
+
+      assert.isFalse(editor.decorateMarker.called);
+      assert.isNull(editor.gutterWithName(gutterName));
+    });
+
     it('throws an error if `gutterName` prop is not supplied for gutter decorations', function() {
       const app = (
         <Decoration editor={editor} decorable={marker} type="gutter">
