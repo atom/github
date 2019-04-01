@@ -43,7 +43,7 @@ describe('CommentDecorationsContainer', function() {
     );
   }
 
-  it('does not query if no GitHub remotes exist', async function() {
+  it('renders nothing if no GitHub remotes exist', async function() {
     const wrapper = shallow(buildApp());
 
     const localRepoData = await wrapper.find(ObserveModel).prop('fetchData')(localRepository);
@@ -78,10 +78,6 @@ describe('CommentDecorationsContainer', function() {
       localRepoWrapper = wrapper.find(ObserveModel).renderProp('children')(repoData);
 
     });
-    it('makes a relay query', function() {
-      const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')({token: '1234'});
-      assert.lengthOf(tokenWrapper.find(QueryRenderer), 1);
-    });
 
     it('renders nothing if token is UNAUTHENTICATED', function() {
       const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')({token: UNAUTHENTICATED});
@@ -91,6 +87,11 @@ describe('CommentDecorationsContainer', function() {
     it('renders nothing if token is INSUFFICIENT', function() {
       const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')({token: INSUFFICIENT});
       assert.isTrue(tokenWrapper.isEmptyRender());
+    });
+
+    it('makes a relay query if token works', function() {
+      const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')({token: '1234'});
+      assert.lengthOf(tokenWrapper.find(QueryRenderer), 1);
     });
 
     it('renders nothing if query errors', function() {
