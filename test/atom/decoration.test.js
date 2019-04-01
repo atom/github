@@ -8,7 +8,7 @@ import AtomTextEditor from '../../lib/atom/atom-text-editor';
 import Marker from '../../lib/atom/marker';
 import MarkerLayer from '../../lib/atom/marker-layer';
 
-describe('Decoration', function() {
+describe.only('Decoration', function() {
   let atomEnv, workspace, editor, marker;
 
   beforeEach(async function() {
@@ -112,7 +112,7 @@ describe('Decoration', function() {
           </div>
         </Decoration>
       );
-      assert.throws(() => mount(app), 'you are trying to decorate a gutter but did not supply gutterName prop');
+      assert.throws(() => mount(app), 'You are trying to decorate a gutter but did not supply gutterName prop.');
     });
   });
 
