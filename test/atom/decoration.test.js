@@ -8,7 +8,7 @@ import AtomTextEditor from '../../lib/atom/atom-text-editor';
 import Marker from '../../lib/atom/marker';
 import MarkerLayer from '../../lib/atom/marker-layer';
 
-describe.only('Decoration', function() {
+describe('Decoration', function() {
   let atomEnv, workspace, editor, marker;
 
   beforeEach(async function() {
