@@ -19,15 +19,15 @@ export const AddPullRequestReviewCommentPayloadBuilder = createSpecBuilderClass(
   commentEdge: {linked: CommentEdgeBuilder},
 });
 
-export const SubmitPullRequestReviewPayload = createSpecBuilderClass('SubmitPullRequestReviewPayload', {
+export const SubmitPullRequestReviewPayloadBuilder = createSpecBuilderClass('SubmitPullRequestReviewPayload', {
   pullRequestReview: {linked: ReviewBuilder},
 });
 
-export const ResolveReviewThreadPayload = createSpecBuilderClass('ResolveReviewThreadPayload', {
+export const ResolveReviewThreadPayloadBuilder = createSpecBuilderClass('ResolveReviewThreadPayload', {
   thread: {linked: ReviewThreadBuilder},
 });
 
-export const UnresolveReviewThreadPayload = createSpecBuilderClass('UnresolveReviewThreadPayload', {
+export const UnresolveReviewThreadPayloadBuilder = createSpecBuilderClass('UnresolveReviewThreadPayload', {
   thread: {linked: ReviewThreadBuilder},
 });
 

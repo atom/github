@@ -8,9 +8,9 @@ import {PullRequestBuilder} from './pr';
 import {
   AddPullRequestReviewPayloadBuilder,
   AddPullRequestReviewCommentPayloadBuilder,
-  SubmitPullRequestReviewPayload,
-  ResolveReviewThreadPayload,
-  UnresolveReviewThreadPayload,
+  SubmitPullRequestReviewPayloadBuilder,
+  ResolveReviewThreadPayloadBuilder,
+  UnresolveReviewThreadPayloadBuilder,
   AddReactionPayloadBuilder,
   RemoveReactionPayloadBuilder,
 } from './mutations';
@@ -46,9 +46,9 @@ const QueryBuilder = createSpecBuilderClass('Query', {
   // Mutations
   addPullRequestReview: {linked: AddPullRequestReviewPayloadBuilder},
   addPullRequestReviewComment: {linked: AddPullRequestReviewCommentPayloadBuilder},
-  submitPullRequestReview: {linked: SubmitPullRequestReviewPayload},
-  resolveReviewThread: {linked: ResolveReviewThreadPayload},
-  unresolveReviewThread: {linked: UnresolveReviewThreadPayload},
+  submitPullRequestReview: {linked: SubmitPullRequestReviewPayloadBuilder},
+  resolveReviewThread: {linked: ResolveReviewThreadPayloadBuilder},
+  unresolveReviewThread: {linked: UnresolveReviewThreadPayloadBuilder},
   addReaction: {linked: AddReactionPayloadBuilder},
   removeReaction: {linked: RemoveReactionPayloadBuilder},
 });
