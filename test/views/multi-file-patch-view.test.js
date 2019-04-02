@@ -11,8 +11,7 @@ import {aggregatedReviewsBuilder} from '../builder/graphql/aggregated-reviews-bu
 import {nullFile} from '../../lib/models/patch/file';
 import FilePatch from '../../lib/models/patch/file-patch';
 import RefHolder from '../../lib/models/ref-holder';
-import AggregatedReviewsContainer from '../../lib/containers/aggregated-reviews-container';
-import PullRequestReviewCommentThreadView from '../../lib/views/pr-review-comment-thread-view';
+import CommentGutterDecorationController from '../../lib/controllers/comment-gutter-decoration-controller';
 import CommitPreviewItem from '../../lib/items/commit-preview-item';
 import ChangedFileItem from '../../lib/items/changed-file-item';
 import IssueishDetailItem from '../../lib/items/issueish-detail-item';
@@ -271,26 +270,38 @@ describe('MultiFilePatchView', function() {
   });
 
   describe('review comments', function() {
-    it('renders review comment threads if itemType is IssueishDetailItem', function() {
+    it('renders a gutter decoration for each review thread if itemType is IssueishDetailItem', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file0.txt'));
+          fp.addHunk(h => h.unchanged('0', '1', '2').added('3').unchanged('4', '5'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file1.txt'));
+          fp.addHunk(h => h.unchanged('6').deleted('7', '8').unchanged('9'));
+        })
+        .build();
+
       const payload = aggregatedReviewsBuilder()
         .addReviewThread(b => {
-          b.thread(t => t.isResolved(true));
-          b.addComment();
+          b.thread(t => t.id('thread0').isResolved(true));
+          b.addComment(c => c.path('file0.txt').position(1));
         })
         .addReviewThread(b => {
-          b.thread(t => t.isResolved(false));
-          b.addComment();
-          b.addComment();
-          b.addComment();
+          b.thread(t => t.id('thread1').isResolved(false));
+          b.addComment(c => c.path('file1.txt').position(2));
+          b.addComment(c => c.path('ignored').position(999));
+          b.addComment(c => c.path('file1.txt').position(0));
         })
         .addReviewThread(b => {
-          b.thread(t => t.isResolved(false));
-          b.addComment();
-          b.addComment();
+          b.thread(t => t.id('thread2').isResolved(false));
+          b.addComment(c => c.path('file0.txt').position(4));
+          b.addComment(c => c.path('file0.txt').position(4));
         })
         .build();
 
       const wrapper = shallow(buildApp({
+        multiFilePatch,
         reviewCommentsLoading: false,
         reviewCommentsTotalCount: 3,
         reviewCommentsResolvedCount: 1,
@@ -298,11 +309,20 @@ describe('MultiFilePatchView', function() {
         itemType: IssueishDetailItem,
       }));
 
-      const commentViews = wrapper.find(PullRequestReviewCommentThreadView);
-      assert.lengthOf(commentViews, 3);
-      assert.lengthOf(commentViews.at(0).prop('comments'), 1);
-      assert.lengthOf(commentViews.at(1).prop('comments'), 3);
-      assert.lengthOf(commentViews.at(2).prop('comments'), 2);
+      const controllers = wrapper.find(CommentGutterDecorationController);
+      assert.lengthOf(controllers, 3);
+
+      const controller0 = controllers.at(0);
+      assert.strictEqual(controller0.prop('commentRow'), 0);
+      assert.strictEqual(controller0.prop('threadId'), 'thread0');
+
+      const controller1 = controllers.at(1);
+      assert.strictEqual(controller1.prop('commentRow'), 7);
+      assert.strictEqual(controller1.prop('threadId'), 'thread1');
+
+      const controller2 = controllers.at(2);
+      assert.strictEqual(controller2.prop('commentRow'), 3);
+      assert.strictEqual(controller2.prop('threadId'), 'thread2');
     });
 
     it('does not render threads until they finish loading', function() {
@@ -327,7 +347,7 @@ describe('MultiFilePatchView', function() {
         itemType: IssueishDetailItem,
       }));
 
-      assert.isFalse(wrapper.find(PullRequestReviewCommentThreadView).exists());
+      assert.isFalse(wrapper.find(CommentGutterDecorationController).exists());
     });
   });
 
