@@ -258,6 +258,8 @@ describe('ReviewsView', function() {
           let openFile, openDiff;
 
           beforeEach(function() {
+            openFile = sinon.spy();
+            openDiff = sinon.spy();
             wrapper = shallow(buildApp({openFile, openDiff, summaries, commentThreads}));
           });
 
@@ -278,9 +280,15 @@ describe('ReviewsView', function() {
           let openFile, openDiff;
 
           beforeEach(function() {
+<<<<<<< HEAD
             openFile = sinon.spy();
             openDiff = sinon.spy();
 
+||||||| merged common ancestors
+=======
+            openFile = sinon.spy();
+            openDiff = sinon.spy();
+>>>>>>> use sinon in beforeEach blocks
             const checkoutOp = new EnableableOperation(() => {});
             wrapper = shallow(buildApp({openFile, openDiff, checkoutOp, summaries, commentThreads}));
           });
