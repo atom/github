@@ -90,6 +90,25 @@ describe('ReviewsController', function() {
     assert.strictEqual(opWrapper.find(ReviewsView).prop('extra'), extra);
   });
 
+  it('scrolls to specific thread', async function() {
+    const clock = sinon.useFakeTimers();
+    const wrapper = shallow(buildApp());
+    let opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
+
+    assert.deepEqual(opWrapper.find(ReviewsView).prop('threadIDsOpen'), new Set([]));
+    await wrapper.setProps({initThreadID: 'hang-by-a-thread'});
+    opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
+
+    assert.include(opWrapper.find(ReviewsView).prop('threadIDsOpen'), 'hang-by-a-thread');
+    assert.isTrue(await opWrapper.find(ReviewsView).prop('commentSectionOpen'));
+    assert.strictEqual(await opWrapper.find(ReviewsView).prop('scrollToThreadID'), 'hang-by-a-thread');
+
+    clock.tick(2000);
+    opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
+    assert.isNull(await opWrapper.find(ReviewsView).prop('scrollToThreadID'));
+    clock.restore();
+  });
+
   describe('openIssueish', function() {
     it('opens an IssueishDetailItem for a different issueish', async function() {
       const wrapper = shallow(buildApp({
