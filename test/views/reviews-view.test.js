@@ -164,7 +164,6 @@ describe('ReviewsView', function() {
   });
 
   describe('comment threads', function() {
-    const {errors, summaries, commentThreads} = aggregatedReviewsBuilder()
     const {summaries, commentThreads} = aggregatedReviewsBuilder()
       .addReviewSummary(r => r.id(0))
       .addReviewThread(t => {
@@ -280,15 +279,8 @@ describe('ReviewsView', function() {
           let openFile, openDiff;
 
           beforeEach(function() {
-<<<<<<< HEAD
             openFile = sinon.spy();
             openDiff = sinon.spy();
-
-||||||| merged common ancestors
-=======
-            openFile = sinon.spy();
-            openDiff = sinon.spy();
->>>>>>> use sinon in beforeEach blocks
             const checkoutOp = new EnableableOperation(() => {});
             wrapper = shallow(buildApp({openFile, openDiff, checkoutOp, summaries, commentThreads}));
           });
