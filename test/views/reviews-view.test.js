@@ -26,7 +26,8 @@ describe('ReviewsView', function() {
       relay: {environment: {}},
       repository: {},
       pullRequest: {},
-
+      summaries: [],
+      commentThreads: [],
       multiFilePatch: multiFilePatchBuilder().build().multiFilePatch,
       contextLines: 4,
       checkoutOp: new EnableableOperation(() => {}).disable(checkoutStates.CURRENT),
@@ -60,6 +61,7 @@ describe('ReviewsView', function() {
       unresolveThread: () => {},
       addSingleComment: () => {},
       reportMutationErrors: () => {},
+      refetch: () => {},
       ...override,
     };
 
