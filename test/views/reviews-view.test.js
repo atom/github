@@ -68,11 +68,6 @@ describe('ReviewsView', function() {
     return <ReviewsView {...props} />;
   }
 
-  it('renders an AggregatedReviewsContainer', function() {
-    const wrapper = shallow(buildApp());
-    assert.lengthOf(wrapper.find(AggregatedReviewsContainer), 1);
-  });
-
   it('registers atom commands', async function() {
     const moreContext = sinon.stub();
     const lessContext = sinon.stub();
@@ -90,10 +85,7 @@ describe('ReviewsView', function() {
 
   it('renders empty state if there is no review', function() {
     sinon.stub(reporterProxy, 'addEvent');
-    const {errors, summaries, commentThreads} = aggregatedReviewsBuilder().build();
     const wrapper = shallow(buildApp())
-      .find(AggregatedReviewsContainer)
-      .renderProp('children')({errors, summaries, commentThreads});
     assert.lengthOf(wrapper.find('.github-Reviews-section.summaries'), 0);
     assert.lengthOf(wrapper.find('.github-Reviews-section.comments'), 0);
     assert.lengthOf(wrapper.find('.github-Reviews-emptyState'), 1);
@@ -106,15 +98,14 @@ describe('ReviewsView', function() {
   });
 
   it('renders summary and comment sections', function() {
-    const {errors, summaries, commentThreads} = aggregatedReviewsBuilder()
+    const {summaries, commentThreads} = aggregatedReviewsBuilder()
       .addReviewSummary(r => r.id(0))
       .addReviewThread(t => t.addComment())
       .addReviewThread(t => t.addComment())
       .build();
 
-    const wrapper = shallow(buildApp())
-      .find(AggregatedReviewsContainer)
-      .renderProp('children')({errors, summaries, commentThreads});
+    const wrapper = shallow(buildApp({summaries, commentThreads}))
+
     assert.lengthOf(wrapper.find('.github-Reviews-section.summaries'), 1);
     assert.lengthOf(wrapper.find('.github-Reviews-section.comments'), 1);
     assert.lengthOf(wrapper.find('.github-ReviewSummary'), 1);
@@ -130,9 +121,7 @@ describe('ReviewsView', function() {
       })
       .build();
 
-    const wrapper = shallow(buildApp({openIssueish}))
-      .find(AggregatedReviewsContainer)
-      .renderProp('children')({errors: [], summaries, commentThreads: []});
+    const wrapper = shallow(buildApp({openIssueish, summaries}));
 
     wrapper.find('GithubDotcomMarkdown').prop('switchToIssueish')('aaa', 'bbb', 123);
     assert.isTrue(openIssueish.calledWith('aaa', 'bbb', 123));
@@ -176,6 +165,7 @@ describe('ReviewsView', function() {
 
   describe('comment threads', function() {
     const {errors, summaries, commentThreads} = aggregatedReviewsBuilder()
+    const {summaries, commentThreads} = aggregatedReviewsBuilder()
       .addReviewSummary(r => r.id(0))
       .addReviewThread(t => {
         t.addComment(c =>
@@ -203,9 +193,7 @@ describe('ReviewsView', function() {
     beforeEach(function() {
       openIssueish = sinon.spy();
 
-      wrapper = shallow(buildApp({openIssueish}))
-        .find(AggregatedReviewsContainer)
-        .renderProp('children')({errors, summaries, commentThreads});
+      wrapper = shallow(buildApp({openIssueish, summaries, commentThreads}));
     });
 
     it('renders threads with comments', function() {
@@ -270,12 +258,7 @@ describe('ReviewsView', function() {
           let openFile, openDiff;
 
           beforeEach(function() {
-            openFile = sinon.spy();
-            openDiff = sinon.spy();
-
-            wrapper = shallow(buildApp({openFile, openDiff}))
-              .find(AggregatedReviewsContainer)
-              .renderProp('children')({errors, summaries, commentThreads});
+            wrapper = shallow(buildApp({openFile, openDiff, summaries, commentThreads}));
           });
 
           it('calls openDiff with correct params when "Open Diff" is clicked', function() {
@@ -299,9 +282,7 @@ describe('ReviewsView', function() {
             openDiff = sinon.spy();
 
             const checkoutOp = new EnableableOperation(() => {});
-            wrapper = shallow(buildApp({openFile, openDiff, checkoutOp}))
-              .find(AggregatedReviewsContainer)
-              .renderProp('children')({errors, summaries, commentThreads});
+            wrapper = shallow(buildApp({openFile, openDiff, checkoutOp, summaries, commentThreads}));
           });
 
           it('"Jump To File" button is disabled', function() {
