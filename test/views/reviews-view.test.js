@@ -2,6 +2,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 import sinon from 'sinon';
 
+import {Command} from '../../lib/atom/commands';
 import ReviewsView from '../../lib/views/reviews-view';
 import AggregatedReviewsContainer from '../../lib/containers/aggregated-reviews-container';
 import EnableableOperation from '../../lib/models/enableable-operation';
@@ -73,7 +74,20 @@ describe('ReviewsView', function() {
     assert.lengthOf(wrapper.find(AggregatedReviewsContainer), 1);
   });
 
-  it('registers atom commands');
+  it('registers atom commands', async function() {
+    const moreContext = sinon.stub();
+    const lessContext = sinon.stub();
+    const wrapper = shallow(buildApp({moreContext, lessContext}));
+    assert.lengthOf(wrapper.find(Command), 2);
+
+    assert.isFalse(moreContext.called);
+    await wrapper.find(Command).at(0).prop('callback')()
+    assert.isTrue(moreContext.called);
+
+    assert.isFalse(lessContext.called);
+    await wrapper.find(Command).at(1).prop('callback')()
+    assert.isTrue(lessContext.called);
+  });
 
   it('renders empty state if there is no review', function() {
     sinon.stub(reporterProxy, 'addEvent');
