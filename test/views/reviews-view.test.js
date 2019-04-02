@@ -1,6 +1,5 @@
 import React from 'react';
 import {shallow} from 'enzyme';
-import sinon from 'sinon';
 
 import {Command} from '../../lib/atom/commands';
 import ReviewsView from '../../lib/views/reviews-view';
