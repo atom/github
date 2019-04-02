@@ -244,10 +244,12 @@ describe('ReviewsView', function() {
         });
 
         describe('when PR is checked out', function() {
-          const openFile = sinon.spy();
-          const openDiff = sinon.spy();
+          let openFile, openDiff;
 
           beforeEach(function() {
+            openFile = sinon.spy();
+            openDiff = sinon.spy();
+
             wrapper = shallow(buildApp({openFile, openDiff}))
               .find(AggregatedReviewsContainer)
               .renderProp('children')({errors, summaries, commentThreads});
@@ -267,10 +269,12 @@ describe('ReviewsView', function() {
         });
 
         describe('when PR is not checked out', function() {
-          const openFile = sinon.spy();
-          const openDiff = sinon.spy();
+          let openFile, openDiff;
 
           beforeEach(function() {
+            openFile = sinon.spy();
+            openDiff = sinon.spy();
+
             const checkoutOp = new EnableableOperation(() => {});
             wrapper = shallow(buildApp({openFile, openDiff, checkoutOp}))
               .find(AggregatedReviewsContainer)
