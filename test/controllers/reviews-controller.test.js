@@ -9,6 +9,7 @@ import BranchSet from '../../lib/models/branch-set';
 import RemoteSet from '../../lib/models/remote-set';
 import EnableableOperation from '../../lib/models/enableable-operation';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
+import * as reporterProxy from '../../lib/reporter-proxy';
 import {getEndpoint} from '../../lib/models/endpoint';
 import {cloneRepository, buildRepository, registerGitHubOpener} from '../helpers';
 import {multiFilePatchBuilder} from '../builder/patch';
@@ -26,7 +27,7 @@ import submitPrReviewMutation from '../../lib/mutations/__generated__/submitPrRe
 import resolveThreadMutation from '../../lib/mutations/__generated__/resolveReviewThreadMutation.graphql';
 import unresolveThreadMutation from '../../lib/mutations/__generated__/unresolveReviewThreadMutation.graphql';
 
-describe('ReviewsController', function() {
+describe.only('ReviewsController', function() {
   let atomEnv, relayEnv, localRepository, noop;
 
   beforeEach(async function() {
@@ -470,6 +471,57 @@ describe('ReviewsController', function() {
       await wrapper.find(ReviewsView).prop('unresolveThread')({id: 'thread1', viewerCanUnresolve: true});
 
       assert.isTrue(reportMutationErrors.calledWith('Unable to unresolve the comment thread'));
+    });
+  });
+
+  describe('action methods', function() {
+
+    let wrapper, openFilesTab, onTabSelected;
+
+    beforeEach(function() {
+      openFilesTab = sinon.spy();
+      onTabSelected = sinon.spy();
+      sinon.stub(atomEnv.workspace, 'open').resolves({openFilesTab, onTabSelected});
+      sinon.stub(reporterProxy, 'addEvent');
+      wrapper = shallow(buildApp())
+        .find(PullRequestCheckoutController)
+        .renderProp('children')(noop);
+    });
+
+    it('opens file on disk', async function() {
+      await wrapper.find(ReviewsView).prop('openFile')('filepath', 420);
+      assert.isTrue(atomEnv.workspace.open.calledWith(
+        'filepath', {
+          initialLine: 420 - 1,
+          initialColumn: 0,
+          pending: true,
+        },
+      ));
+      assert.isTrue(reporterProxy.addEvent.calledWith('reviews-dock-open-file', {package: 'github'}));
+    });
+
+    it('opens diff in PR detail item', async function() {
+      await wrapper.find(ReviewsView).prop('openDiff')('filepath', 420);
+      assert.isTrue(atomEnv.workspace.open.calledWith(
+        IssueishDetailItem.buildURI('github.com', 'atom', 'github', 1995, localRepository.getWorkingDirectoryPath()), {
+          pending: true,
+          searchAllPanes: true,
+        },
+      ));
+      assert.isTrue(openFilesTab.calledWith({changedFilePath: 'filepath', changedFilePosition: 420}));
+      assert.isTrue(reporterProxy.addEvent.calledWith('reviews-dock-open-diff', {package: 'github'}));
+    });
+
+    it('opens overview of a PR detail item', async function() {
+      await wrapper.find(ReviewsView).prop('openPR')();
+      assert.isTrue(atomEnv.workspace.open.calledWith(
+        IssueishDetailItem.buildURI('github.com', 'atom', 'github', 1995, localRepository.getWorkingDirectoryPath()), {
+          pending: true,
+          searchAllPanes: true,
+        },
+      ));
+      assert.isTrue(onTabSelected.calledWith(0));
+      assert.isTrue(reporterProxy.addEvent.calledWith('reviews-dock-open-pr', {package: 'github', component: 'BareReviewsController'}));
     });
   });
 });
