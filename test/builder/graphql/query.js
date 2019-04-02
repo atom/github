@@ -40,7 +40,7 @@ const SearchResultBuilder = createSpecBuilderClass('SearchResultItemConnection',
 });
 
 const QueryBuilder = createSpecBuilderClass('Query', {
-  repository: {linked: RepositoryBuilder},
+  repository: {linked: RepositoryBuilder, nullable: true},
   search: {linked: SearchResultBuilder},
 
   // Mutations
