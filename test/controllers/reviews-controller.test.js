@@ -523,5 +523,25 @@ describe.only('ReviewsController', function() {
       assert.isTrue(onTabSelected.calledWith(0));
       assert.isTrue(reporterProxy.addEvent.calledWith('reviews-dock-open-pr', {package: 'github', component: 'BareReviewsController'}));
     });
+
+    it('manages the open/close state of the summary section', async function() {
+      assert.isTrue(await wrapper.find(ReviewsView).prop('summarySectionOpen'), true);
+
+      await wrapper.find(ReviewsView).prop('hideSummaries')();
+      assert.isTrue(await wrapper.find(ReviewsView).prop('summarySectionOpen'), false);
+
+      await wrapper.find(ReviewsView).prop('showSummaries')();
+      assert.isTrue(await wrapper.find(ReviewsView).prop('summarySectionOpen'), true);
+    });
+
+    it('manages the open/close state of the comment section', async function() {
+      assert.isTrue(await wrapper.find(ReviewsView).prop('commentSectionOpen'), true);
+
+      await wrapper.find(ReviewsView).prop('hideComments')();
+      assert.isTrue(await wrapper.find(ReviewsView).prop('commentSectionOpen'), false);
+
+      await wrapper.find(ReviewsView).prop('showComments')();
+      assert.isTrue(await wrapper.find(ReviewsView).prop('commentSectionOpen'), true);
+    });
   });
 });
