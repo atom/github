@@ -144,11 +144,12 @@ describe('ReviewsView', function() {
     assert.isTrue(openIssueish.calledWith('ccc', 'ddd', 654));
   });
 
-  it('renders reviews with correct data');
-
   describe('checkout button', function() {
-    it('triggers checkout op on click');
-    it('is disabled when checkout state is disabled');
+    it('passes checkoutOp prop through to CheckoutButon', function() {
+      const wrapper = shallow(buildApp());
+      const checkoutOpProp = (wrapper.find('CheckoutButton').prop('checkoutOp'));
+      assert.deepEqual(checkoutOpProp.disablement, {reason: {name: 'current'}, message: 'disabled'});
+    });
   });
 
   describe('comment threads', function() {
