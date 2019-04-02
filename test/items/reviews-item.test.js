@@ -121,4 +121,12 @@ describe('ReviewsItem', function() {
       uri: 'atom-github://reviews/github.horse/atom/atom/12?workdir=%2Fhere',
     });
   });
+
+  it('jumps to thread', async function() {
+    const wrapper = mount(buildPaneApp());
+    const item = await open(wrapper);
+    assert.isNull(item.state.initThreadID);
+    await item.jumpToThread('an-id');
+    assert.strictEqual(item.state.initThreadID, 'an-id');
+  });
 });

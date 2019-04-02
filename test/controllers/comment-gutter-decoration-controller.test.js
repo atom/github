@@ -31,7 +31,6 @@ describe('CommentGutterDecorationController', function() {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
     editor = await workspace.open(__filename);
-
   });
 
   afterEach(function() {
