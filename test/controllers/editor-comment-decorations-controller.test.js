@@ -2,22 +2,18 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import EditorCommentDecorationsController from '../../lib/controllers/editor-comment-decorations-controller';
+import CommentGutterDecorationController from '../../lib/controllers/comment-gutter-decoration-controller';
 import Marker from '../../lib/atom/marker';
 import Decoration from '../../lib/atom/decoration';
 import {getEndpoint} from '../../lib/models/endpoint';
-import ReviewsItem from '../../lib/items/reviews-item';
 
 describe('EditorCommentDecorationsController', function() {
   let atomEnv, workspace, editor, wrapper;
-  let translationPromise, resolveTranslationPromise;
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
     editor = await workspace.open(__filename);
-    translationPromise = new Promise(resolve => {
-      resolveTranslationPromise = resolve;
-    });
   });
 
   afterEach(function() {
@@ -34,12 +30,10 @@ describe('EditorCommentDecorationsController', function() {
 
       workspace,
       editor,
-      comments: [],
-
-      translateLines: lines => Promise.resolve(
-        new Map(lines.map(line => [line, {newPosition: line + 2}])),
-      ),
-      didFinishTranslation: resolveTranslationPromise,
+      threadsForPath: [],
+      commentTranslationsForPath: {
+        diffToFilePosition: new Map(),
+      },
 
       ...opts,
     };
@@ -47,102 +41,54 @@ describe('EditorCommentDecorationsController', function() {
     return <EditorCommentDecorationsController {...props} />;
   }
 
-  it('creates a marker for each comment at its translated line position', async function() {
-    const comments = [
-      {id: 'comment0', position: 4, isMinimized: false, threadID: 'thread0'},
-      {id: 'comment1', position: 10, isMinimized: false, threadID: 'thread1'},
+  it('renders nothing if no position translations are available for this path', function() {
+    wrapper = shallow(buildApp({commentTranslationsForPath: null}));
+    assert.isTrue(wrapper.isEmptyRender());
+  });
+
+  it('creates a marker and decoration controller for each comment thread at its translated line position', function() {
+    const threadsForPath = [
+      {rootCommentID: 'comment0', position: 4, threadID: 'thread0'},
+      {rootCommentID: 'comment1', position: 10, threadID: 'thread1'},
+      {rootCommentID: 'untranslateable', position: 20, threadID: 'thread2'},
+      {rootCommentID: 'positionless', position: null, threadID: 'thread3'},
     ];
 
-    wrapper = shallow(buildApp({comments}));
-    await translationPromise;
+    const commentTranslationsForPath = {
+      diffToFilePosition: new Map([
+        [4, 7],
+        [10, 13],
+      ]),
+    };
+
+    wrapper = shallow(buildApp({threadsForPath, commentTranslationsForPath}));
 
     const markers = wrapper.find(Marker);
     assert.lengthOf(markers, 2);
-    assert.isTrue(markers.someWhere(w => w.prop('bufferRange').isEqual([[5, 0], [5, 0]])));
-    assert.isTrue(markers.someWhere(w => w.prop('bufferRange').isEqual([[11, 0], [11, 0]])));
+    assert.isTrue(markers.someWhere(w => w.prop('bufferRange').isEqual([[6, 0], [6, 0]])));
+    assert.isTrue(markers.someWhere(w => w.prop('bufferRange').isEqual([[12, 0], [12, 0]])));
+
+    const controllers = wrapper.find(CommentGutterDecorationController);
+    assert.lengthOf(controllers, 2);
+    assert.isTrue(controllers.someWhere(w => w.prop('commentRow') === 6));
+    assert.isTrue(controllers.someWhere(w => w.prop('commentRow') === 12));
   });
 
-  it('creates a line decoration for each line with a comment', async function() {
-    const comments = [
-      {id: 'comment0', position: 4, isMinimized: false, threadID: 'thread0'},
-      {id: 'comment1', position: 10, isMinimized: false, threadID: 'thread1'},
+  it('creates a line decoration for each line with a comment', function() {
+    const threadsForPath = [
+      {rootCommentID: 'comment0', position: 4, threadID: 'thread0'},
+      {rootCommentID: 'comment1', position: 10, threadID: 'thread1'},
     ];
-    wrapper = shallow(buildApp({comments}));
-    await translationPromise;
+    const commentTranslationsForPath = {
+      diffToFilePosition: new Map([
+        [4, 5],
+        [10, 11],
+      ]),
+    };
+
+    wrapper = shallow(buildApp({threadsForPath, commentTranslationsForPath}));
 
     const decorations = wrapper.find(Decoration);
     assert.lengthOf(decorations.findWhere(decoration => decoration.prop('type') === 'line'), 2);
-  });
-
-  it('creates a gutter decoration for each line with a comment', async function() {
-    const comments = [
-      {id: 'comment0', position: 4, isMinimized: false, threadID: 'thread0'},
-      {id: 'comment1', position: 10, isMinimized: false, threadID: 'thread1'},
-    ];
-    wrapper = shallow(buildApp({comments}));
-    await translationPromise;
-
-    const decorations = wrapper.find(Decoration);
-    assert.lengthOf(decorations.findWhere(decoration => decoration.prop('type') === 'gutter'), 2);
-  });
-
-  it('does not create markers or decorations if no comments exist', async function() {
-    wrapper = shallow(buildApp({comments: []}));
-    await translationPromise;
-
-    assert.isFalse(wrapper.find(Marker).exists());
-    assert.isFalse(wrapper.find(Decoration).exists());
-  });
-
-  it('does not create decorations for minimized comments', async function() {
-    const comments = [
-      {id: 'comment1', position: 10, isMinimized: true, threadID: 'thread1'},
-    ];
-    wrapper = shallow(buildApp({comments}));
-    await translationPromise;
-
-    assert.lengthOf(wrapper.find(Decoration), 0);
-  });
-
-  it('does not create decorations for comments with null positions', async function() {
-    const comments = [
-      {id: 'comment0', position: null, isMinimized: false, threadID: 'thread0'},
-    ];
-    wrapper = shallow(buildApp({comments}));
-    await translationPromise;
-
-    assert.lengthOf(wrapper.find(Decoration), 0);
-  });
-
-  it('jumps to the comment thread ID when the decoration is clicked', async function() {
-    const jumpToThread = sinon.spy();
-    sinon.stub(workspace, 'open').resolves({jumpToThread});
-
-    const comments = [
-      {id: 'comment0', position: 4, isMinimized: false, threadID: 'thread0'},
-      {id: 'comment1', position: 10, isMinimized: false, threadID: 'thread1'},
-    ];
-
-    wrapper = shallow(buildApp({
-      endpoint: getEndpoint('github.enterprise.horse'),
-      owner: 'atom',
-      repo: 'github',
-      number: 1995,
-      workdir: '/',
-      comments,
-    }));
-    await translationPromise;
-
-    await wrapper
-      .find(Marker)
-      .filterWhere(w => w.prop('bufferRange').isEqual([[11, 0], [11, 0]]))
-      .find('button')
-      .prop('onClick')();
-
-    assert.isTrue(workspace.open.calledWith(
-      ReviewsItem.buildURI('github.enterprise.horse', 'atom', 'github', 1995, '/'),
-      {searchAllPanes: true},
-    ));
-    assert.isTrue(jumpToThread.calledWith('thread1'));
   });
 });
