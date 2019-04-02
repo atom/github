@@ -143,6 +143,29 @@ describe('ReviewsView', function() {
     assert.isTrue(openIssueish.calledWith('ccc', 'ddd', 654));
   });
 
+  describe('refresh', function() {
+    it('calls refetch when refresh button is clicked', function() {
+      const refetch = sinon.stub();
+      const wrapper = shallow(buildApp({refetch}));
+      assert.isFalse(refetch.called);
+
+      wrapper.find('.icon-repo-sync').simulate('click');
+      assert.isTrue(refetch.called);
+
+    });
+
+    it('does not call refetch if already fetching', function() {
+      const refetch = sinon.stub();
+      const wrapper = shallow(buildApp({refetch}));
+      assert.isFalse(refetch.called);
+
+      wrapper.instance().state.isRefreshing = true;
+      wrapper.find('.icon-repo-sync').simulate('click');
+      assert.isFalse(refetch.called);
+    });
+  });
+
+
   describe('checkout button', function() {
     it('passes checkoutOp prop through to CheckoutButon', function() {
       const wrapper = shallow(buildApp());
