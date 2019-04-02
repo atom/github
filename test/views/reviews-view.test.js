@@ -81,11 +81,11 @@ describe('ReviewsView', function() {
     assert.lengthOf(wrapper.find(Command), 2);
 
     assert.isFalse(moreContext.called);
-    await wrapper.find(Command).at(0).prop('callback')()
+    await wrapper.find(Command).at(0).prop('callback')();
     assert.isTrue(moreContext.called);
 
     assert.isFalse(lessContext.called);
-    await wrapper.find(Command).at(1).prop('callback')()
+    await wrapper.find(Command).at(1).prop('callback')();
     assert.isTrue(lessContext.called);
   });
 
