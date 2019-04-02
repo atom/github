@@ -27,7 +27,7 @@ import submitPrReviewMutation from '../../lib/mutations/__generated__/submitPrRe
 import resolveThreadMutation from '../../lib/mutations/__generated__/resolveReviewThreadMutation.graphql';
 import unresolveThreadMutation from '../../lib/mutations/__generated__/unresolveReviewThreadMutation.graphql';
 
-describe.only('ReviewsController', function() {
+describe('ReviewsController', function() {
   let atomEnv, relayEnv, localRepository, noop;
 
   beforeEach(async function() {
@@ -246,7 +246,11 @@ describe.only('ReviewsController', function() {
         .find(PullRequestCheckoutController)
         .renderProp('children')(noop);
 
-      await wrapper.find(ReviewsView).prop('addSingleComment')('body', 'thread0', 'comment1');
+      const didSubmitComment = sinon.spy();
+
+      await wrapper.find(ReviewsView).prop('addSingleComment')('body', 'thread0', 'comment1', {didSubmitComment});
+
+      assert.isTrue(didSubmitComment.called);
     });
 
     it('creates a notification when the review cannot be created', async function() {
