@@ -3,6 +3,8 @@ import {shallow} from 'enzyme';
 import {QueryRenderer} from 'react-relay';
 
 import ReviewsContainer from '../../lib/containers/reviews-container';
+import AggregatedReviewsContainer from '../../lib/containers/aggregated-reviews-container';
+import CommentPositioningContainer from '../../lib/containers/comment-positioning-container';
 import ReviewsController from '../../lib/controllers/reviews-controller';
 import {InMemoryStrategy, UNAUTHENTICATED, INSUFFICIENT} from '../../lib/shared/keytar-strategy';
 import GithubLoginModel from '../../lib/models/github-login-model';
@@ -153,9 +155,16 @@ describe('ReviewsContainer', function() {
     const patchWrapper = tokenWrapper.find('PullRequestPatchContainer').renderProp('children')(null, multiFilePatch);
 
     const repoWrapper = patchWrapper.find('ObserveModel').renderProp('children')(repoData);
-    const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: queryData, retry: () => {}});
+    const relayWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: queryData, retry: () => {}});
+    const reviewsWrapper = relayWrapper.find(AggregatedReviewsContainer).renderProp('children')({
+      errors: [],
+      summaries: [],
+      commentThreads: [],
+      refetch: () => {},
+    });
+    const positionedWrapper = reviewsWrapper.find(CommentPositioningContainer).renderProp('children')(new Map());
 
-    assert.strictEqual(resultWrapper.find(ReviewsController).prop('multiFilePatch'), multiFilePatch);
+    assert.strictEqual(positionedWrapper.find(ReviewsController).prop('multiFilePatch'), multiFilePatch);
   });
 
   it('passes loaded repository data to the controller', async function() {
@@ -170,10 +179,17 @@ describe('ReviewsContainer', function() {
     assert.deepEqual(await patchWrapper.find('ObserveModel').prop('fetchData')(repository), repoData);
     const repoWrapper = patchWrapper.find('ObserveModel').renderProp('children')(extraRepoData);
 
-    const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: queryData, retry: () => {}});
+    const relayWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: queryData, retry: () => {}});
+    const reviewsWrapper = relayWrapper.find(AggregatedReviewsContainer).renderProp('children')({
+      errors: [],
+      summaries: [],
+      commentThreads: [],
+      refetch: () => {},
+    });
+    const positionedWrapper = reviewsWrapper.find(CommentPositioningContainer).renderProp('children')(new Map());
 
-    assert.strictEqual(resultWrapper.find(ReviewsController).prop('one'), extraRepoData.one);
-    assert.strictEqual(resultWrapper.find(ReviewsController).prop('two'), extraRepoData.two);
+    assert.strictEqual(positionedWrapper.find(ReviewsController).prop('one'), extraRepoData.one);
+    assert.strictEqual(positionedWrapper.find(ReviewsController).prop('two'), extraRepoData.two);
   });
 
   it('passes extra properties to the controller', function() {
@@ -186,9 +202,16 @@ describe('ReviewsContainer', function() {
     assert.strictEqual(patchWrapper.find('ObserveModel').prop('model'), repository);
     const repoWrapper = patchWrapper.find('ObserveModel').renderProp('children')(repoData);
 
-    const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: queryData, retry: () => {}});
+    const relayWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: queryData, retry: () => {}});
+    const reviewsWrapper = relayWrapper.find(AggregatedReviewsContainer).renderProp('children')({
+      errors: [],
+      summaries: [],
+      commentThreads: [],
+      refetch: () => {},
+    });
+    const positionedWrapper = reviewsWrapper.find(CommentPositioningContainer).renderProp('children')(new Map());
 
-    assert.strictEqual(resultWrapper.find(ReviewsController).prop('extra'), extra);
+    assert.strictEqual(positionedWrapper.find(ReviewsController).prop('extra'), extra);
   });
 
   it('shows an error if the patch cannot be fetched', function() {
