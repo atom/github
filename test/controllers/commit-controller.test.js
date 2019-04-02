@@ -6,7 +6,6 @@ import {shallow, mount} from 'enzyme';
 import Commit from '../../lib/models/commit';
 import {nullBranch} from '../../lib/models/branch';
 import UserStore from '../../lib/models/user-store';
-import URIPattern from '../../lib/atom/uri-pattern';
 
 import CommitController, {COMMIT_GRAMMAR_SCOPE} from '../../lib/controllers/commit-controller';
 import CommitPreviewItem from '../../lib/items/commit-preview-item';

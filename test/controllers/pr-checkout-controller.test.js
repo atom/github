@@ -162,9 +162,9 @@ describe('PullRequestCheckoutController', function() {
       new Remote('origin', 'git@github.com:aaa/bbb.git'),
     ]);
 
-    const addRemote = sinon.stub(localRepository, 'addRemote').resolves(new Remote('ccc', 'git@github.com:ccc/ddd.git'));
-    const fetch = sinon.stub(localRepository, 'fetch').resolves();
-    const checkout = sinon.stub(localRepository, 'checkout').resolves();
+    sinon.stub(localRepository, 'addRemote').resolves(new Remote('ccc', 'git@github.com:ccc/ddd.git'));
+    sinon.stub(localRepository, 'fetch').resolves();
+    sinon.stub(localRepository, 'checkout').resolves();
 
     const pullRequest = pullRequestBuilder(pullRequestQuery)
       .number(456)

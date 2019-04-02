@@ -84,7 +84,7 @@ describe('ReviewsView', function() {
 
   it('renders empty state if there is no review', function() {
     sinon.stub(reporterProxy, 'addEvent');
-    const wrapper = shallow(buildApp())
+    const wrapper = shallow(buildApp());
     assert.lengthOf(wrapper.find('.github-Reviews-section.summaries'), 0);
     assert.lengthOf(wrapper.find('.github-Reviews-section.comments'), 0);
     assert.lengthOf(wrapper.find('.github-Reviews-emptyState'), 1);
@@ -103,7 +103,7 @@ describe('ReviewsView', function() {
       .addReviewThread(t => t.addComment())
       .build();
 
-    const wrapper = shallow(buildApp({summaries, commentThreads}))
+    const wrapper = shallow(buildApp({summaries, commentThreads}));
 
     assert.lengthOf(wrapper.find('.github-Reviews-section.summaries'), 1);
     assert.lengthOf(wrapper.find('.github-Reviews-section.comments'), 1);

@@ -3,7 +3,6 @@ import {shallow, mount} from 'enzyme';
 
 import RecentCommitsController from '../../lib/controllers/recent-commits-controller';
 import CommitDetailItem from '../../lib/items/commit-detail-item';
-import URIPattern from '../../lib/atom/uri-pattern';
 import {commitBuilder} from '../builder/commit';
 import {cloneRepository, buildRepository, registerGitHubOpener} from '../helpers';
 import * as reporterProxy from '../../lib/reporter-proxy';
