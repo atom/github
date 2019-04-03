@@ -27,6 +27,7 @@ describe('ReviewsView', function() {
       pullRequest: {},
       summaries: [],
       commentThreads: [],
+      commentTranslations: null,
       multiFilePatch: multiFilePatchBuilder().build().multiFilePatch,
       contextLines: 4,
       checkoutOp: new EnableableOperation(() => {}).disable(checkoutStates.CURRENT),
@@ -194,7 +195,15 @@ describe('ReviewsView', function() {
       unresolveThread = sinon.spy();
       addSingleComment = sinon.stub().returns(new Promise((resolve, reject) => {}));
 
-      wrapper = shallow(buildApp({openIssueish, summaries, commentThreads, resolveThread, unresolveThread, addSingleComment}));
+      const commentTranslations = new Map();
+      commentThreads.forEach(thread => {
+        const rootComment = thread.comments[0];
+        const diffToFilePosition = new Map();
+        diffToFilePosition.set(rootComment.position, rootComment.position);
+        commentTranslations.set(rootComment.path, {diffToFilePosition});
+      });
+
+      wrapper = shallow(buildApp({openIssueish, summaries, commentThreads, resolveThread, unresolveThread, addSingleComment, commentTranslations}));
     });
 
     it('renders threads with comments', function() {
@@ -216,7 +225,7 @@ describe('ReviewsView', function() {
         const thread = wrapper.find('details.github-Review').at(0);
         assert.strictEqual(thread.find('.github-Review-path').text(), 'dir');
         assert.strictEqual(thread.find('.github-Review-file').text(), '/file0');
-        // TODO: FIX ME
+
         assert.strictEqual(thread.find('.github-Review-lineNr').text(), '10');
       });
 
