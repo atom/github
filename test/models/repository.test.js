@@ -1768,6 +1768,10 @@ describe('Repository', function() {
           () => repository.getFilePatchForPath(fileName, {staged: true}),
         );
         calls.set(
+          `getDiffsForFilePath ${fileName}`,
+          () => repository.getDiffsForFilePath(fileName, 'HEAD^'),
+        );
+        calls.set(
           `readFileFromIndex ${fileName}`,
           () => repository.readFileFromIndex(fileName),
         );
@@ -2406,6 +2410,12 @@ describe('Repository', function() {
         `getFilePatchForPath {unstaged} ${path.join('subdir-1/a.txt')}`,
         `getFilePatchForPath {unstaged} ${path.join('subdir-1/b.txt')}`,
         `getFilePatchForPath {unstaged} ${path.join('subdir-1/c.txt')}`,
+        'getDiffsForFilePath a.txt',
+        'getDiffsForFilePath b.txt',
+        'getDiffsForFilePath c.txt',
+        `getDiffsForFilePath ${path.join('subdir-1/a.txt')}`,
+        `getDiffsForFilePath ${path.join('subdir-1/b.txt')}`,
+        `getDiffsForFilePath ${path.join('subdir-1/c.txt')}`,
       ]);
     });
   });
