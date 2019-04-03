@@ -129,10 +129,28 @@ describe.only('CommentDecorationsController', function() {
       assert.isTrue(wrapper.isEmptyRender());
     });
 
-    it('when there is no PR', function() {
+    it('when there is no PR', async function() {
+      await atomEnv.workspace.open(path.join(__dirname, 'file0.txt'));
       const wrapper = mount(buildApp({pullRequests: []}));
       assert.isTrue(wrapper.isEmptyRender());
     });
+  });
+
+  it('skips comment thread with only minimized comments', async function() {
+    const {commentThreads} = aggregatedReviewsBuilder()
+      .addReviewThread(t => {
+        t.addComment(c => c.id(0).path('file0.txt').position(2).bodyHTML('one').isMinimized(true));
+        t.addComment(c => c.id(2).path('file0.txt').position(2).bodyHTML('two').isMinimized(true));
+      })
+      .addReviewThread(t => {
+        t.addComment(c => c.id(1).path('file1.txt').position(15).bodyHTML('three'));
+      })
+      .build();
+    await atomEnv.workspace.open(path.join(__dirname, 'file0.txt'));
+    await atomEnv.workspace.open(path.join(__dirname, 'file1.txt'));
+    const wrapper = mount(buildApp({commentThreads}));
+    assert.strictEqual(wrapper.find('EditorCommentDecorationsController').length, 1);
+    assert.strictEqual(wrapper.find('EditorCommentDecorationsController').prop('fileName'), path.join(__dirname, 'file1.txt'));
   });
 
 });
