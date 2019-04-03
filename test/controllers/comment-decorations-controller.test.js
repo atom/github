@@ -13,7 +13,7 @@ import BranchSet from '../../lib/models/branch-set';
 import Remote from '../../lib/models/remote';
 import RemoteSet from '../../lib/models/remote-set';
 
-describe.only('CommentDecorationsController', function() {
+describe('CommentDecorationsController', function() {
   let atomEnv, relayEnv;
 
   beforeEach(function() {
