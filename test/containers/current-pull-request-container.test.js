@@ -52,12 +52,60 @@ describe('CurrentPullRequestContainer', function() {
     );
   }
 
+  it('performs no query without a head branch', function() {
+    const branches = new BranchSet();
+    const wrapper = shallow(buildApp({branches}));
+
+    assert.isFalse(wrapper.find(QueryRenderer).exists());
+
+    const list = wrapper.find(BareIssueishListController);
+    assert.isFalse(list.prop('isLoading'));
+    assert.strictEqual(list.prop('total'), 0);
+    assert.lengthOf(list.prop('results'), 0);
+
+    wrapper.unmount();
+  });
+
   it('performs no query without an upstream remote', function() {
     const branch = new Branch('local', nullBranch, nullBranch, true);
-    const branchSet = new BranchSet();
-    branchSet.add(branch);
+    const branches = new BranchSet([branch]);
 
-    const wrapper = shallow(buildApp({branches: branchSet}));
+    const wrapper = shallow(buildApp({branches}));
+
+    assert.isFalse(wrapper.find(QueryRenderer).exists());
+
+    const list = wrapper.find(BareIssueishListController);
+    assert.isTrue(list.exists());
+    assert.isFalse(list.prop('isLoading'));
+    assert.strictEqual(list.prop('total'), 0);
+    assert.lengthOf(list.prop('results'), 0);
+  });
+
+  it('performs no query without a valid push remote', function() {
+    const tracking = Branch.createRemoteTracking('remotes/nope/wat', 'nope', 'wat');
+    const branch = new Branch('local', nullBranch, tracking, true);
+    const branches = new BranchSet([branch]);
+
+    const wrapper = shallow(buildApp({branches}));
+
+    assert.isFalse(wrapper.find(QueryRenderer).exists());
+
+    const list = wrapper.find(BareIssueishListController);
+    assert.isTrue(list.exists());
+    assert.isFalse(list.prop('isLoading'));
+    assert.strictEqual(list.prop('total'), 0);
+    assert.lengthOf(list.prop('results'), 0);
+  });
+
+  it('performs no query without a push remote on GitHub', function() {
+    const tracking = Branch.createRemoteTracking('remotes/elsewhere/wat', 'elsewhere', 'wat');
+    const branch = new Branch('local', nullBranch, tracking, true);
+    const branches = new BranchSet([branch]);
+
+    const remote = new Remote('elsewhere', 'git@elsewhere.wtf:atom/github.git');
+    const remotes = new RemoteSet([remote]);
+
+    const wrapper = shallow(buildApp({branches, remotes}));
 
     assert.isFalse(wrapper.find(QueryRenderer).exists());
 
@@ -109,6 +157,20 @@ describe('CurrentPullRequestContainer', function() {
     assert.strictEqual(tile.prop('aheadCount'), 2);
     assert.isFalse(tile.prop('pushInProgress'));
     assert.strictEqual(tile.prop('onCreatePr'), onCreatePr);
+  });
+
+  it('passes no results if the repository is not found', function() {
+    const wrapper = shallow(buildApp());
+
+    const props = queryBuilder(currentQuery)
+      .nullRepository()
+      .build();
+
+    const resultWrapper = wrapper.find(QueryRenderer).renderProp('render')({error: null, props, retry: () => {}});
+
+    const controller = resultWrapper.find(BareIssueishListController);
+    assert.isFalse(controller.prop('isLoading'));
+    assert.strictEqual(controller.prop('total'), 0);
   });
 
   it('passes results to the controller', function() {
