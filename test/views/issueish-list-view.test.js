@@ -142,4 +142,15 @@ describe('IssueishListView', function() {
       assert.isTrue(onMoreClick.called);
     });
   });
+
+  it('renders review button only if needed', function() {
+    const openReviews = sinon.spy();
+    const wrapper = mount(buildApp({total: 1, openReviews}));
+    assert.isFalse(wrapper.find('.github-IssueishList-openReviewsButton').exists());
+
+    wrapper.setProps({needReviewsButton: true});
+    assert.isTrue(wrapper.find('.github-IssueishList-openReviewsButton').exists());
+    wrapper.find('.github-IssueishList-openReviewsButton').simulate('click');
+    assert.isTrue(openReviews.called);
+  });
 });
