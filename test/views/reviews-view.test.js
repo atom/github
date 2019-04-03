@@ -186,12 +186,14 @@ describe('ReviewsView', function() {
       })
       .build();
 
-    let wrapper, openIssueish;
+    let wrapper, openIssueish, resolveThread, unresolveThread;
 
     beforeEach(function() {
       openIssueish = sinon.spy();
+      resolveThread = sinon.spy();
+      unresolveThread = sinon.spy();
 
-      wrapper = shallow(buildApp({openIssueish, summaries, commentThreads}));
+      wrapper = shallow(buildApp({openIssueish, summaries, commentThreads, resolveThread, unresolveThread}));
     });
 
     it('renders threads with comments', function() {
@@ -215,6 +217,27 @@ describe('ReviewsView', function() {
         assert.strictEqual(thread.find('.github-Review-file').text(), '/file0');
         // TODO: FIX ME
         assert.strictEqual(thread.find('.github-Review-lineNr').text(), '10');
+      });
+
+      it('displays a resolve button for unresolved threads', function() {
+        const thread = wrapper.find('details.github-Review').at(0);
+        const button = thread.find('.github-Review-resolveButton');
+        assert.strictEqual(button.text(), 'Resolve conversation');
+
+        assert.isFalse(resolveThread.called);
+        button.simulate('click');
+        assert.isTrue(resolveThread.called);
+      });
+
+      it('displays an unresolve button for resolved threads', function() {
+        const thread = wrapper.find('details.github-Review').at(1);
+
+        const button = thread.find('.github-Review-resolveButton');
+        assert.strictEqual(button.text(), 'Unresolve conversation');
+
+        assert.isFalse(unresolveThread.called);
+        button.simulate('click');
+        assert.isTrue(unresolveThread.called);
       });
 
       it('displays a pending badge when the comment is part of a pending review', function() {
