@@ -37,7 +37,6 @@ describe('IssueishDetailItem', function() {
       config: atomEnv.config,
 
       onTabSelected: () => {},
-      selectedTab: 0,
       reportMutationErrors: () => {},
 
       ...override,
@@ -50,6 +49,7 @@ describe('IssueishDetailItem', function() {
             ref={itemHolder.setter}
             {...params}
             issueishNumber={parseInt(params.issueishNumber, 10)}
+            selectedTab={props.selectedTab || parseInt(params.selectedTab, 10)}
             {...props}
           />
         )}
@@ -222,7 +222,7 @@ describe('IssueishDetailItem', function() {
   it('reconstitutes its original URI', async function() {
     const wrapper = mount(buildApp({}));
 
-    const uri = IssueishDetailItem.buildURI('host.com', 'me', 'original', 1, __dirname);
+    const uri = IssueishDetailItem.buildURI('host.com', 'me', 'original', 1337, __dirname, 1);
     const item = await atomEnv.workspace.open(uri);
     assert.strictEqual(item.getURI(), uri);
     assert.strictEqual(item.serialize().uri, uri);
