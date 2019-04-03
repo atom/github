@@ -27,8 +27,8 @@ describe.only('CommentDecorationsController', function() {
 
   function buildApp(override = {}) {
     const origin = new Remote('origin', 'git@github.com:owner/repo.git');
-    const upstreamBranch = Branch.createRemoteTracking('refs/remotes/origin/master', 'origin', 'refs/heads/master');
-    const branch = new Branch('master', upstreamBranch, upstreamBranch, true);
+    const upstreamBranch = Branch.createRemoteTracking('refs/remotes/origin/featureBranch', 'origin', 'refs/heads/featureBranch');
+    const branch = new Branch('featureBranch', upstreamBranch, upstreamBranch, true);
     const {commentThreads} = aggregatedReviewsBuilder()
       .addReviewThread(t => {
         t.addComment(c => c.id(0).path('file0.txt').position(2).bodyHTML('one'));
@@ -39,10 +39,13 @@ describe.only('CommentDecorationsController', function() {
       .addReviewThread(t => {
         t.addComment(c => c.id(2).path('file2.txt').position(7).bodyHTML('three'));
       })
+      .addReviewThread(t => {
+        t.addComment(c => c.id(3).path('file2.txt').position(10).bodyHTML('four'));
+      })
       .build();
 
     const pr = pullRequestBuilder(pullRequestsQuery)
-      .headRefName('master')
+      .headRefName('featureBranch')
       .headRepository(r => {
         r.owner(o => o.login('owner'));
         r.name('repo');
@@ -106,5 +109,30 @@ describe.only('CommentDecorationsController', function() {
     });
   });
 
+  describe('returns empty render', function() {
+    it('when PR is not checked out', async function() {
+      await atomEnv.workspace.open(path.join(__dirname, 'file0.txt'));
+      const pr = pullRequestBuilder(pullRequestsQuery)
+        .headRefName('wrongBranch')
+        .build();
+      const wrapper = mount(buildApp({pullRequests: [pr]}));
+      assert.isTrue(wrapper.isEmptyRender());
+    });
+
+    it('when a repository has been deleted', async function() {
+      await atomEnv.workspace.open(path.join(__dirname, 'file0.txt'));
+      const pr = pullRequestBuilder(pullRequestsQuery)
+        .headRefName('featureBranch')
+        .build();
+      pr.headRepository = null;
+      const wrapper = mount(buildApp({pullRequests: [pr]}));
+      assert.isTrue(wrapper.isEmptyRender());
+    });
+
+    it('when there is no PR', function() {
+      const wrapper = mount(buildApp({pullRequests: []}));
+      assert.isTrue(wrapper.isEmptyRender());
+    });
+  });
 
 });
