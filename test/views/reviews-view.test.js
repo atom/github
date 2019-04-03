@@ -333,6 +333,18 @@ describe('ReviewsView', function() {
       assert.strictEqual(comment.find('GithubDotcomMarkdown').prop('html'), 'i have opinions.');
     });
 
+    it('each comment displays reply button', function() {
+      const submitStub = sinon.stub(wrapper.instance(), 'submitReply');
+      const buttons = wrapper.find('.github-Review-replyButton');
+      assert.lengthOf(buttons, 3);
+      const button = buttons.at(0);
+      assert.strictEqual(button.text(), 'Comment');
+      button.simulate('click');
+      const args = submitStub.lastCall.args;
+      assert.strictEqual(args[1].id, '1');
+      assert.strictEqual(args[2].bodyHTML, 'i disagree.');
+    });
+
     it('handles issueish link clicks on comment bodies', function() {
       const comment = wrapper.find('.github-Review-comment').at(2);
 
