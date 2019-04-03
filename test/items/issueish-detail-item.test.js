@@ -308,6 +308,11 @@ describe('IssueishDetailItem', function() {
       wrapper.update();
     });
 
+    afterEach(function() {
+      item.destroy();
+      wrapper.unmount();
+    });
+
     it('open files tab if it isn\'t already opened', async function() {
       await item.openFilesTab({changedFilePath: 'dir/file', changedFilePosition: 100});
 
