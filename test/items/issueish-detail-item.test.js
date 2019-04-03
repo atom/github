@@ -41,7 +41,6 @@ describe('IssueishDetailItem', function() {
 
       ...override,
     };
-
     return (
       <PaneItem workspace={atomEnv.workspace} uriPattern={IssueishDetailItem.uriPattern}>
         {({itemHolder, params}) => (
@@ -305,11 +304,11 @@ describe('IssueishDetailItem', function() {
     beforeEach(async function() {
       onTabSelected = sinon.spy();
       wrapper = mount(buildApp({onTabSelected}));
-      item = await atomEnv.workspace.open(IssueishDetailItem.buildURI('host.com', 'dolphin', 'fish', 1337, __dirname, IssueishDetailItem.tabs.OVERVIEW));
+      item = await atomEnv.workspace.open(IssueishDetailItem.buildURI('host.com', 'dolphin', 'fish', 1337, __dirname));
       wrapper.update();
     });
 
-    it('open files tab', async function() {
+    it('open files tab if it isn\'t already opened', async function() {
       await item.openFilesTab({changedFilePath: 'dir/file', changedFilePosition: 100});
 
       assert.strictEqual(wrapper.find('IssueishDetailItem').state('initChangedFilePath'), 'dir/file');
@@ -317,7 +316,24 @@ describe('IssueishDetailItem', function() {
       assert.isTrue(onTabSelected.calledWith(IssueishDetailItem.tabs.FILES));
     });
 
-    it('resets initChangedFilePath & initChangedFilePosition when navigating between tabs');
-    it('emits event if tab is already opened');
+    it('if tab is already opened, calls callback', async function() {
+      item.destroy();
+      item = await atomEnv.workspace.open(IssueishDetailItem.buildURI('host.com', 'dolphin', 'fish', 1337, __dirname, IssueishDetailItem.tabs.FILES));
+      const cb = sinon.spy();
+      const args = {changedFilePath: 'sn00p/dawg', changedFilePosition: 420};
+      item.onOpenFilesTab(cb);
+      await item.openFilesTab(args);
+      assert.isTrue(cb.calledWith(args));
+    });
+
+    it('resets initChangedFilePath & initChangedFilePosition when navigating between tabs', async function() {
+      await item.openFilesTab({changedFilePath: 'anotherfile', changedFilePosition: 420});
+      assert.strictEqual(wrapper.find('IssueishDetailItem').state('initChangedFilePath'), 'anotherfile');
+      assert.strictEqual(wrapper.find('IssueishDetailItem').state('initChangedFilePosition'), 420);
+
+      wrapper.find('IssueishDetailContainer').prop('onTabSelected')(IssueishDetailItem.tabs.BUILD_STATUS);
+      assert.strictEqual(wrapper.find('IssueishDetailItem').state('initChangedFilePath'), '');
+      assert.strictEqual(wrapper.find('IssueishDetailItem').state('initChangedFilePosition'), 0);
+    });
   });
 });
