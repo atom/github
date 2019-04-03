@@ -1,5 +1,6 @@
 import React from 'react';
 import {shallow} from 'enzyme';
+import {Range} from 'atom';
 
 import EditorCommentDecorationsController from '../../lib/controllers/editor-comment-decorations-controller';
 import CommentGutterDecorationController from '../../lib/controllers/comment-gutter-decoration-controller';
@@ -90,5 +91,33 @@ describe('EditorCommentDecorationsController', function() {
 
     const decorations = wrapper.find(Decoration);
     assert.lengthOf(decorations.findWhere(decoration => decoration.prop('type') === 'line'), 2);
+  });
+
+  it('updates rendered marker positions as the underlying buffer is modified', function() {
+    const threadsForPath = [
+      {rootCommentID: 'comment0', position: 4, threadID: 'thread0'},
+    ];
+
+    const commentTranslationsForPath = {
+      diffToFilePosition: new Map([[4, 4]]),
+      digest: '1111',
+    };
+
+    wrapper = shallow(buildApp({threadsForPath, commentTranslationsForPath}));
+
+    const marker = wrapper.find(Marker);
+    assert.isTrue(marker.prop('bufferRange').isEqual([[3, 0], [3, 0]]));
+
+    marker.prop('didChange')({newRange: Range.fromObject([[5, 0], [5, 0]])});
+
+    // Ensure the component re-renders
+    wrapper.setProps({
+      commentTranslationsForPath: {
+        ...commentTranslationsForPath,
+        digest: '2222',
+      },
+    });
+
+    assert.isTrue(wrapper.find(Marker).prop('bufferRange').isEqual([[5, 0], [5, 0]]));
   });
 });
