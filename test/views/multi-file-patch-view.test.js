@@ -1,6 +1,5 @@
 import React from 'react';
 import {shallow, mount} from 'enzyme';
-import {Disposable} from 'event-kit';
 
 import * as reporterProxy from '../../lib/reporter-proxy';
 
