@@ -119,7 +119,7 @@ describe('CurrentPullRequestContainer', function() {
   it('passes an empty result list and an isLoading prop to the controller while loading', function() {
     const wrapper = shallow(buildApp());
 
-    const resultWrapper = wrapper.find(QueryRenderer).renderProp('render')({error: null, props: null, retry: () => {}});
+    const resultWrapper = wrapper.find(QueryRenderer).renderProp('render')({error: null, props: null, retry: null});
     assert.isTrue(resultWrapper.find(BareIssueishListController).prop('isLoading'));
   });
 
