@@ -156,40 +156,4 @@ describe('CommentDecorationsController', function() {
       path.join(__dirname, 'file1.txt'),
     );
   });
-
-  describe('editor event subscriptions', function() {
-    it('triggers a comment translation update on save', async function() {
-      const {commentThreads} = aggregatedReviewsBuilder()
-        .addReviewThread(t => {
-          t.addComment(c => c.path('file0.txt').position(2));
-        })
-        .build();
-      const updateCommentTranslations = sinon.spy();
-      const editor = await atomEnv.workspace.open(path.join(__dirname, 'file0.txt'));
-
-      mount(buildApp({commentThreads, updateCommentTranslations}));
-
-      assert.isFalse(updateCommentTranslations.called);
-
-      await editor.save();
-
-      assert.isTrue(updateCommentTranslations.calledWith(path.join(__dirname, 'file0.txt')));
-    });
-
-    it('unsubscribes from all editors on unmount', async function() {
-      const {commentThreads} = aggregatedReviewsBuilder()
-        .addReviewThread(t => {
-          t.addComment(c => c.path('file0.txt').position(2));
-        })
-        .build();
-      const updateCommentTranslations = sinon.spy();
-      const editor = await atomEnv.workspace.open(path.join(__dirname, 'file0.txt'));
-
-      const wrapper = mount(buildApp({commentThreads, updateCommentTranslations}));
-      wrapper.unmount();
-
-      await editor.save();
-      assert.isFalse(updateCommentTranslations.called);
-    });
-  });
 });
