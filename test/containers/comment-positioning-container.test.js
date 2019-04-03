@@ -99,6 +99,98 @@ describe('CommentPositioningContainer', function() {
     assert.isNull(file1.fileTranslations);
   });
 
+  it("provides its child with a function to force the update of a single file's translation map", async function() {
+    const children = sinon.stub().returns(<div className="done" />);
+
+    const {multiFilePatch} = multiFilePatchBuilder()
+      .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('file0.txt'));
+      })
+      .addFilePatch(fp => {
+        fp.setOldFile(f => f.path('file1.txt'));
+      })
+      .build({preserveOriginal: true});
+
+    const commentThreads = [
+      {comments: [{path: 'file0.txt', position: 1}]},
+      {comments: [{path: 'file0.txt', position: 5}]},
+      {comments: [{path: 'file1.txt', position: 11}]},
+    ];
+
+    const diffPositionToFilePosition = sinon.stub().callsFake((rawPositions, patch) => {
+      if (patch.oldPath === 'file0.txt') {
+        assert.sameMembers(Array.from(rawPositions), [1, 5]);
+        return new Map([
+          [1, 10],
+          [5, 50],
+        ]);
+      } else if (patch.oldPath === 'file1.txt') {
+        assert.sameMembers(Array.from(rawPositions), [11]);
+        return new Map([
+          [11, 16],
+        ]);
+      } else {
+        throw new Error(`Unexpected patch: ${patch.oldPath}`);
+      }
+    });
+
+    sinon.stub(localRepository, 'getDiffsForFilePath').callsFake(filePath => {
+      return Promise.resolve([filePath]);
+    });
+
+    let callSeq = 0;
+    const translateLinesGivenDiff = sinon.stub().callsFake((_translatedRows, diff) => {
+      if (diff === 'file0.txt' && callSeq === 0) {
+        return new Map([
+          [10, 11],
+          [50, 51],
+        ]);
+      } else if (diff === 'file0.txt' && callSeq === 1) {
+        return new Map([
+          [10, 12],
+          [50, 52],
+        ]);
+      } else if (diff === 'file1.txt' && callSeq === 0) {
+        return new Map([
+          [16, 26],
+        ]);
+      } else {
+        throw new Error(`Unexpected diff: ${diff} ${callSeq}`);
+      }
+    });
+
+    const wrapper = shallow(buildApp({
+      children, multiFilePatch, commentThreads, diffPositionToFilePosition, translateLinesGivenDiff,
+    }));
+
+    await calculationPromise;
+
+    assert.isTrue(wrapper.exists('.done'));
+    const [translations, updateTranslationsForFile] = children.lastCall.args;
+
+    const before0 = translations.get('file0.txt');
+    assert.sameDeepMembers(Array.from(before0.diffToFilePosition), [[1, 10], [5, 50]]);
+    assert.sameDeepMembers(Array.from(before0.fileTranslations), [[10, 11], [50, 51]]);
+
+    const before1 = translations.get('file1.txt');
+    assert.sameDeepMembers(Array.from(before1.diffToFilePosition), [[11, 16]]);
+    assert.sameDeepMembers(Array.from(before1.fileTranslations), [[16, 26]]);
+
+    callSeq = 1;
+    children.resetHistory();
+    await updateTranslationsForFile('file0.txt');
+
+    const [nextTranslations] = children.lastCall.args;
+
+    const after0 = nextTranslations.get('file0.txt');
+    assert.sameDeepMembers(Array.from(after0.diffToFilePosition), [[1, 10], [5, 50]]);
+    assert.sameDeepMembers(Array.from(after0.fileTranslations), [[10, 12], [50, 52]]);
+
+    const after1 = nextTranslations.get('file1.txt');
+    assert.sameDeepMembers(Array.from(after1.diffToFilePosition), [[11, 16]]);
+    assert.sameDeepMembers(Array.from(after1.fileTranslations), [[16, 26]]);
+  });
+
   it('keys the translation map with absolute paths if a workdir is provided', async function() {
     const children = sinon.stub().returns(<div className="done" />);
 
