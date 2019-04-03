@@ -230,7 +230,7 @@ describe('ReviewsView', function() {
       });
 
       it('displays an unresolve button for resolved threads', function() {
-        const thread = wrapper.find('details.github-Review').at(1);
+        const thread = wrapper.find('details.github-Review').at(2);
 
         const button = thread.find('.github-Review-resolveButton');
         assert.strictEqual(button.text(), 'Unresolve conversation');
