@@ -186,14 +186,15 @@ describe('ReviewsView', function() {
       })
       .build();
 
-    let wrapper, openIssueish, resolveThread, unresolveThread;
+    let wrapper, openIssueish, resolveThread, unresolveThread, addSingleComment;
 
     beforeEach(function() {
       openIssueish = sinon.spy();
       resolveThread = sinon.spy();
       unresolveThread = sinon.spy();
+      addSingleComment = sinon.stub().returns(new Promise((resolve, reject) => {}));
 
-      wrapper = shallow(buildApp({openIssueish, summaries, commentThreads, resolveThread, unresolveThread}));
+      wrapper = shallow(buildApp({openIssueish, summaries, commentThreads, resolveThread, unresolveThread, addSingleComment}));
     });
 
     it('renders threads with comments', function() {
@@ -334,15 +335,20 @@ describe('ReviewsView', function() {
     });
 
     it('each comment displays reply button', function() {
-      const submitStub = sinon.stub(wrapper.instance(), 'submitReply');
+      const submitSpy = sinon.spy(wrapper.instance(), 'submitReply');
       const buttons = wrapper.find('.github-Review-replyButton');
       assert.lengthOf(buttons, 3);
       const button = buttons.at(0);
       assert.strictEqual(button.text(), 'Comment');
       button.simulate('click');
-      const args = submitStub.lastCall.args;
-      assert.strictEqual(args[1].id, '1');
-      assert.strictEqual(args[2].bodyHTML, 'i disagree.');
+      const submitArgs = submitSpy.lastCall.args;
+      assert.strictEqual(submitArgs[1].id, '1');
+      assert.strictEqual(submitArgs[2].bodyHTML, 'i disagree.');
+
+
+      const addSingleCommentArgs = addSingleComment.lastCall.args;
+      assert.strictEqual(addSingleCommentArgs[1], '1');
+      assert.strictEqual(addSingleCommentArgs[2], 1);
     });
 
     it('handles issueish link clicks on comment bodies', function() {
