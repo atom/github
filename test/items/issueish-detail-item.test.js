@@ -297,7 +297,7 @@ describe('IssueishDetailItem', function() {
     });
   });
 
-  describe.only('tab navigation', function() {
+  describe('tab navigation', function() {
 
     let wrapper, item, onTabSelected;
 
