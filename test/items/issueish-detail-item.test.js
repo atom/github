@@ -297,4 +297,27 @@ describe('IssueishDetailItem', function() {
       assert.isTrue(cb.calledWith(editor));
     });
   });
+
+  describe.only('tab navigation', function() {
+
+    let wrapper, item, onTabSelected;
+
+    beforeEach(async function() {
+      onTabSelected = sinon.spy();
+      wrapper = mount(buildApp({onTabSelected}));
+      item = await atomEnv.workspace.open(IssueishDetailItem.buildURI('host.com', 'dolphin', 'fish', 1337, __dirname, IssueishDetailItem.tabs.OVERVIEW));
+      wrapper.update();
+    });
+
+    it('open files tab', async function() {
+      await item.openFilesTab({changedFilePath: 'dir/file', changedFilePosition: 100});
+
+      assert.strictEqual(wrapper.find('IssueishDetailItem').state('initChangedFilePath'), 'dir/file');
+      assert.strictEqual(wrapper.find('IssueishDetailItem').state('initChangedFilePosition'), 100);
+      assert.isTrue(onTabSelected.calledWith(IssueishDetailItem.tabs.FILES));
+    });
+
+    it('resets initChangedFilePath & initChangedFilePosition when navigating between tabs');
+    it('emits event if tab is already opened');
+  });
 });
