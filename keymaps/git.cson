@@ -9,6 +9,7 @@
   'alt-g p': 'github:push'
   'alt-g shift-p': 'github:force-push'
   'alt-g =': 'github:clone'
+  'alt-g r': 'github:open-reviews-tab'
 
 'atom-text-editor':
   'alt-m 1': 'github:resolve-as-ours'
