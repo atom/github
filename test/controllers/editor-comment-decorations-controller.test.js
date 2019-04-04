@@ -66,8 +66,8 @@ describe('EditorCommentDecorationsController', function() {
 
     const markers = wrapper.find(Marker);
     assert.lengthOf(markers, 2);
-    assert.isTrue(markers.someWhere(w => w.prop('bufferRange').isEqual([[6, 0], [6, 0]])));
-    assert.isTrue(markers.someWhere(w => w.prop('bufferRange').isEqual([[12, 0], [12, 0]])));
+    assert.isTrue(markers.someWhere(w => w.prop('bufferRange').isEqual([[6, 0], [6, Infinity]])));
+    assert.isTrue(markers.someWhere(w => w.prop('bufferRange').isEqual([[12, 0], [12, Infinity]])));
 
     const controllers = wrapper.find(CommentGutterDecorationController);
     assert.lengthOf(controllers, 2);
@@ -106,9 +106,9 @@ describe('EditorCommentDecorationsController', function() {
     wrapper = shallow(buildApp({threadsForPath, commentTranslationsForPath}));
 
     const marker = wrapper.find(Marker);
-    assert.isTrue(marker.prop('bufferRange').isEqual([[3, 0], [3, 0]]));
+    assert.isTrue(marker.prop('bufferRange').isEqual([[3, 0], [3, Infinity]]));
 
-    marker.prop('didChange')({newRange: Range.fromObject([[5, 0], [5, 0]])});
+    marker.prop('didChange')({newRange: Range.fromObject([[5, 0], [5, 3]])});
 
     // Ensure the component re-renders
     wrapper.setProps({
@@ -118,6 +118,6 @@ describe('EditorCommentDecorationsController', function() {
       },
     });
 
-    assert.isTrue(wrapper.find(Marker).prop('bufferRange').isEqual([[5, 0], [5, 0]]));
+    assert.isTrue(wrapper.find(Marker).prop('bufferRange').isEqual([[5, 0], [5, 3]]));
   });
 });
