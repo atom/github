@@ -126,6 +126,12 @@ describe('ReviewsItem', function() {
     const wrapper = mount(buildPaneApp());
     const item = await open(wrapper);
     assert.isNull(item.state.initThreadID);
+
+    await item.jumpToThread('an-id');
+    assert.strictEqual(item.state.initThreadID, 'an-id');
+
+    // Jumping to the same ID toggles initThreadID to null and back, but we can't really test the intermediate
+    // state there so OH WELL
     await item.jumpToThread('an-id');
     assert.strictEqual(item.state.initThreadID, 'an-id');
   });
