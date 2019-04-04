@@ -90,7 +90,7 @@ describe('ReviewsView', function() {
     assert.lengthOf(wrapper.find('.github-Reviews-section.comments'), 0);
     assert.lengthOf(wrapper.find('.github-Reviews-emptyState'), 1);
 
-    wrapper.find('.github-Reviews-emptyCallToActionText').children().simulate('click');
+    wrapper.find('.github-Reviews-emptyCallToActionButton a').simulate('click');
     assert.isTrue(reporterProxy.addEvent.calledWith(
       'start-pr-review',
       {package: 'github', component: 'ReviewsView'},
