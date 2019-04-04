@@ -901,6 +901,34 @@ describe('MultiFilePatch', function() {
       multiFilePatch.expandFilePatch(fp);
       assert.isFalse(stub.called);
     });
+
+    it('returns null when called with an unrecognized filename', function() {
+      sinon.stub(console, 'error');
+
+      const {multiFilePatch} = multiFilePatchBuilder().build();
+      assert.isNull(multiFilePatch.getBufferRowForDiffPosition('file.txt', 1));
+
+      // eslint-disable-next-line no-console
+      assert.isTrue(console.error.called);
+    });
+
+    it('returns null when called with an out of range diff row', function() {
+      sinon.stub(console, 'error');
+
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file.txt'));
+          fp.addHunk(h => {
+            h.unchanged('0').added('1').unchanged('2');
+          });
+        })
+        .build();
+
+      assert.isNull(multiFilePatch.getBufferRowForDiffPosition('file.txt', 5));
+
+      // eslint-disable-next-line no-console
+      assert.isTrue(console.error.called);
+    });
   });
 
   describe('collapsing and expanding file patches', function() {
