@@ -154,7 +154,6 @@ describe('ReviewsView', function() {
     });
   });
 
-
   describe('checkout button', function() {
     it('passes checkoutOp prop through to CheckoutButon', function() {
       const wrapper = shallow(buildApp());

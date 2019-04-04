@@ -28,7 +28,7 @@ import resolveThreadMutation from '../../lib/mutations/__generated__/resolveRevi
 import unresolveThreadMutation from '../../lib/mutations/__generated__/unresolveReviewThreadMutation.graphql';
 
 describe('ReviewsController', function() {
-  let atomEnv, relayEnv, localRepository, noop;
+  let atomEnv, relayEnv, localRepository, noop, clock;
 
   beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
@@ -43,6 +43,10 @@ describe('ReviewsController', function() {
 
   afterEach(function() {
     atomEnv.destroy();
+
+    if (clock) {
+      clock.restore();
+    }
   });
 
   function buildApp(override = {}) {
@@ -90,23 +94,35 @@ describe('ReviewsController', function() {
     assert.strictEqual(opWrapper.find(ReviewsView).prop('extra'), extra);
   });
 
-  it('scrolls to specific thread', async function() {
-    const clock = sinon.useFakeTimers();
+  it('scrolls to a specific thread on mount', function() {
+    clock = sinon.useFakeTimers();
+    const wrapper = shallow(buildApp({initThreadID: 'thread0'}));
+    let opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
+
+    assert.include(opWrapper.find(ReviewsView).prop('threadIDsOpen'), 'thread0');
+    assert.strictEqual(opWrapper.find(ReviewsView).prop('scrollToThreadID'), 'thread0');
+
+    clock.tick(2000);
+    opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
+    assert.isNull(opWrapper.find(ReviewsView).prop('scrollToThreadID'));
+  });
+
+  it('scrolls to a specific thread on update', function() {
+    clock = sinon.useFakeTimers();
     const wrapper = shallow(buildApp());
     let opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
 
     assert.deepEqual(opWrapper.find(ReviewsView).prop('threadIDsOpen'), new Set([]));
-    await wrapper.setProps({initThreadID: 'hang-by-a-thread'});
+    wrapper.setProps({initThreadID: 'hang-by-a-thread'});
     opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
 
     assert.include(opWrapper.find(ReviewsView).prop('threadIDsOpen'), 'hang-by-a-thread');
-    assert.isTrue(await opWrapper.find(ReviewsView).prop('commentSectionOpen'));
-    assert.strictEqual(await opWrapper.find(ReviewsView).prop('scrollToThreadID'), 'hang-by-a-thread');
+    assert.isTrue(opWrapper.find(ReviewsView).prop('commentSectionOpen'));
+    assert.strictEqual(opWrapper.find(ReviewsView).prop('scrollToThreadID'), 'hang-by-a-thread');
 
     clock.tick(2000);
     opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
-    assert.isNull(await opWrapper.find(ReviewsView).prop('scrollToThreadID'));
-    clock.restore();
+    assert.isNull(opWrapper.find(ReviewsView).prop('scrollToThreadID'));
   });
 
   describe('openIssueish', function() {
