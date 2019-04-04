@@ -1,5 +1,6 @@
 import React from 'react';
 import {shallow} from 'enzyme';
+import path from 'path';
 
 import {Command} from '../../lib/atom/commands';
 import ReviewsView from '../../lib/views/reviews-view';
@@ -223,7 +224,7 @@ describe('ReviewsView', function() {
       it('displays correct data', function() {
         const thread = wrapper.find('details.github-Review').at(0);
         assert.strictEqual(thread.find('.github-Review-path').text(), 'dir');
-        assert.strictEqual(thread.find('.github-Review-file').text(), '/file0');
+        assert.strictEqual(thread.find('.github-Review-file').text(), `${path.sep}file0`);
 
         assert.strictEqual(thread.find('.github-Review-lineNr').text(), '10');
       });
@@ -270,7 +271,7 @@ describe('ReviewsView', function() {
       it('renders a PatchPreviewView per comment thread', function() {
         assert.isTrue(wrapper.find('details.github-Review').everyWhere(thread => thread.find('PatchPreviewView').length === 1));
         assert.include(wrapper.find('PatchPreviewView').at(0).props(), {
-          fileName: 'dir/file0',
+          fileName: path.join('dir/file0'),
           diffRow: 10,
           maxRowCount: 4,
         });
