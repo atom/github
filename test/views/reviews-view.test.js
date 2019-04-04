@@ -5,7 +5,6 @@ import path from 'path';
 import {Command} from '../../lib/atom/commands';
 import ReviewsView from '../../lib/views/reviews-view';
 import EnableableOperation from '../../lib/models/enableable-operation';
-import RefHolder from '../../lib/models/ref-holder';
 import {aggregatedReviewsBuilder} from '../builder/graphql/aggregated-reviews-builder';
 import {multiFilePatchBuilder} from '../builder/patch';
 import {checkoutStates} from '../../lib/controllers/pr-checkout-controller';
