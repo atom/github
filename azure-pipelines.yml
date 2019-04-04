@@ -16,11 +16,6 @@ jobs:
   variables:
     display: ":99"
   steps:
-  - task: InstallSSHKey@0
-    inputs:
-      hostName: "github.com,192.30.253.112 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=="
-      sshPublicKey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC/qYHz4JcYOm4dkpYojlambsR886O24h5VbvzsDxqt+HU4s03v41D9+qg6tB/xh1UjOTSfsb2JLOoDWTg7oog0ruWewLrLbHAyKr6D0nvo7rO0kK3YEX1Bqr3qqDNiAYNyl6FyTCQXDBsdJ+gMCCMV9qhdg0sx9622MINm9DGtOY/pf1PL0PHxVCJ+m3J48aEUJg0kBvYCT8Tte/pC0jAk939hIAqo/Pgko9T0nwO8l0HAYtOizjypoxuHsKGpOc99wZPJrOmnQlsm5VnShHfCJHKnP4eg9+Rr/gzDfvPmCCjCRLvwIxy7mmBIog17lQD0eHSD9CrBrvDnkv1Pwdfpu4rYAHnesWCIGU0DG6zhAjgbR1tnE4uT4hCIQJd+VwF+d/H866osYejkASMdVtulSaXjkkEKk5X1tRcACRQu7YYOD5M6s1rIO1/1zN5T2vsabK4c1ohBvz9bcyCZl5uKNYgWI9aLeCBn+djZ+lPjFqxa6XYPFs83ODQVA13QDf4qro/ld9Hsat+Pna+2dT8pj5vrjTUjAFeoTlpwFK+tHFQ3UHHtoBMYSaFaJpo6w0BoDNAoVZi5qAriOtpDgt8VPLDZcibmqbcVezSqJ2UdSAg5mzF4AIGH/DjbwAXT/zvcQW8hrOPSdpHqXbEFTxTVllgYOQ1VeZ1cBlIv2v4nEQ== smashwilson@azure"
-      sshKeySecureFile: azure_rsa
   - template: script/azure-pipelines/linux-install.yml
     parameters:
       atom_channel: $(atom_channel)
@@ -70,11 +65,6 @@ jobs:
         atom_channel: stable
         atom_app: Atom.app
   steps:
-  - task: InstallSSHKey@0
-    inputs:
-      hostName: "github.com,192.30.253.112 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=="
-      sshPublicKey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC/qYHz4JcYOm4dkpYojlambsR886O24h5VbvzsDxqt+HU4s03v41D9+qg6tB/xh1UjOTSfsb2JLOoDWTg7oog0ruWewLrLbHAyKr6D0nvo7rO0kK3YEX1Bqr3qqDNiAYNyl6FyTCQXDBsdJ+gMCCMV9qhdg0sx9622MINm9DGtOY/pf1PL0PHxVCJ+m3J48aEUJg0kBvYCT8Tte/pC0jAk939hIAqo/Pgko9T0nwO8l0HAYtOizjypoxuHsKGpOc99wZPJrOmnQlsm5VnShHfCJHKnP4eg9+Rr/gzDfvPmCCjCRLvwIxy7mmBIog17lQD0eHSD9CrBrvDnkv1Pwdfpu4rYAHnesWCIGU0DG6zhAjgbR1tnE4uT4hCIQJd+VwF+d/H866osYejkASMdVtulSaXjkkEKk5X1tRcACRQu7YYOD5M6s1rIO1/1zN5T2vsabK4c1ohBvz9bcyCZl5uKNYgWI9aLeCBn+djZ+lPjFqxa6XYPFs83ODQVA13QDf4qro/ld9Hsat+Pna+2dT8pj5vrjTUjAFeoTlpwFK+tHFQ3UHHtoBMYSaFaJpo6w0BoDNAoVZi5qAriOtpDgt8VPLDZcibmqbcVezSqJ2UdSAg5mzF4AIGH/DjbwAXT/zvcQW8hrOPSdpHqXbEFTxTVllgYOQ1VeZ1cBlIv2v4nEQ== smashwilson@azure"
-      sshKeySecureFile: azure_rsa
   - template: script/azure-pipelines/macos-install.yml
     parameters:
       atom_channel: $(atom_channel)
@@ -124,11 +114,6 @@ jobs:
         atom_channel: stable
         atom_directory: Atom
   steps:
-  - task: InstallSSHKey@0
-    inputs:
-      hostName: "github.com,192.30.253.112 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=="
-      sshPublicKey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC/qYHz4JcYOm4dkpYojlambsR886O24h5VbvzsDxqt+HU4s03v41D9+qg6tB/xh1UjOTSfsb2JLOoDWTg7oog0ruWewLrLbHAyKr6D0nvo7rO0kK3YEX1Bqr3qqDNiAYNyl6FyTCQXDBsdJ+gMCCMV9qhdg0sx9622MINm9DGtOY/pf1PL0PHxVCJ+m3J48aEUJg0kBvYCT8Tte/pC0jAk939hIAqo/Pgko9T0nwO8l0HAYtOizjypoxuHsKGpOc99wZPJrOmnQlsm5VnShHfCJHKnP4eg9+Rr/gzDfvPmCCjCRLvwIxy7mmBIog17lQD0eHSD9CrBrvDnkv1Pwdfpu4rYAHnesWCIGU0DG6zhAjgbR1tnE4uT4hCIQJd+VwF+d/H866osYejkASMdVtulSaXjkkEKk5X1tRcACRQu7YYOD5M6s1rIO1/1zN5T2vsabK4c1ohBvz9bcyCZl5uKNYgWI9aLeCBn+djZ+lPjFqxa6XYPFs83ODQVA13QDf4qro/ld9Hsat+Pna+2dT8pj5vrjTUjAFeoTlpwFK+tHFQ3UHHtoBMYSaFaJpo6w0BoDNAoVZi5qAriOtpDgt8VPLDZcibmqbcVezSqJ2UdSAg5mzF4AIGH/DjbwAXT/zvcQW8hrOPSdpHqXbEFTxTVllgYOQ1VeZ1cBlIv2v4nEQ== smashwilson@azure"
-      sshKeySecureFile: azure_rsa
   - template: script/azure-pipelines/windows-install.yml
     parameters:
       atom_channel: $(atom_channel)
@@ -190,11 +175,6 @@ jobs:
     display: ":99"
     atom_channel: dev
   steps:
-  - task: InstallSSHKey@0
-    inputs:
-      hostName: "github.com,192.30.253.112 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=="
-      sshPublicKey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC/qYHz4JcYOm4dkpYojlambsR886O24h5VbvzsDxqt+HU4s03v41D9+qg6tB/xh1UjOTSfsb2JLOoDWTg7oog0ruWewLrLbHAyKr6D0nvo7rO0kK3YEX1Bqr3qqDNiAYNyl6FyTCQXDBsdJ+gMCCMV9qhdg0sx9622MINm9DGtOY/pf1PL0PHxVCJ+m3J48aEUJg0kBvYCT8Tte/pC0jAk939hIAqo/Pgko9T0nwO8l0HAYtOizjypoxuHsKGpOc99wZPJrOmnQlsm5VnShHfCJHKnP4eg9+Rr/gzDfvPmCCjCRLvwIxy7mmBIog17lQD0eHSD9CrBrvDnkv1Pwdfpu4rYAHnesWCIGU0DG6zhAjgbR1tnE4uT4hCIQJd+VwF+d/H866osYejkASMdVtulSaXjkkEKk5X1tRcACRQu7YYOD5M6s1rIO1/1zN5T2vsabK4c1ohBvz9bcyCZl5uKNYgWI9aLeCBn+djZ+lPjFqxa6XYPFs83ODQVA13QDf4qro/ld9Hsat+Pna+2dT8pj5vrjTUjAFeoTlpwFK+tHFQ3UHHtoBMYSaFaJpo6w0BoDNAoVZi5qAriOtpDgt8VPLDZcibmqbcVezSqJ2UdSAg5mzF4AIGH/DjbwAXT/zvcQW8hrOPSdpHqXbEFTxTVllgYOQ1VeZ1cBlIv2v4nEQ== smashwilson@azure"
-      sshKeySecureFile: azure_rsa
   - template: script/azure-pipelines/linux-install.yml
     parameters:
       atom_channel: $(atom_channel)
@@ -209,11 +189,6 @@ jobs:
     display: ":99"
     atom_channel: dev
   steps:
-  - task: InstallSSHKey@0
-    inputs:
-      hostName: "github.com,192.30.253.112 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ=="
-      sshPublicKey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC/qYHz4JcYOm4dkpYojlambsR886O24h5VbvzsDxqt+HU4s03v41D9+qg6tB/xh1UjOTSfsb2JLOoDWTg7oog0ruWewLrLbHAyKr6D0nvo7rO0kK3YEX1Bqr3qqDNiAYNyl6FyTCQXDBsdJ+gMCCMV9qhdg0sx9622MINm9DGtOY/pf1PL0PHxVCJ+m3J48aEUJg0kBvYCT8Tte/pC0jAk939hIAqo/Pgko9T0nwO8l0HAYtOizjypoxuHsKGpOc99wZPJrOmnQlsm5VnShHfCJHKnP4eg9+Rr/gzDfvPmCCjCRLvwIxy7mmBIog17lQD0eHSD9CrBrvDnkv1Pwdfpu4rYAHnesWCIGU0DG6zhAjgbR1tnE4uT4hCIQJd+VwF+d/H866osYejkASMdVtulSaXjkkEKk5X1tRcACRQu7YYOD5M6s1rIO1/1zN5T2vsabK4c1ohBvz9bcyCZl5uKNYgWI9aLeCBn+djZ+lPjFqxa6XYPFs83ODQVA13QDf4qro/ld9Hsat+Pna+2dT8pj5vrjTUjAFeoTlpwFK+tHFQ3UHHtoBMYSaFaJpo6w0BoDNAoVZi5qAriOtpDgt8VPLDZcibmqbcVezSqJ2UdSAg5mzF4AIGH/DjbwAXT/zvcQW8hrOPSdpHqXbEFTxTVllgYOQ1VeZ1cBlIv2v4nEQ== smashwilson@azure"
-      sshKeySecureFile: azure_rsa
   - template: script/azure-pipelines/linux-install.yml
     parameters:
       atom_channel: $(atom_channel)
