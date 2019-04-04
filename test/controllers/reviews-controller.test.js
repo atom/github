@@ -23,6 +23,7 @@ import pullRequestQuery from '../../lib/controllers/__generated__/reviewsControl
 
 import addPrReviewMutation from '../../lib/mutations/__generated__/addPrReviewMutation.graphql';
 import addPrReviewCommentMutation from '../../lib/mutations/__generated__/addPrReviewCommentMutation.graphql';
+import deletePrReviewMutation from '../../lib/mutations/__generated__/deletePrReviewMutation.graphql';
 import submitPrReviewMutation from '../../lib/mutations/__generated__/submitPrReviewMutation.graphql';
 import resolveThreadMutation from '../../lib/mutations/__generated__/resolveReviewThreadMutation.graphql';
 import unresolveThreadMutation from '../../lib/mutations/__generated__/unresolveReviewThreadMutation.graphql';
@@ -316,7 +317,7 @@ describe('ReviewsController', function() {
       assert.isTrue(reportMutationErrors.calledWith('Unable to submit your comment'));
     });
 
-    it('creates a notification when the comment cannot be added', async function() {
+    it('creates a notification and deletes the review when the comment cannot be added', async function() {
       const reportMutationErrors = sinon.spy();
 
       expectRelayQuery({
@@ -344,6 +345,15 @@ describe('ReviewsController', function() {
           .build();
       }).resolve();
 
+      expectRelayQuery({
+        name: deletePrReviewMutation.operation.name,
+        variables: {
+          input: {pullRequestReviewId: 'review0'},
+        },
+      }, op => {
+        return relayResponseBuilder(op).build();
+      }).resolve();
+
       const pullRequest = pullRequestBuilder(pullRequestQuery).id('pr0').build();
       const wrapper = shallow(buildApp({pullRequest, reportMutationErrors}))
         .find(PullRequestCheckoutController)
@@ -354,6 +364,55 @@ describe('ReviewsController', function() {
       );
 
       assert.isTrue(reportMutationErrors.calledWith('Unable to submit your comment'));
+    });
+
+    it('includes errors from the review deletion', async function() {
+      const reportMutationErrors = sinon.spy();
+
+      expectRelayQuery({
+        name: addPrReviewMutation.operation.name,
+        variables: {
+          input: {pullRequestId: 'pr0'},
+        },
+      }, op => {
+        return relayResponseBuilder(op)
+          .addPullRequestReview(m => {
+            m.reviewEdge(e => e.node(r => r.id('review0')));
+          })
+          .build();
+      }).resolve();
+
+      expectRelayQuery({
+        name: addPrReviewCommentMutation.operation.name,
+        variables: {
+          input: {body: 'body', inReplyTo: 'comment1', pullRequestReviewId: 'review0'},
+        },
+      }, op => {
+        return relayResponseBuilder(op)
+          .addError('Kerpow')
+          .addError('Wat')
+          .build();
+      }).resolve();
+
+      expectRelayQuery({
+        name: deletePrReviewMutation.operation.name,
+        variables: {
+          input: {pullRequestReviewId: 'review0'},
+        },
+      }, op => {
+        return relayResponseBuilder(op)
+          .addError('Bam')
+          .build();
+      }).resolve();
+
+      const pullRequest = pullRequestBuilder(pullRequestQuery).id('pr0').build();
+      const wrapper = shallow(buildApp({pullRequest, reportMutationErrors}))
+        .find(PullRequestCheckoutController)
+        .renderProp('children')(noop);
+
+      await wrapper.find(ReviewsView).prop('addSingleComment')(
+        'body', 'thread0', 'comment1', 'file1.txt', 10,
+      );
     });
 
     it('creates a notification when the review cannot be submitted', async function() {
