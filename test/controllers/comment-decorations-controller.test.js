@@ -1,10 +1,11 @@
 import React from 'react';
-import {mount} from 'enzyme';
+import {mount, shallow} from 'enzyme';
 import path from 'path';
 import fs from 'fs-extra';
 
 import {BareCommentDecorationsController} from '../../lib/controllers/comment-decorations-controller';
 import RelayNetworkLayerManager from '../../lib/relay-network-layer-manager';
+import ReviewsItem from '../../lib/items/reviews-item';
 import {aggregatedReviewsBuilder} from '../builder/graphql/aggregated-reviews-builder';
 import {getEndpoint} from '../../lib/models/endpoint';
 import pullRequestsQuery from '../../lib/controllers/__generated__/commentDecorationsController_pullRequests.graphql';
@@ -47,6 +48,7 @@ describe('CommentDecorationsController', function() {
       .build();
 
     const pr = pullRequestBuilder(pullRequestsQuery)
+      .number(100)
       .headRefName('featureBranch')
       .headRepository(r => {
         r.owner(o => o.login('owner'));
@@ -60,6 +62,7 @@ describe('CommentDecorationsController', function() {
       endpoint: getEndpoint('github.com'),
       owner: 'owner',
       repo: 'repo',
+      commands: atomEnv.commands,
       workspace: atomEnv.workspace,
       repoData: {
         branches: new BranchSet([branch]),
@@ -107,6 +110,8 @@ describe('CommentDecorationsController', function() {
       wrapper.update();
 
       assert.strictEqual(wrapper.find('EditorCommentDecorationsController').length, 1);
+
+      wrapper.unmount();
     });
   });
 
@@ -155,5 +160,25 @@ describe('CommentDecorationsController', function() {
       wrapper.find('EditorCommentDecorationsController').prop('fileName'),
       path.join(__dirname, 'file1.txt'),
     );
+  });
+
+  describe('opening the reviews tab with a command', function() {
+    it('opens the correct tab', function() {
+      sinon.stub(atomEnv.workspace, 'open').returns();
+
+      const wrapper = shallow(buildApp({
+        endpoint: getEndpoint('github.enterprise.horse'),
+        owner: 'me',
+        repo: 'pushbot',
+      }));
+
+      const command = wrapper.find('Command[command="github:open-reviews-tab"]');
+      command.prop('callback')();
+
+      assert.isTrue(atomEnv.workspace.open.calledWith(
+        ReviewsItem.buildURI('github.enterprise.horse', 'me', 'pushbot', 100, __dirname),
+        {searchAllPanes: true},
+      ));
+    });
   });
 });
