@@ -366,6 +366,40 @@ describe('MultiFilePatchView', function() {
 
       assert.isFalse(wrapper.find(CommentGutterDecorationController).exists());
     });
+
+    it('omit threads that have an invalid path or position', function() {
+      sinon.stub(console, 'error');
+
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file.txt'));
+          fp.addHunk(h => h.unchanged('0').added('1').unchanged('2'));
+        })
+        .build();
+
+      const payload = aggregatedReviewsBuilder()
+        .addReviewThread(b => {
+          b.addComment(c => c.path('bad-path.txt').position(1));
+        })
+        .addReviewThread(b => {
+          b.addComment(c => c.path('file.txt').position(100));
+        })
+        .build();
+
+      const wrapper = shallow(buildApp({
+        multiFilePatch,
+        reviewCommentsLoading: false,
+        reviewCommentsTotalCount: 2,
+        reviewCommentsResolvedCount: 0,
+        reviewCommentThreads: payload.commentThreads,
+        itemType: IssueishDetailItem,
+      }));
+
+      assert.isFalse(wrapper.find(CommentGutterDecorationController).exists());
+
+      // eslint-disable-next-line no-console
+      assert.strictEqual(console.error.callCount, 2);
+    });
   });
 
   it('renders the file patch within an editor', function() {
