@@ -23,6 +23,10 @@ export const SubmitPullRequestReviewPayloadBuilder = createSpecBuilderClass('Sub
   pullRequestReview: {linked: ReviewBuilder},
 });
 
+export const DeletePullRequestReviewPayloadBuilder = createSpecBuilderClass('DeletePullRequestReviewPayload', {
+  pullRequestReview: {linked: ReviewBuilder, nullable: true},
+});
+
 export const ResolveReviewThreadPayloadBuilder = createSpecBuilderClass('ResolveReviewThreadPayload', {
   thread: {linked: ReviewThreadBuilder},
 });
