@@ -793,6 +793,17 @@ describe('MultiFilePatch', function() {
       assertMarkerRanges(subPatch.getLayer('deletion'));
       assertMarkerRanges(subPatch.getLayer('nonewline'));
     });
+
+    it('logs and returns an empty buffer when called with invalid arguments', function() {
+      sinon.stub(console, 'error');
+
+      const {multiFilePatch} = multiFilePatchBuilder().build();
+      const subPatch = multiFilePatch.getPreviewPatchBuffer('file.txt', 6, 4);
+      assert.strictEqual(subPatch.getBuffer().getText(), '');
+
+      // eslint-disable-next-line no-console
+      assert.isTrue(console.error.called);
+    });
   });
 
   describe('diff position translation', function() {
