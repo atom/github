@@ -283,7 +283,9 @@ describe('ReviewsController', function() {
 
       const didSubmitComment = sinon.spy();
 
-      await wrapper.find(ReviewsView).prop('addSingleComment')('body', 'thread0', 'comment1', {didSubmitComment});
+      await wrapper.find(ReviewsView).prop('addSingleComment')(
+        'body', 'thread0', 'comment1', 'file0.txt', 10, {didSubmitComment},
+      );
 
       assert.isTrue(didSubmitComment.called);
     });
@@ -307,7 +309,9 @@ describe('ReviewsController', function() {
         .find(PullRequestCheckoutController)
         .renderProp('children')(noop);
 
-      await wrapper.find(ReviewsView).prop('addSingleComment')('body', 'thread0', 'comment1');
+      await wrapper.find(ReviewsView).prop('addSingleComment')(
+        'body', 'thread0', 'comment1', 'file1.txt', 20,
+      );
 
       assert.isTrue(reportMutationErrors.calledWith('Unable to submit your comment'));
     });
@@ -345,7 +349,9 @@ describe('ReviewsController', function() {
         .find(PullRequestCheckoutController)
         .renderProp('children')(noop);
 
-      await wrapper.find(ReviewsView).prop('addSingleComment')('body', 'thread0', 'comment1');
+      await wrapper.find(ReviewsView).prop('addSingleComment')(
+        'body', 'thread0', 'comment1', 'file2.txt', 5,
+      );
 
       assert.isTrue(reportMutationErrors.calledWith('Unable to submit your comment'));
     });
@@ -395,7 +401,9 @@ describe('ReviewsController', function() {
         .find(PullRequestCheckoutController)
         .renderProp('children')(noop);
 
-      await wrapper.find(ReviewsView).prop('addSingleComment')('body', 'thread0', 'comment1');
+      await wrapper.find(ReviewsView).prop('addSingleComment')(
+        'body', 'thread0', 'comment1', 'file1.txt', 10,
+      );
 
       assert.isTrue(reportMutationErrors.calledWith('Unable to submit your comment'));
     });
@@ -514,7 +522,6 @@ describe('ReviewsController', function() {
   });
 
   describe('action methods', function() {
-
     let wrapper, openFilesTab, onTabSelected;
 
     beforeEach(function() {
