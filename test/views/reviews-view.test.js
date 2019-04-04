@@ -135,23 +135,40 @@ describe('ReviewsView', function() {
 
   describe('refresh', function() {
     it('calls refetch when refresh button is clicked', function() {
-      const refetch = sinon.stub();
+      const refetch = sinon.stub().returns({dispose() {}});
       const wrapper = shallow(buildApp({refetch}));
       assert.isFalse(refetch.called);
 
       wrapper.find('.icon-repo-sync').simulate('click');
       assert.isTrue(refetch.called);
+      assert.isTrue(wrapper.find('.icon-repo-sync').hasClass('refreshing'));
 
+      // Trigger the completion callback
+      refetch.lastCall.args[0]();
+      assert.isFalse(wrapper.find('.icon-repo-sync').hasClass('refreshing'));
     });
 
     it('does not call refetch if already fetching', function() {
-      const refetch = sinon.stub();
+      const refetch = sinon.stub().returns({dispose() {}});
       const wrapper = shallow(buildApp({refetch}));
       assert.isFalse(refetch.called);
 
       wrapper.instance().state.isRefreshing = true;
       wrapper.find('.icon-repo-sync').simulate('click');
       assert.isFalse(refetch.called);
+    });
+
+    it('cancels a refetch in progress on unmount', function() {
+      const refetchInProgress = {dispose: sinon.spy()};
+      const refetch = sinon.stub().returns(refetchInProgress);
+
+      const wrapper = shallow(buildApp({refetch}));
+      assert.isFalse(refetch.called);
+
+      wrapper.find('.icon-repo-sync').simulate('click');
+      wrapper.unmount();
+
+      assert.isTrue(refetchInProgress.dispose.called);
     });
   });
 
