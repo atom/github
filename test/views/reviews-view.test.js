@@ -5,6 +5,7 @@ import path from 'path';
 import {Command} from '../../lib/atom/commands';
 import ReviewsView from '../../lib/views/reviews-view';
 import EnableableOperation from '../../lib/models/enableable-operation';
+import RefHolder from '../../lib/models/ref-holder';
 import {aggregatedReviewsBuilder} from '../builder/graphql/aggregated-reviews-builder';
 import {multiFilePatchBuilder} from '../builder/patch';
 import {checkoutStates} from '../../lib/controllers/pr-checkout-controller';
@@ -73,7 +74,7 @@ describe('ReviewsView', function() {
     const moreContext = sinon.stub();
     const lessContext = sinon.stub();
     const wrapper = shallow(buildApp({moreContext, lessContext}));
-    assert.lengthOf(wrapper.find(Command), 2);
+    assert.lengthOf(wrapper.find(Command), 3);
 
     assert.isFalse(moreContext.called);
     await wrapper.find(Command).at(0).prop('callback')();
@@ -184,6 +185,7 @@ describe('ReviewsView', function() {
     const {summaries, commentThreads} = aggregatedReviewsBuilder()
       .addReviewSummary(r => r.id(0))
       .addReviewThread(t => {
+        t.thread(t0 => t0.id('abcd'));
         t.addComment(c =>
           c.id(0).path('dir/file0').position(10).bodyHTML('i have opinions.').author(a => a.login('user0').avatarUrl('user0.jpg')),
         );
@@ -368,13 +370,36 @@ describe('ReviewsView', function() {
       assert.strictEqual(button.text(), 'Comment');
       button.simulate('click');
       const submitArgs = submitSpy.lastCall.args;
-      assert.strictEqual(submitArgs[1].id, '1');
+      assert.strictEqual(submitArgs[1].id, 'abcd');
       assert.strictEqual(submitArgs[2].bodyHTML, 'i disagree.');
 
 
       const addSingleCommentArgs = addSingleComment.lastCall.args;
-      assert.strictEqual(addSingleCommentArgs[1], '1');
+      assert.strictEqual(addSingleCommentArgs[1], 'abcd');
       assert.strictEqual(addSingleCommentArgs[2], 1);
+    });
+
+    it('registers a github:submit-comment command that submits the focused reply comment', async function() {
+      addSingleComment.resolves();
+      const command = wrapper.find('Command[command="github:submit-comment"]');
+
+      const evt = {
+        currentTarget: {
+          dataset: {threadId: 'abcd'},
+        },
+      };
+
+      const miniEditor = {
+        getText: () => 'content',
+        setText: () => {},
+      };
+      wrapper.instance().replyHolders.get('abcd').setter(miniEditor);
+
+      await command.prop('callback')(evt);
+
+      assert.isTrue(addSingleComment.calledWith(
+        'content', 'abcd', 1, 'file0', 10, {didSubmitComment: sinon.match.func},
+      ));
     });
 
     it('handles issueish link clicks on comment bodies', function() {

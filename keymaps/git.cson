@@ -142,3 +142,10 @@
 '.platform-linux .github-Reviews':
   'ctrl-=': 'github:more-context'
   'ctrl--': 'github:less-context'
+
+'.platform-darwin .github-Review-reply atom-text-editor':
+  'cmd-enter': 'github:submit-comment'
+'.platform-win32 .github-Review-reply atom-text-editor':
+  'ctrl-enter': 'github:submit-comment'
+'.platform-linux .github-Review-reply atom-text-editor':
+  'ctrl-enter': 'github:submit-comment'
