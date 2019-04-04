@@ -44,7 +44,7 @@ describe('CommentGutterDecorationController', function() {
     const marker = wrapper.find('Marker');
     const decoration = marker.find('Decoration');
 
-    assert.deepEqual(marker.prop('bufferRange'), new Range([420, 0], [420, 0]));
+    assert.deepEqual(marker.prop('bufferRange'), new Range([420, 0], [420, Infinity]));
     assert.isTrue(decoration.hasClass('celine'));
     assert.isTrue(decoration.hasClass('dion'));
     assert.isTrue(decoration.hasClass('github-editorCommentGutterIcon'));
