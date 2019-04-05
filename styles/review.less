@@ -6,14 +6,6 @@
 @nav-size: 2.5em;
 @background-color: mix(@base-background-color, @tool-panel-background-color, 66%);
 
-
-// PR ------------------------------------
-
-.github-Pr {
-  flex: 1;
-  overflow-x: auto;
-}
-
 // Reviews  ----------------------------------------------
 
 .github-Reviews, .github-StubItem-github-reviews {
@@ -116,11 +108,6 @@
     font-size: @font-size-default;
     padding: @component-padding;
     padding-top: 0;
-
-    &.is-resolved {
-      padding-top: @component-padding;
-      border-top: 1px solid @base-border-color;
-    }
   }
 
   .github-EmojiReactions {
@@ -462,11 +449,6 @@
     justify-content: space-between;
     padding: @component-padding;
     border-top: 1px solid @base-border-color;
-  }
-
-  &-resolveText {
-    margin-right: @component-padding;
-    color: @text-color-subtle;
   }
 
   &-resolveButton {
