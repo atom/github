@@ -274,6 +274,25 @@ describe('PaneItem', function() {
       assert.strictEqual(stub.getText(), '10');
     });
 
+    it('passes additional props from the stub to the real component', function() {
+      const extra = Symbol('extra');
+      const stub = StubItem.create(
+        'some-component',
+        {title: 'Component', extra},
+        'atom-github://pattern/root/10',
+      );
+      workspace.getActivePane().addItem(stub);
+
+      const wrapper = mount(
+        <PaneItem workspace={workspace} uriPattern="atom-github://pattern/root/{id}">
+          {({itemHolder, deserialized}) => <Component ref={itemHolder.setter} extra={deserialized.extra} text="nah" />}
+        </PaneItem>,
+      );
+
+      assert.lengthOf(wrapper.find('Component'), 1);
+      assert.strictEqual(wrapper.find('Component').prop('extra'), extra);
+    });
+
     it('adds a CSS class to the stub root', function() {
       const stub = StubItem.create(
         'some-component',
