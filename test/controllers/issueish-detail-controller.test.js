@@ -201,7 +201,13 @@ describe('IssueishDetailController', function() {
 
       assert.include(
         atomEnv.workspace.getPaneItems().map(item => item.getURI()),
-        ReviewsItem.buildURI('github.enterprise.horse', 'me', 'my-bullshit', 100, __dirname),
+        ReviewsItem.buildURI({
+          host: 'github.enterprise.horse',
+          owner: 'me',
+          repo: 'my-bullshit',
+          number: 100,
+          workdir: __dirname,
+        }),
       );
     });
 
@@ -225,7 +231,12 @@ describe('IssueishDetailController', function() {
 
       assert.include(
         atomEnv.workspace.getPaneItems().map(item => item.getURI()),
-        ReviewsItem.buildURI('github.enterprise.horse', 'me', 'my-bullshit', 100, null),
+        ReviewsItem.buildURI({
+          host: 'github.enterprise.horse',
+          owner: 'me',
+          repo: 'my-bullshit',
+          number: 100,
+        }),
       );
     });
   });

@@ -176,7 +176,13 @@ describe('CommentDecorationsController', function() {
       command.prop('callback')();
 
       assert.isTrue(atomEnv.workspace.open.calledWith(
-        ReviewsItem.buildURI('github.enterprise.horse', 'me', 'pushbot', 100, __dirname),
+        ReviewsItem.buildURI({
+          host: 'github.enterprise.horse',
+          owner: 'me',
+          repo: 'pushbot',
+          number: 100,
+          workdir: __dirname,
+        }),
         {searchAllPanes: true},
       ));
     });

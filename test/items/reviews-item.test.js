@@ -65,7 +65,7 @@ describe('ReviewsItem', function() {
       ...options,
     };
 
-    const uri = ReviewsItem.buildURI(opts.host, opts.owner, opts.repo, opts.number, opts.workdir);
+    const uri = ReviewsItem.buildURI(opts);
     const item = await atomEnv.workspace.open(uri);
     wrapper.update();
     return item;

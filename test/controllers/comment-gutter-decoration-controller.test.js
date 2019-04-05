@@ -60,7 +60,7 @@ describe('CommentGutterDecorationController', function() {
 
     wrapper.find('button.icon-comment').simulate('click');
     assert.isTrue(atomEnv.workspace.open.calledWith(
-      ReviewsItem.buildURI('github.com', 'owner', 'repo', 1337, 'dir/path'),
+      ReviewsItem.buildURI({host: 'github.com', owner: 'owner', repo: 'repo', number: 1337, workdir: 'dir/path'}),
       {searchAllPanes: true},
     ));
     await assert.async.isTrue(jumpToThread.calledWith('my-thread-will-go-on'));
