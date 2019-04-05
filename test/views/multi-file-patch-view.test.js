@@ -398,7 +398,7 @@ describe('MultiFilePatchView', function() {
       assert.isFalse(wrapper.find(CommentGutterDecorationController).exists());
 
       // eslint-disable-next-line no-console
-      assert.strictEqual(console.error.callCount, 2);
+      assert.strictEqual(console.error.callCount, 1);
     });
   });
 
