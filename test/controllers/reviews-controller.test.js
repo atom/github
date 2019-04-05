@@ -658,7 +658,6 @@ describe('ReviewsController', function() {
           searchAllPanes: true,
         },
       ));
-      assert.isTrue(onTabSelected.calledWith(0));
       assert.isTrue(reporterProxy.addEvent.calledWith('reviews-dock-open-pr', {
         package: 'github', component: 'BareReviewsController',
       }));
