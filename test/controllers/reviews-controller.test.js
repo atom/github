@@ -136,7 +136,7 @@ describe('ReviewsController', function() {
 
       assert.include(
         atomEnv.workspace.getPaneItems().map(item => item.getURI()),
-        IssueishDetailItem.buildURI('github.enterprise.horse', 'owner', 'repo', 10, null),
+        IssueishDetailItem.buildURI({host: 'github.enterprise.horse', owner: 'owner', repo: 'repo', number: 10}),
       );
     });
 
@@ -157,7 +157,7 @@ describe('ReviewsController', function() {
 
       assert.include(
         atomEnv.workspace.getPaneItems().map(item => item.getURI()),
-        IssueishDetailItem.buildURI('github.com', 'owner', 'repo', 10, otherDir),
+        IssueishDetailItem.buildURI({host: 'github.com', owner: 'owner', repo: 'repo', number: 10, workdir: otherDir}),
       );
     });
 
@@ -185,7 +185,9 @@ describe('ReviewsController', function() {
 
       assert.include(
         atomEnv.workspace.getPaneItems().map(item => item.getURI()),
-        IssueishDetailItem.buildURI('github.com', 'owner', 'repo', 10, currentDir),
+        IssueishDetailItem.buildURI({
+          host: 'github.com', owner: 'owner', repo: 'repo', number: 10, workdir: currentDir,
+        }),
       );
     });
   });
@@ -608,7 +610,13 @@ describe('ReviewsController', function() {
     it('opens diff in PR detail item', async function() {
       await wrapper.find(ReviewsView).prop('openDiff')('filepath', 420);
       assert.isTrue(atomEnv.workspace.open.calledWith(
-        IssueishDetailItem.buildURI('github.com', 'atom', 'github', 1995, localRepository.getWorkingDirectoryPath()), {
+        IssueishDetailItem.buildURI({
+          host: 'github.com',
+          owner: 'atom',
+          repo: 'github',
+          number: 1995,
+          workdir: localRepository.getWorkingDirectoryPath(),
+        }), {
           pending: true,
           searchAllPanes: true,
         },
@@ -620,7 +628,13 @@ describe('ReviewsController', function() {
     it('opens overview of a PR detail item', async function() {
       await wrapper.find(ReviewsView).prop('openPR')();
       assert.isTrue(atomEnv.workspace.open.calledWith(
-        IssueishDetailItem.buildURI('github.com', 'atom', 'github', 1995, localRepository.getWorkingDirectoryPath()), {
+        IssueishDetailItem.buildURI({
+          host: 'github.com',
+          owner: 'atom',
+          repo: 'github',
+          number: 1995,
+          workdir: localRepository.getWorkingDirectoryPath(),
+        }), {
           pending: true,
           searchAllPanes: true,
         },

@@ -428,7 +428,12 @@ describe('RootController', function() {
       resolveOpenIssueish();
       await promise;
 
-      const uri = IssueishDetailItem.buildURI('github.com', repoOwner, repoName, issueishNumber);
+      const uri = IssueishDetailItem.buildURI({
+        host: 'github.com',
+        owner: repoOwner,
+        repo: repoName,
+        number: issueishNumber,
+      });
 
       assert.isTrue(openIssueishDetails.calledWith(uri));
 
@@ -1227,7 +1232,13 @@ describe('RootController', function() {
 
   describe('opening an IssueishDetailItem', function() {
     it('registers an opener for IssueishPaneItems', async function() {
-      const uri = IssueishDetailItem.buildURI('https://api.github.com', 'owner', 'repo', 123, __dirname);
+      const uri = IssueishDetailItem.buildURI({
+        host: 'github.com',
+        owner: 'owner',
+        repo: 'repo',
+        number: 123,
+        workdir: __dirname,
+      });
       const wrapper = mount(app);
 
       const item = await atomEnv.workspace.open(uri);

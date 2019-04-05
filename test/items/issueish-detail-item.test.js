@@ -59,7 +59,9 @@ describe('IssueishDetailItem', function() {
   it('renders within the workspace center', async function() {
     const wrapper = mount(buildApp({}));
 
-    const uri = IssueishDetailItem.buildURI('one.com', 'me', 'code', 400, __dirname);
+    const uri = IssueishDetailItem.buildURI({
+      host: 'one.com', owner: 'me', repo: 'code', number: 400, workdir: __dirname,
+    });
     const item = await atomEnv.workspace.open(uri);
 
     assert.lengthOf(wrapper.update().find('IssueishDetailItem'), 1);
@@ -88,7 +90,7 @@ describe('IssueishDetailItem', function() {
 
     it('automatically switches when opened with an empty workdir', async function() {
       const wrapper = mount(buildApp({workdirContextPool}));
-      const uri = IssueishDetailItem.buildURI('host.com', 'atom', 'atom', 500);
+      const uri = IssueishDetailItem.buildURI({host: 'host.com', owner: 'atom', repo: 'atom', number: 500});
       await atomEnv.workspace.open(uri);
 
       const item = wrapper.update().find('IssueishDetailItem');
@@ -101,7 +103,13 @@ describe('IssueishDetailItem', function() {
 
     it('switches to a different issueish', async function() {
       const wrapper = mount(buildApp({workdirContextPool}));
-      await atomEnv.workspace.open(IssueishDetailItem.buildURI('host.com', 'me', 'original', 1, __dirname));
+      await atomEnv.workspace.open(IssueishDetailItem.buildURI({
+        host: 'host.com',
+        owner: 'me',
+        repo: 'original',
+        number: 1,
+        workdir: __dirname,
+      }));
 
       const before = wrapper.update().find('IssueishDetailContainer');
       assert.strictEqual(before.prop('endpoint').getHost(), 'host.com');
@@ -120,7 +128,13 @@ describe('IssueishDetailItem', function() {
 
     it('changes the active repository when its issueish changes', async function() {
       const wrapper = mount(buildApp({workdirContextPool}));
-      await atomEnv.workspace.open(IssueishDetailItem.buildURI('host.com', 'me', 'original', 1, __dirname));
+      await atomEnv.workspace.open(IssueishDetailItem.buildURI({
+        host: 'host.com',
+        owner: 'me',
+        repo: 'original',
+        number: 1,
+        workdir: __dirname,
+      }));
 
       wrapper.update();
 
@@ -136,7 +150,13 @@ describe('IssueishDetailItem', function() {
     it('reverts to an absent repository when no matching repository is found', async function() {
       const workdir = atomAtomRepo.getWorkingDirectoryPath();
       const wrapper = mount(buildApp({workdirContextPool}));
-      await atomEnv.workspace.open(IssueishDetailItem.buildURI('github.com', 'atom', 'atom', 5, workdir));
+      await atomEnv.workspace.open(IssueishDetailItem.buildURI({
+        host: 'github.com',
+        owner: 'atom',
+        repo: 'atom',
+        number: 5,
+        workdir,
+      }));
 
       wrapper.update();
       assert.strictEqual(wrapper.find('IssueishDetailContainer').prop('repository'), atomAtomRepo);
@@ -148,7 +168,9 @@ describe('IssueishDetailItem', function() {
 
     it('aborts a repository swap when pre-empted', async function() {
       const wrapper = mount(buildApp({workdirContextPool}));
-      const item = await atomEnv.workspace.open(IssueishDetailItem.buildURI('github.com', 'another', 'repo', 5, __dirname));
+      const item = await atomEnv.workspace.open(IssueishDetailItem.buildURI({
+        host: 'github.com', owner: 'another', repo: 'repo', number: 5, workdir: __dirname,
+      }));
 
       wrapper.update();
 
@@ -175,7 +197,9 @@ describe('IssueishDetailItem', function() {
       await repo.addRemote('upstream', 'https://github.com/atom/atom.git');
 
       const wrapper = mount(buildApp({workdirContextPool}));
-      await atomEnv.workspace.open(IssueishDetailItem.buildURI('host.com', 'me', 'original', 1, __dirname));
+      await atomEnv.workspace.open(IssueishDetailItem.buildURI({
+        host: 'host.com', owner: 'me', repo: 'original', number: 1, workdir: __dirname,
+      }));
       wrapper.update();
 
       await wrapper.find('IssueishDetailContainer').prop('switchToIssueish')('atom', 'atom', 100);
@@ -194,7 +218,9 @@ describe('IssueishDetailItem', function() {
       await repo.addRemote('upstream', 'https://github.com/atom/atom.git');
 
       const wrapper = mount(buildApp({workdirContextPool}));
-      await atomEnv.workspace.open(IssueishDetailItem.buildURI('github.com', 'atom', 'atom', 1, workdir));
+      await atomEnv.workspace.open(IssueishDetailItem.buildURI({
+        host: 'github.com', owner: 'atom', repo: 'atom', number: 1, workdir,
+      }));
       wrapper.update();
 
       await wrapper.find('IssueishDetailContainer').prop('switchToIssueish')('atom', 'atom', 100);
@@ -208,7 +234,9 @@ describe('IssueishDetailItem', function() {
 
     it('records an event after switching', async function() {
       const wrapper = mount(buildApp({workdirContextPool}));
-      await atomEnv.workspace.open(IssueishDetailItem.buildURI('host.com', 'me', 'original', 1, __dirname));
+      await atomEnv.workspace.open(IssueishDetailItem.buildURI({
+        host: 'host.com', owner: 'me', repo: 'original', number: 1, workdir: __dirname,
+      }));
 
       wrapper.update();
 
@@ -221,7 +249,9 @@ describe('IssueishDetailItem', function() {
   it('reconstitutes its original URI', async function() {
     const wrapper = mount(buildApp({}));
 
-    const uri = IssueishDetailItem.buildURI('host.com', 'me', 'original', 1337, __dirname, 1);
+    const uri = IssueishDetailItem.buildURI({
+      host: 'host.com', owner: 'me', repo: 'original', number: 1337, workdir: __dirname, selectedTab: 1,
+    });
     const item = await atomEnv.workspace.open(uri);
     assert.strictEqual(item.getURI(), uri);
     assert.strictEqual(item.serialize().uri, uri);
@@ -234,7 +264,13 @@ describe('IssueishDetailItem', function() {
 
   it('broadcasts title changes', async function() {
     const wrapper = mount(buildApp({}));
-    const item = await atomEnv.workspace.open(IssueishDetailItem.buildURI('host.com', 'user', 'repo', 1, __dirname));
+    const item = await atomEnv.workspace.open(IssueishDetailItem.buildURI({
+      host: 'host.com',
+      owner: 'user',
+      repo: 'repo',
+      number: 1,
+      workdir: __dirname,
+    }));
     assert.strictEqual(item.getTitle(), 'user/repo#1');
 
     const handler = sinon.stub();
@@ -250,7 +286,13 @@ describe('IssueishDetailItem', function() {
 
   it('tracks pending state termination', async function() {
     mount(buildApp({}));
-    const item = await atomEnv.workspace.open(IssueishDetailItem.buildURI('host.com', 'user', 'repo', 1, __dirname));
+    const item = await atomEnv.workspace.open(IssueishDetailItem.buildURI({
+      host: 'host.com',
+      owner: 'user',
+      repo: 'repo',
+      number: 1,
+      workdir: __dirname,
+    }));
 
     const handler = sinon.stub();
     subs.add(item.onDidTerminatePendingState(handler));
@@ -267,7 +309,13 @@ describe('IssueishDetailItem', function() {
 
     beforeEach(function() {
       editor = Symbol('editor');
-      uri = IssueishDetailItem.buildURI('one.com', 'me', 'code', 400, __dirname);
+      uri = IssueishDetailItem.buildURI({
+        host: 'one.com',
+        owner: 'me',
+        repo: 'code',
+        number: 400,
+        workdir: __dirname,
+      });
     });
 
     afterEach(function() {
@@ -304,7 +352,13 @@ describe('IssueishDetailItem', function() {
     beforeEach(async function() {
       onTabSelected = sinon.spy();
       wrapper = mount(buildApp({onTabSelected}));
-      item = await atomEnv.workspace.open(IssueishDetailItem.buildURI('host.com', 'dolphin', 'fish', 1337, __dirname));
+      item = await atomEnv.workspace.open(IssueishDetailItem.buildURI({
+        host: 'host.com',
+        owner: 'dolphin',
+        repo: 'fish',
+        number: 1337,
+        workdir: __dirname,
+      }));
       wrapper.update();
     });
 
@@ -323,7 +377,14 @@ describe('IssueishDetailItem', function() {
 
     it('if tab is already opened, calls callback', async function() {
       item.destroy();
-      item = await atomEnv.workspace.open(IssueishDetailItem.buildURI('host.com', 'dolphin', 'fish', 1337, __dirname, IssueishDetailItem.tabs.FILES));
+      item = await atomEnv.workspace.open(IssueishDetailItem.buildURI({
+        host: 'host.com',
+        owner: 'dolphin',
+        repo: 'fish',
+        number: 1337,
+        workdir: __dirname,
+        selectedTab: IssueishDetailItem.tabs.FILES,
+      }));
       const cb = sinon.spy();
       const args = {changedFilePath: 'sn00p/dawg', changedFilePosition: 420};
       item.onOpenFilesTab(cb);
