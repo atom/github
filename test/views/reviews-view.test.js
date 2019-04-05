@@ -397,7 +397,7 @@ describe('ReviewsView', function() {
       await command.prop('callback')(evt);
 
       assert.isTrue(addSingleComment.calledWith(
-        'content', 'abcd', 1, 'file0', 10, {didSubmitComment: sinon.match.func},
+        'content', 'abcd', 1, 'file0', 10, {didSubmitComment: sinon.match.func, didFailComment: sinon.match.func},
       ));
     });
 

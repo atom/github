@@ -285,12 +285,14 @@ describe('ReviewsController', function() {
         .renderProp('children')(noop);
 
       const didSubmitComment = sinon.spy();
+      const didFailComment = sinon.spy();
 
       await wrapper.find(ReviewsView).prop('addSingleComment')(
-        'body', 'thread0', 'comment1', 'file0.txt', 10, {didSubmitComment},
+        'body', 'thread0', 'comment1', 'file0.txt', 10, {didSubmitComment, didFailComment},
       );
 
       assert.isTrue(didSubmitComment.called);
+      assert.isFalse(didFailComment.called);
     });
 
     it('creates a notification when the review cannot be created', async function() {
@@ -312,11 +314,16 @@ describe('ReviewsController', function() {
         .find(PullRequestCheckoutController)
         .renderProp('children')(noop);
 
+      const didSubmitComment = sinon.spy();
+      const didFailComment = sinon.spy();
+
       await wrapper.find(ReviewsView).prop('addSingleComment')(
-        'body', 'thread0', 'comment1', 'file1.txt', 20,
+        'body', 'thread0', 'comment1', 'file1.txt', 20, {didSubmitComment, didFailComment},
       );
 
       assert.isTrue(reportMutationErrors.calledWith('Unable to submit your comment'));
+      assert.isFalse(didSubmitComment.called);
+      assert.isTrue(didFailComment.called);
     });
 
     it('creates a notification and deletes the review when the comment cannot be added', async function() {
@@ -361,11 +368,16 @@ describe('ReviewsController', function() {
         .find(PullRequestCheckoutController)
         .renderProp('children')(noop);
 
+      const didSubmitComment = sinon.spy();
+      const didFailComment = sinon.spy();
+
       await wrapper.find(ReviewsView).prop('addSingleComment')(
-        'body', 'thread0', 'comment1', 'file2.txt', 5,
+        'body', 'thread0', 'comment1', 'file2.txt', 5, {didSubmitComment, didFailComment},
       );
 
       assert.isTrue(reportMutationErrors.calledWith('Unable to submit your comment'));
+      assert.isTrue(didSubmitComment.called);
+      assert.isTrue(didFailComment.called);
     });
 
     it('includes errors from the review deletion', async function() {
@@ -462,11 +474,16 @@ describe('ReviewsController', function() {
         .find(PullRequestCheckoutController)
         .renderProp('children')(noop);
 
+      const didSubmitComment = sinon.spy();
+      const didFailComment = sinon.spy();
+
       await wrapper.find(ReviewsView).prop('addSingleComment')(
-        'body', 'thread0', 'comment1', 'file1.txt', 10,
+        'body', 'thread0', 'comment1', 'file1.txt', 10, {didSubmitComment, didFailComment},
       );
 
       assert.isTrue(reportMutationErrors.calledWith('Unable to submit your comment'));
+      assert.isTrue(didSubmitComment.called);
+      assert.isTrue(didFailComment.called);
     });
   });
 
@@ -622,7 +639,9 @@ describe('ReviewsController', function() {
         },
       ));
       assert.isTrue(openFilesTab.calledWith({changedFilePath: 'filepath', changedFilePosition: 420}));
-      assert.isTrue(reporterProxy.addEvent.calledWith('reviews-dock-open-diff', {package: 'github'}));
+      assert.isTrue(reporterProxy.addEvent.calledWith('reviews-dock-open-diff', {
+        package: 'github', component: 'BareReviewsController',
+      }));
     });
 
     it('opens overview of a PR detail item', async function() {
@@ -640,7 +659,9 @@ describe('ReviewsController', function() {
         },
       ));
       assert.isTrue(onTabSelected.calledWith(0));
-      assert.isTrue(reporterProxy.addEvent.calledWith('reviews-dock-open-pr', {package: 'github', component: 'BareReviewsController'}));
+      assert.isTrue(reporterProxy.addEvent.calledWith('reviews-dock-open-pr', {
+        package: 'github', component: 'BareReviewsController',
+      }));
     });
 
     it('manages the open/close state of the summary section', async function() {
