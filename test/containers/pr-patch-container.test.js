@@ -26,14 +26,24 @@ describe('PullRequestPatchContainer', function() {
     const opts = {
       status: 200,
       statusText: 'OK',
+      getResolver: cb => cb(),
       ...options,
     };
 
-    return sinon.stub(window, 'fetch').callsFake(() => Promise.resolve(new window.Response(body, {
-      status: opts.status,
-      statusText: opts.statusText,
-      headers: {'Content-type': 'text/plain'},
-    })));
+    return sinon.stub(window, 'fetch').callsFake(() => {
+      const resp = new window.Response(body, {
+        status: opts.status,
+        statusText: opts.statusText,
+        headers: {'Content-type': 'text/plain'},
+      });
+
+      let resolveResponsePromise = null;
+      const promise = new Promise(resolve => {
+        resolveResponsePromise = resolve;
+      });
+      opts.getResolver(() => resolveResponsePromise(resp));
+      return promise;
+    });
   }
 
   describe('while the patch is loading', function() {
@@ -145,6 +155,26 @@ describe('PullRequestPatchContainer', function() {
       const [fp] = mfp.getFilePatches();
       assert.strictEqual(fp.getNewFile().getPath(), path.join('bad/path.txt'));
       assert.strictEqual(fp.getOldFile().getPath(), path.join('bad/path.txt'));
+    });
+
+    it('does not setState if the component has been unmounted', async function() {
+      let resolve = null;
+      setDiffResponse(rawDiff, {
+        getResolver(cb) { resolve = cb; },
+      });
+      const children = sinon.spy();
+      const wrapper = shallow(buildApp({children}));
+      const fetchDiffSpy = sinon.spy(wrapper.instance(), 'fetchDiff');
+      wrapper.setProps({refetch: true});
+
+      assert.isTrue(children.calledWith(null, null));
+      const setStateSpy = sinon.spy(wrapper.instance(), 'setState');
+      wrapper.unmount();
+
+      resolve();
+      await fetchDiffSpy.lastCall.returnValue;
+
+      assert.isFalse(setStateSpy.called);
     });
   });
 
