@@ -36,9 +36,7 @@ describe('IssueishDetailItem', function() {
       tooltips: atomEnv.tooltips,
       config: atomEnv.config,
 
-      onTabSelected: () => {},
       reportMutationErrors: () => {},
-
       ...override,
     };
     return (
@@ -346,7 +344,6 @@ describe('IssueishDetailItem', function() {
   });
 
   describe('tab navigation', function() {
-
     let wrapper, item, onTabSelected;
 
     beforeEach(async function() {
@@ -372,24 +369,6 @@ describe('IssueishDetailItem', function() {
 
       assert.strictEqual(wrapper.find('IssueishDetailItem').state('initChangedFilePath'), 'dir/file');
       assert.strictEqual(wrapper.find('IssueishDetailItem').state('initChangedFilePosition'), 100);
-      assert.isTrue(onTabSelected.calledWith(IssueishDetailItem.tabs.FILES));
-    });
-
-    it('if tab is already opened, calls callback', async function() {
-      item.destroy();
-      item = await atomEnv.workspace.open(IssueishDetailItem.buildURI({
-        host: 'host.com',
-        owner: 'dolphin',
-        repo: 'fish',
-        number: 1337,
-        workdir: __dirname,
-        selectedTab: IssueishDetailItem.tabs.FILES,
-      }));
-      const cb = sinon.spy();
-      const args = {changedFilePath: 'sn00p/dawg', changedFilePosition: 420};
-      item.onOpenFilesTab(cb);
-      await item.openFilesTab(args);
-      assert.isTrue(cb.calledWith(args));
     });
 
     it('resets initChangedFilePath & initChangedFilePosition when navigating between tabs', async function() {
