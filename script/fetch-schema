@@ -20,7 +20,7 @@ const SERVER = 'https://api.github.com/graphql';
 fetch(`${SERVER}`, {
   method: 'POST',
   headers: {
-    'Accept': 'application/json',
+    'Accept': 'application/vnd.github.antiope-preview+json',
     'Content-Type': 'application/json',
     'Authorization': 'bearer ' + token,
   },
