@@ -118,6 +118,15 @@ describe('EmojiReactionsView', function() {
     assert.isTrue(wrapper.find(ReactionPickerController).exists());
   });
 
+  it('displays an "add emoji" control when no reaction groups are present', function() {
+    // This happens when the Reactable is optimistically rendered.
+    const reactable = issueBuilder(reactableQuery).build();
+
+    const wrapper = shallow(buildApp({reactable}));
+    assert.isTrue(wrapper.exists('.github-EmojiReactions-add'));
+    assert.isTrue(wrapper.find(ReactionPickerController).exists());
+  });
+
   it('does not display the "add emoji" control if all reaction groups are nonempty', function() {
     const reactable = issueBuilder(reactableQuery)
       .addReactionGroup(group => group.content('THUMBS_UP').users(u => u.totalCount(1)))
