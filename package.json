@@ -90,7 +90,7 @@
     "enzyme": "3.8.0",
     "enzyme-adapter-react-16": "1.7.1",
     "eslint": "5.16.0",
-    "eslint-config-fbjs-opensource": "2.0.0",
+    "eslint-config-fbjs-opensource": "1.0.0",
     "eslint-plugin-jsx-a11y": "6.2.1",
     "globby": "9.2.0",
     "hock": "1.3.3",
