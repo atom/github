@@ -2,35 +2,110 @@ import React from 'react';
 import {shallow} from 'enzyme';
 import {Tab, Tabs, TabList, TabPanel} from 'react-tabs';
 
-import {BarePullRequestDetailView, checkoutStates} from '../../lib/views/pr-detail-view';
-import EmojiReactionsView from '../../lib/views/emoji-reactions-view';
-import {pullRequestDetailViewProps} from '../fixtures/props/issueish-pane-props';
+import {BarePullRequestDetailView} from '../../lib/views/pr-detail-view';
+import {checkoutStates} from '../../lib/controllers/pr-checkout-controller';
+import EmojiReactionsController from '../../lib/controllers/emoji-reactions-controller';
+import PullRequestCommitsView from '../../lib/views/pr-commits-view';
+import PullRequestStatusesView from '../../lib/views/pr-statuses-view';
+import PullRequestTimelineController from '../../lib/controllers/pr-timeline-controller';
+import IssueishDetailItem from '../../lib/items/issueish-detail-item';
 import EnableableOperation from '../../lib/models/enableable-operation';
+import RefHolder from '../../lib/models/ref-holder';
+import {getEndpoint} from '../../lib/models/endpoint';
 import * as reporterProxy from '../../lib/reporter-proxy';
+import {repositoryBuilder} from '../builder/graphql/repository';
+import {pullRequestBuilder} from '../builder/graphql/pr';
+import {cloneRepository, buildRepository} from '../helpers';
+
+import repositoryQuery from '../../lib/views/__generated__/prDetailView_repository.graphql';
+import pullRequestQuery from '../../lib/views/__generated__/prDetailView_pullRequest.graphql';
 
 describe('PullRequestDetailView', function() {
-  function buildApp(opts, overrideProps = {}) {
-    return <BarePullRequestDetailView {...pullRequestDetailViewProps(opts, overrideProps)} />;
+  let atomEnv, localRepository;
+
+  beforeEach(async function() {
+    atomEnv = global.buildAtomEnvironment();
+    localRepository = await buildRepository(await cloneRepository());
+  });
+
+  afterEach(function() {
+    atomEnv.destroy();
+  });
+
+  function buildApp(overrides = {}) {
+    const props = {
+      relay: {refetch() {}},
+      repository: repositoryBuilder(repositoryQuery).build(),
+      pullRequest: pullRequestBuilder(pullRequestQuery).build(),
+
+      localRepository,
+      checkoutOp: new EnableableOperation(() => {}),
+
+      reviewCommentsLoading: false,
+      reviewCommentsTotalCount: 0,
+      reviewCommentsResolvedCount: 0,
+      reviewCommentThreads: [],
+
+      endpoint: getEndpoint('github.com'),
+      token: '1234',
+
+      workspace: atomEnv.workspace,
+      commands: atomEnv.commands,
+      keymaps: atomEnv.keymaps,
+      tooltips: atomEnv.tooltips,
+      config: atomEnv.config,
+
+      openCommit: () => {},
+      openReviews: () => {},
+      switchToIssueish: () => {},
+      destroy: () => {},
+      reportMutationErrors: () => {},
+
+      itemType: IssueishDetailItem,
+      refEditor: new RefHolder(),
+
+      selectedTab: 0,
+      onTabSelected: () => {},
+      onOpenFilesTab: () => {},
+
+      ...overrides,
+    };
+
+    return <BarePullRequestDetailView {...props} />;
+  }
+
+  function findTabIndex(wrapper, tabText) {
+    let finalIndex;
+    let tempIndex = 0;
+    wrapper.find('Tab').forEach(t => {
+      t.children().forEach(child => {
+        if (child.text() === tabText) {
+          finalIndex = tempIndex;
+        }
+      });
+      tempIndex++;
+    });
+    return finalIndex;
   }
 
   it('renders pull request information', function() {
-    const baseRefName = 'master';
-    const headRefName = 'tt/heck-yes';
-    const wrapper = shallow(buildApp({
-      repositoryName: 'repo',
-      ownerLogin: 'user0',
+    const repository = repositoryBuilder(repositoryQuery)
+      .name('repo')
+      .owner(o => o.login('user0'))
+      .build();
 
-      pullRequestKind: 'PullRequest',
-      pullRequestTitle: 'PR title',
-      pullRequestBaseRef: baseRefName,
-      pullRequestHeadRef: headRefName,
-      pullRequestBodyHTML: '<code>stuff</code>',
-      pullRequestAuthorLogin: 'author0',
-      pullRequestAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/1',
-      issueishNumber: 100,
-      pullRequestState: 'MERGED',
-      pullRequestReactions: [{content: 'THUMBS_UP', count: 10}, {content: 'THUMBS_DOWN', count: 5}, {content: 'LAUGH', count: 0}],
-    }));
+    const pullRequest = pullRequestBuilder(pullRequestQuery)
+      .number(100)
+      .title('PR title')
+      .state('MERGED')
+      .bodyHTML('<code>stuff</code>')
+      .baseRefName('master')
+      .headRefName('tt/heck-yes')
+      .url('https://github.com/user0/repo/pull/100')
+      .author(a => a.login('author0').avatarUrl('https://avatars3.githubusercontent.com/u/1'))
+      .build();
+
+    const wrapper = shallow(buildApp({repository, pullRequest}));
 
     const badge = wrapper.find('IssueishBadge');
     assert.strictEqual(badge.prop('type'), 'PullRequest');
@@ -40,9 +115,9 @@ describe('PullRequestDetailView', function() {
     assert.strictEqual(link.text(), 'user0/repo#100');
     assert.strictEqual(link.prop('href'), 'https://github.com/user0/repo/pull/100');
 
-    assert.isTrue(wrapper.find('.github-IssueishDetailView-checkoutButton').exists());
+    assert.isTrue(wrapper.find('CheckoutButton').exists());
 
-    assert.isDefined(wrapper.find('ForwardRef(Relay(BarePrStatusesView))[displayType="check"]').prop('pullRequest'));
+    assert.isDefined(wrapper.find(PullRequestStatusesView).find('[displayType="check"]').prop('pullRequest'));
 
     const avatarLink = wrapper.find('.github-IssueishDetailView-avatar');
     assert.strictEqual(avatarLink.prop('href'), 'https://github.com/author0');
@@ -54,20 +129,42 @@ describe('PullRequestDetailView', function() {
 
     assert.isTrue(wrapper.find('GithubDotcomMarkdown').someWhere(n => n.prop('html') === '<code>stuff</code>'));
 
-    assert.lengthOf(wrapper.find(EmojiReactionsView), 1);
+    assert.lengthOf(wrapper.find(EmojiReactionsController), 1);
 
-    assert.notOk(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('issue'));
-    assert.isNotNull(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('pullRequest'));
-    assert.isNotNull(wrapper.find('ForwardRef(Relay(BarePrStatusesView))[displayType="full"]').prop('pullRequest'));
+    assert.notOk(wrapper.find(PullRequestTimelineController).prop('issue'));
+    assert.isNotNull(wrapper.find(PullRequestTimelineController).prop('pullRequest'));
+    assert.isNotNull(wrapper.find(PullRequestStatusesView).find('[displayType="full"]').prop('pullRequest'));
 
-    assert.strictEqual(wrapper.find('.github-IssueishDetailView-baseRefName').text(), baseRefName);
-    assert.strictEqual(wrapper.find('.github-IssueishDetailView-headRefName').text(), headRefName);
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-baseRefName').text(), 'master');
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-headRefName').text(), 'tt/heck-yes');
+  });
+
+  it('renders footer and passes review thread props through', function() {
+    const openReviews = sinon.spy();
+
+    const wrapper = shallow(buildApp({
+      reviewCommentsLoading: false,
+      reviewCommentsTotalCount: 10,
+      reviewCommentsResolvedCount: 5,
+      openReviews,
+    }));
+
+    const footer = wrapper.find('ReviewsFooterView');
+
+    assert.strictEqual(footer.prop('commentsResolved'), 5);
+    assert.strictEqual(footer.prop('totalComments'), 10);
+
+    footer.prop('openReviews')();
+    assert.isTrue(openReviews.called);
   });
 
   it('renders tabs', function() {
-    const pullRequestCommitCount = 11;
-    const pullRequestChangedFileCount = 22;
-    const wrapper = shallow(buildApp({pullRequestCommitCount, pullRequestChangedFileCount}));
+    const pullRequest = pullRequestBuilder(pullRequestQuery)
+      .changedFiles(22)
+      .countedCommits(conn => conn.totalCount(11))
+      .build();
+
+    const wrapper = shallow(buildApp({pullRequest}));
 
     assert.lengthOf(wrapper.find(Tabs), 1);
     assert.lengthOf(wrapper.find(TabList), 1);
@@ -93,70 +190,85 @@ describe('PullRequestDetailView', function() {
 
     const tabCounts = wrapper.find('.github-IssueishDetailView-tab-count');
     assert.lengthOf(tabCounts, 2);
-    assert.strictEqual(tabCounts.at(0).text(), `${pullRequestCommitCount}`);
-    assert.strictEqual(tabCounts.at(1).text(), `${pullRequestChangedFileCount}`);
+    assert.strictEqual(tabCounts.at(0).text(), '11');
+    assert.strictEqual(tabCounts.at(1).text(), '22');
 
     assert.lengthOf(wrapper.find(TabPanel), 4);
   });
 
+  it('passes selected tab index to tabs', function() {
+    const onTabSelected = sinon.spy();
+
+    const wrapper = shallow(buildApp({selectedTab: 0, onTabSelected}));
+    assert.strictEqual(wrapper.find('Tabs').prop('selectedIndex'), 0);
+
+    const index = findTabIndex(wrapper, 'Commits');
+    wrapper.find('Tabs').prop('onSelect')(index);
+    assert.isTrue(onTabSelected.calledWith(index));
+  });
+
   it('tells its tabs when the pull request is currently checked out', function() {
-    const wrapper = shallow(buildApp({}, {
+    const wrapper = shallow(buildApp({
       checkoutOp: new EnableableOperation(() => {}).disable(checkoutStates.CURRENT),
     }));
 
-    assert.isTrue(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('onBranch'));
-    assert.isTrue(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('onBranch'));
-    assert.isTrue(wrapper.find('ForwardRef(Relay(PrCommitsView))').prop('onBranch'));
+    assert.isTrue(wrapper.find(PullRequestTimelineController).prop('onBranch'));
+    assert.isTrue(wrapper.find(PullRequestCommitsView).prop('onBranch'));
   });
 
   it('tells its tabs when the pull request is not checked out', function() {
     const checkoutOp = new EnableableOperation(() => {});
 
-    const wrapper = shallow(buildApp({}, {checkoutOp}));
-    assert.isFalse(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('onBranch'));
-    assert.isFalse(wrapper.find('ForwardRef(Relay(PrCommitsView))').prop('onBranch'));
+    const wrapper = shallow(buildApp({checkoutOp}));
+    assert.isFalse(wrapper.find(PullRequestTimelineController).prop('onBranch'));
+    assert.isFalse(wrapper.find(PullRequestCommitsView).prop('onBranch'));
 
     wrapper.setProps({checkoutOp: checkoutOp.disable(checkoutStates.HIDDEN, 'message')});
-    assert.isFalse(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('onBranch'));
-    assert.isFalse(wrapper.find('ForwardRef(Relay(PrCommitsView))').prop('onBranch'));
+    assert.isFalse(wrapper.find(PullRequestTimelineController).prop('onBranch'));
+    assert.isFalse(wrapper.find(PullRequestCommitsView).prop('onBranch'));
 
     wrapper.setProps({checkoutOp: checkoutOp.disable(checkoutStates.DISABLED, 'message')});
-    assert.isFalse(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('onBranch'));
-    assert.isFalse(wrapper.find('ForwardRef(Relay(PrCommitsView))').prop('onBranch'));
+    assert.isFalse(wrapper.find(PullRequestTimelineController).prop('onBranch'));
+    assert.isFalse(wrapper.find(PullRequestCommitsView).prop('onBranch'));
 
     wrapper.setProps({checkoutOp: checkoutOp.disable(checkoutStates.BUSY, 'message')});
-    assert.isFalse(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('onBranch'));
-    assert.isFalse(wrapper.find('ForwardRef(Relay(PrCommitsView))').prop('onBranch'));
+    assert.isFalse(wrapper.find(PullRequestTimelineController).prop('onBranch'));
+    assert.isFalse(wrapper.find(PullRequestCommitsView).prop('onBranch'));
   });
 
-  it('renders pull request information for cross repository PR', function() {
-    const baseRefName = 'master';
-    const headRefName = 'tt-heck-yes';
-    const ownerLogin = 'user0';
-    const authorLogin = 'author0';
-    const wrapper = shallow(buildApp({
-      ownerLogin,
-      pullRequestBaseRef: baseRefName,
-      pullRequestHeadRef: headRefName,
-      pullRequestAuthorLogin: authorLogin,
-      pullRequestCrossRepository: true,
-    }));
+  it('renders pull request information for a cross repository PR', function() {
+    const repository = repositoryBuilder(repositoryQuery)
+      .owner(o => o.login('user0'))
+      .build();
 
-    assert.strictEqual(wrapper.find('.github-IssueishDetailView-baseRefName').text(), `${ownerLogin}/${baseRefName}`);
-    assert.strictEqual(wrapper.find('.github-IssueishDetailView-headRefName').text(), `${authorLogin}/${headRefName}`);
+    const pullRequest = pullRequestBuilder(pullRequestQuery)
+      .isCrossRepository(true)
+      .author(a => a.login('author0'))
+      .baseRefName('master')
+      .headRefName('tt-heck-yes')
+      .build();
+
+    const wrapper = shallow(buildApp({repository, pullRequest}));
+
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-baseRefName').text(), 'user0/master');
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-headRefName').text(), 'author0/tt-heck-yes');
   });
 
   it('renders a placeholder issueish body', function() {
-    const wrapper = shallow(buildApp({pullRequestBodyHTML: null}));
+    const pullRequest = pullRequestBuilder(pullRequestQuery)
+      .nullBodyHTML()
+      .build();
+    const wrapper = shallow(buildApp({pullRequest}));
+
     assert.isTrue(wrapper.find('GithubDotcomMarkdown').someWhere(n => /No description/.test(n.prop('html'))));
   });
 
   it('refreshes on click', function() {
     let callback = null;
-    const relayRefetch = sinon.stub().callsFake((_0, _1, cb) => {
+    const refetch = sinon.stub().callsFake((_0, _1, cb) => {
       callback = cb;
     });
-    const wrapper = shallow(buildApp({relayRefetch}, {}));
+    const wrapper = shallow(buildApp({relay: {refetch}}));
 
     wrapper.find('Octicon[icon="repo-sync"]').simulate('click', {preventDefault: () => {}});
     assert.isTrue(wrapper.find('Octicon[icon="repo-sync"]').hasClass('refreshing'));
@@ -169,22 +281,22 @@ describe('PullRequestDetailView', function() {
 
   it('disregards a double refresh', function() {
     let callback = null;
-    const relayRefetch = sinon.stub().callsFake((_0, _1, cb) => {
+    const refetch = sinon.stub().callsFake((_0, _1, cb) => {
       callback = cb;
     });
-    const wrapper = shallow(buildApp({relayRefetch}, {}));
+    const wrapper = shallow(buildApp({relay: {refetch}}));
 
     wrapper.find('Octicon[icon="repo-sync"]').simulate('click', {preventDefault: () => {}});
-    assert.strictEqual(relayRefetch.callCount, 1);
+    assert.strictEqual(refetch.callCount, 1);
 
     wrapper.find('Octicon[icon="repo-sync"]').simulate('click', {preventDefault: () => {}});
-    assert.strictEqual(relayRefetch.callCount, 1);
+    assert.strictEqual(refetch.callCount, 1);
 
     callback();
     wrapper.update();
 
     wrapper.find('Octicon[icon="repo-sync"]').simulate('click', {preventDefault: () => {}});
-    assert.strictEqual(relayRefetch.callCount, 2);
+    assert.strictEqual(refetch.callCount, 2);
   });
 
   it('configures the refresher with a 5 minute polling interval', function() {
@@ -204,79 +316,34 @@ describe('PullRequestDetailView', function() {
     assert.isTrue(refresher.destroy.called);
   });
 
-  describe('Checkout button', function() {
-    it('triggers its operation callback on click', function() {
-      const cb = sinon.spy();
-      const checkoutOp = new EnableableOperation(cb);
-      const wrapper = shallow(buildApp({}, {checkoutOp}));
-
-      const button = wrapper.find('.github-IssueishDetailView-checkoutButton');
-      assert.strictEqual(button.text(), 'Checkout');
-      button.simulate('click');
-      assert.isTrue(cb.called);
-    });
-
-    it('renders as disabled with hover text set to the disablement message', function() {
-      const checkoutOp = new EnableableOperation(() => {}).disable(checkoutStates.DISABLED, 'message');
-      const wrapper = shallow(buildApp({}, {checkoutOp}));
-
-      const button = wrapper.find('.github-IssueishDetailView-checkoutButton');
-      assert.isTrue(button.prop('disabled'));
-      assert.strictEqual(button.text(), 'Checkout');
-      assert.strictEqual(button.prop('title'), 'message');
-    });
-
-    it('changes the button text when disabled because the PR is the current branch', function() {
-      const checkoutOp = new EnableableOperation(() => {}).disable(checkoutStates.CURRENT, 'message');
-      const wrapper = shallow(buildApp({}, {checkoutOp}));
-
-      const button = wrapper.find('.github-IssueishDetailView-checkoutButton');
-      assert.isTrue(button.prop('disabled'));
-      assert.strictEqual(button.text(), 'Checked out');
-      assert.strictEqual(button.prop('title'), 'message');
-    });
-
-    it('renders hidden', function() {
-      const checkoutOp = new EnableableOperation(() => {}).disable(checkoutStates.HIDDEN, 'message');
-      const wrapper = shallow(buildApp({}, {checkoutOp}));
-
-      assert.isFalse(wrapper.find('.github-IssueishDetailView-checkoutButton').exists());
-    });
-  });
-
   describe('metrics', function() {
     beforeEach(function() {
       sinon.stub(reporterProxy, 'addEvent');
     });
 
     it('records clicking the link to view an issueish', function() {
-      const wrapper = shallow(buildApp({
-        repositoryName: 'repo',
-        ownerLogin: 'user0',
-        issueishNumber: 100,
-      }));
+      const repository = repositoryBuilder(repositoryQuery)
+        .name('repo')
+        .owner(o => o.login('user0'))
+        .build();
+
+      const pullRequest = pullRequestBuilder(pullRequestQuery)
+        .number(100)
+        .url('https://github.com/user0/repo/pull/100')
+        .build();
+
+      const wrapper = shallow(buildApp({repository, pullRequest}));
 
       const link = wrapper.find('a.github-IssueishDetailView-headerLink');
       assert.strictEqual(link.text(), 'user0/repo#100');
       assert.strictEqual(link.prop('href'), 'https://github.com/user0/repo/pull/100');
       link.simulate('click');
 
-      assert.isTrue(reporterProxy.addEvent.calledWith('open-pull-request-in-browser', {package: 'github', component: 'BarePullRequestDetailView'}));
+      assert.isTrue(reporterProxy.addEvent.calledWith(
+        'open-pull-request-in-browser',
+        {package: 'github', component: 'BarePullRequestDetailView'},
+      ));
     });
-
-    function findTabIndex(wrapper, tabText) {
-      let finalIndex;
-      let tempIndex = 0;
-      wrapper.find('Tab').forEach(t => {
-        t.children().forEach(child => {
-          if (child.text() === tabText) {
-            finalIndex = tempIndex;
-          }
-        });
-        tempIndex++;
-      });
-      return finalIndex;
-    }
 
     it('records opening the Overview tab', function() {
       const wrapper = shallow(buildApp());
@@ -284,7 +351,10 @@ describe('PullRequestDetailView', function() {
 
       wrapper.find('Tabs').prop('onSelect')(index);
 
-      assert.isTrue(reporterProxy.addEvent.calledWith('open-pr-tab-overview', {package: 'github', component: 'BarePullRequestDetailView'}));
+      assert.isTrue(reporterProxy.addEvent.calledWith(
+        'open-pr-tab-overview',
+        {package: 'github', component: 'BarePullRequestDetailView'},
+      ));
     });
 
     it('records opening the Build Status tab', function() {
@@ -293,7 +363,10 @@ describe('PullRequestDetailView', function() {
 
       wrapper.find('Tabs').prop('onSelect')(index);
 
-      assert.isTrue(reporterProxy.addEvent.calledWith('open-pr-tab-build-status', {package: 'github', component: 'BarePullRequestDetailView'}));
+      assert.isTrue(reporterProxy.addEvent.calledWith(
+        'open-pr-tab-build-status',
+        {package: 'github', component: 'BarePullRequestDetailView'},
+      ));
     });
 
     it('records opening the Commits tab', function() {
@@ -302,7 +375,10 @@ describe('PullRequestDetailView', function() {
 
       wrapper.find('Tabs').prop('onSelect')(index);
 
-      assert.isTrue(reporterProxy.addEvent.calledWith('open-pr-tab-commits', {package: 'github', component: 'BarePullRequestDetailView'}));
+      assert.isTrue(reporterProxy.addEvent.calledWith(
+        'open-pr-tab-commits',
+        {package: 'github', component: 'BarePullRequestDetailView'},
+      ));
     });
 
     it('records opening the "Files Changed" tab', function() {
@@ -311,7 +387,10 @@ describe('PullRequestDetailView', function() {
 
       wrapper.find('Tabs').prop('onSelect')(index);
 
-      assert.isTrue(reporterProxy.addEvent.calledWith('open-pr-tab-files-changed', {package: 'github', component: 'BarePullRequestDetailView'}));
+      assert.isTrue(reporterProxy.addEvent.calledWith(
+        'open-pr-tab-files-changed',
+        {package: 'github', component: 'BarePullRequestDetailView'},
+      ));
     });
   });
 });

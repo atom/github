@@ -198,6 +198,12 @@ export function assertInFilePatch(filePatch, buffer) {
   return assertInPatch(filePatch.getPatch(), buffer);
 }
 
+export function assertMarkerRanges(markerLayer, ...expectedRanges) {
+  const bufferLayer = markerLayer.bufferMarkerLayer || markerLayer;
+  const actualRanges = bufferLayer.getMarkers().map(m => m.getRange().serialize());
+  assert.deepEqual(actualRanges, expectedRanges);
+}
+
 let activeRenderers = [];
 export function createRenderer() {
   let instance;
@@ -441,6 +447,35 @@ export function expectEvents(repository, ...suffixes) {
 
     if (observedEvents.length > 0) {
       eventCallback();
+    }
+  });
+}
+
+// Atom environment utilities
+
+// Ensure the Workspace doesn't mangle atom-github://... URIs.
+// If you don't have an opener registered for a non-standard URI protocol, the Workspace coerces it into a file URI
+// and tries to open it with a TextEditor. In the process, the URI gets mangled:
+//
+// atom.workspace.open('atom-github://unknown/whatever').then(item => console.log(item.getURI()))
+// > 'atom-github:/unknown/whatever'
+//
+// Adding an opener that creates fake items prevents it from doing this and keeps the URIs unchanged.
+export function registerGitHubOpener(atomEnv) {
+  atomEnv.workspace.addOpener(uri => {
+    if (uri.startsWith('atom-github://')) {
+      return {
+        getURI() { return uri; },
+
+        getElement() {
+          if (!this.element) {
+            this.element = document.createElement('div');
+          }
+          return this.element;
+        },
+      };
+    } else {
+      return undefined;
     }
   });
 }

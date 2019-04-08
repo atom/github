@@ -1,9 +1,8 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import {createRepositoryResult} from '../fixtures/factories/repository-result';
-import {createPullRequestResult} from '../fixtures/factories/pull-request-result';
 import IssueishSearchesController from '../../lib/controllers/issueish-searches-controller';
+import {queryBuilder} from '../builder/graphql/query';
 import Remote from '../../lib/models/remote';
 import RemoteSet from '../../lib/models/remote-set';
 import Branch from '../../lib/models/branch';
@@ -12,6 +11,8 @@ import Issueish from '../../lib/models/issueish';
 import {getEndpoint} from '../../lib/models/endpoint';
 import {nullOperationStateObserver} from '../../lib/models/operation-state-observer';
 import * as reporterProxy from '../../lib/reporter-proxy';
+
+import remoteContainerQuery from '../../lib/containers/__generated__/remoteContainerQuery.graphql';
 
 describe('IssueishSearchesController', function() {
   let atomEnv;
@@ -35,7 +36,7 @@ describe('IssueishSearchesController', function() {
       <IssueishSearchesController
         token="1234"
         endpoint={getEndpoint('github.com')}
-        repository={createRepositoryResult()}
+        repository={queryBuilder(remoteContainerQuery).build().repository}
 
         remoteOperationObserver={nullOperationStateObserver}
         workingDirectory={__dirname}
@@ -60,7 +61,7 @@ describe('IssueishSearchesController', function() {
     const p = {
       token: '4321',
       endpoint: getEndpoint('mygithub.com'),
-      repository: createRepositoryResult(),
+      repository: queryBuilder(remoteContainerQuery).build().repository,
       remote: origin,
       remotes: new RemoteSet([origin]),
       branches,
@@ -95,7 +96,14 @@ describe('IssueishSearchesController', function() {
     const wrapper = shallow(buildApp());
     const container = wrapper.find('IssueishSearchContainer').at(0);
 
-    const issueish = new Issueish(createPullRequestResult({number: 123}));
+    const issueish = new Issueish({
+      number: 123,
+      url: 'https://github.com/atom/github/issue/123',
+      author: {login: 'smashwilson', avatarUrl: 'https://avatars0.githubusercontent.com/u/17565?s=40&v=4'},
+      createdAt: '2019-04-01T10:00:00',
+      repository: {id: '0'},
+      commits: {nodes: []},
+    });
 
     sinon.stub(reporterProxy, 'addEvent');
     await container.prop('onOpenIssueish')(issueish);

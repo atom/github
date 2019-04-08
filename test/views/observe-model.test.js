@@ -1,7 +1,7 @@
 import {Emitter} from 'event-kit';
 
 import React from 'react';
-import {mount} from 'enzyme';
+import {mount, shallow} from 'enzyme';
 
 import ObserveModel from '../../lib/views/observe-model';
 
@@ -58,5 +58,34 @@ describe('ObserveModel', function() {
     const model2 = new TestModel({one: 1, two: 2});
     wrapper.setProps({testModel: model2});
     await assert.async.equal(wrapper.text(), '1 - 2');
+  });
+
+  describe('fetch parameters', function() {
+    let model, fetchData, children;
+
+    beforeEach(function() {
+      model = new TestModel({one: 'a', two: 'b'});
+      fetchData = async (m, a, b, c) => {
+        const data = await m.getData();
+        return {a, b, c, ...data};
+      };
+      children = sinon.spy();
+    });
+
+    it('are provided as additional arguments to the fetchData call', async function() {
+      shallow(<ObserveModel model={model} fetchParams={[1, 2, 3]} fetchData={fetchData} children={children} />);
+
+      await assert.async.isTrue(children.calledWith({a: 1, b: 2, c: 3, one: 'a', two: 'b'}));
+    });
+
+    it('trigger a re-fetch when any change referential equality', async function() {
+      const wrapper = shallow(
+        <ObserveModel model={model} fetchParams={[1, 2, 3]} fetchData={fetchData} children={children} />,
+      );
+      await assert.async.isTrue(children.calledWith({a: 1, b: 2, c: 3, one: 'a', two: 'b'}));
+
+      wrapper.setProps({fetchParams: [1, 5, 3]});
+      await assert.async.isTrue(children.calledWith({a: 1, b: 5, c: 3, one: 'a', two: 'b'}));
+    });
   });
 });

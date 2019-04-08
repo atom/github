@@ -9,10 +9,16 @@
     color: @text-color-subtle;
     padding: @component-padding/2;
     border-bottom: 1px solid @base-border-color;
+    display: flex;
+    align-items: center;
 
     &::-webkit-details-marker {
       color: @text-color-subtle;
     }
+  }
+
+  &--rightTitle, &--leftTitle {
+    flex: 1;
   }
 
   &-content {

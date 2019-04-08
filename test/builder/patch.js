@@ -200,7 +200,7 @@ class PatchBuilder {
   }
 
   status(st) {
-    if (['modified', 'added', 'deleted'].indexOf(st) === -1) {
+    if (['modified', 'added', 'deleted', 'renamed'].indexOf(st) === -1) {
       throw new Error(`Unrecognized status: ${st} (must be 'modified', 'added' or 'deleted')`);
     }
 

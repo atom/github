@@ -7,9 +7,11 @@ import {cloneRepository, buildRepository} from '../helpers';
 import {EXPANDED, COLLAPSED, TOO_LARGE} from '../../lib/models/patch/patch';
 import MultiFilePatchView from '../../lib/views/multi-file-patch-view';
 import {multiFilePatchBuilder} from '../builder/patch';
+import {aggregatedReviewsBuilder} from '../builder/graphql/aggregated-reviews-builder';
 import {nullFile} from '../../lib/models/patch/file';
 import FilePatch from '../../lib/models/patch/file-patch';
 import RefHolder from '../../lib/models/ref-holder';
+import CommentGutterDecorationController from '../../lib/controllers/comment-gutter-decoration-controller';
 import CommitPreviewItem from '../../lib/items/commit-preview-item';
 import ChangedFileItem from '../../lib/items/changed-file-item';
 import IssueishDetailItem from '../../lib/items/issueish-detail-item';
@@ -64,6 +66,7 @@ describe('MultiFilePatchView', function() {
       tooltips: atomEnv.tooltips,
 
       selectedRowsChanged: () => {},
+      switchToIssueish: () => {},
 
       diveIntoMirrorPatch: () => {},
       surface: () => {},
@@ -86,6 +89,19 @@ describe('MultiFilePatchView', function() {
   it('renders the file header', function() {
     const wrapper = shallow(buildApp());
     assert.isTrue(wrapper.find('FilePatchHeaderView').exists());
+  });
+
+  it('passes the new path of renamed files', function() {
+    const {multiFilePatch} = multiFilePatchBuilder()
+      .addFilePatch(fp => {
+        fp.status('renamed');
+        fp.setOldFile(f => f.path('old.txt'));
+        fp.setNewFile(f => f.path('new.txt'));
+      })
+      .build();
+
+    const wrapper = shallow(buildApp({multiFilePatch}));
+    assert.strictEqual(wrapper.find('FilePatchHeaderView').prop('newPath'), 'new.txt');
   });
 
   it('populates an externally provided refEditor', async function() {
@@ -266,9 +282,124 @@ describe('MultiFilePatchView', function() {
     assert.isTrue(multiFilePatch.expandFilePatch.calledWith(fp0));
   });
 
-  it('renders a PullRequestsReviewsContainer if itemType is IssueishDetailItem', function() {
-    const wrapper = shallow(buildApp({itemType: IssueishDetailItem}));
-    assert.lengthOf(wrapper.find('ForwardRef(Relay(PullRequestReviewsController))'), 1);
+  describe('review comments', function() {
+    it('renders a gutter decoration for each review thread if itemType is IssueishDetailItem', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file0.txt'));
+          fp.addHunk(h => h.unchanged('0', '1', '2').added('3').unchanged('4', '5'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file1.txt'));
+          fp.addHunk(h => h.unchanged('6').deleted('7', '8').unchanged('9'));
+        })
+        .build();
+
+      const payload = aggregatedReviewsBuilder()
+        .addReviewThread(b => {
+          b.thread(t => t.id('thread0').isResolved(true));
+          b.addComment(c => c.path('file0.txt').position(1));
+        })
+        .addReviewThread(b => {
+          b.thread(t => t.id('thread1').isResolved(false));
+          b.addComment(c => c.path('file1.txt').position(2));
+          b.addComment(c => c.path('ignored').position(999));
+          b.addComment(c => c.path('file1.txt').position(0));
+        })
+        .addReviewThread(b => {
+          b.thread(t => t.id('thread2').isResolved(false));
+          b.addComment(c => c.path('file0.txt').position(4));
+          b.addComment(c => c.path('file0.txt').position(4));
+        })
+        .build();
+
+      const wrapper = shallow(buildApp({
+        multiFilePatch,
+        reviewCommentsLoading: false,
+        reviewCommentsTotalCount: 3,
+        reviewCommentsResolvedCount: 1,
+        reviewCommentThreads: payload.commentThreads,
+        selectedRows: new Set([7]),
+        itemType: IssueishDetailItem,
+      }));
+
+      const controllers = wrapper.find(CommentGutterDecorationController);
+      assert.lengthOf(controllers, 3);
+
+      const controller0 = controllers.at(0);
+      assert.strictEqual(controller0.prop('commentRow'), 0);
+      assert.strictEqual(controller0.prop('threadId'), 'thread0');
+      assert.lengthOf(controller0.prop('extraClasses'), 0);
+
+      const controller1 = controllers.at(1);
+      assert.strictEqual(controller1.prop('commentRow'), 7);
+      assert.strictEqual(controller1.prop('threadId'), 'thread1');
+      assert.deepEqual(controller1.prop('extraClasses'), ['github-FilePatchView-line--selected']);
+
+      const controller2 = controllers.at(2);
+      assert.strictEqual(controller2.prop('commentRow'), 3);
+      assert.strictEqual(controller2.prop('threadId'), 'thread2');
+      assert.lengthOf(controller2.prop('extraClasses'), 0);
+    });
+
+    it('does not render threads until they finish loading', function() {
+      const payload = aggregatedReviewsBuilder()
+        .addReviewThread(b => {
+          b.thread(t => t.isResolved(true));
+          b.addComment();
+        })
+        .addReviewThread(b => {
+          b.thread(t => t.isResolved(false));
+          b.addComment();
+          b.addComment();
+          b.addComment();
+        })
+        .build();
+
+      const wrapper = shallow(buildApp({
+        reviewCommentsLoading: true,
+        reviewCommentsTotalCount: 3,
+        reviewCommentsResolvedCount: 1,
+        reviewCommentThreads: payload.commentThreads,
+        itemType: IssueishDetailItem,
+      }));
+
+      assert.isFalse(wrapper.find(CommentGutterDecorationController).exists());
+    });
+
+    it('omit threads that have an invalid path or position', function() {
+      sinon.stub(console, 'error');
+
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('file.txt'));
+          fp.addHunk(h => h.unchanged('0').added('1').unchanged('2'));
+        })
+        .build();
+
+      const payload = aggregatedReviewsBuilder()
+        .addReviewThread(b => {
+          b.addComment(c => c.path('bad-path.txt').position(1));
+        })
+        .addReviewThread(b => {
+          b.addComment(c => c.path('file.txt').position(100));
+        })
+        .build();
+
+      const wrapper = shallow(buildApp({
+        multiFilePatch,
+        reviewCommentsLoading: false,
+        reviewCommentsTotalCount: 2,
+        reviewCommentsResolvedCount: 0,
+        reviewCommentThreads: payload.commentThreads,
+        itemType: IssueishDetailItem,
+      }));
+
+      assert.isFalse(wrapper.find(CommentGutterDecorationController).exists());
+
+      // eslint-disable-next-line no-console
+      assert.strictEqual(console.error.callCount, 1);
+    });
   });
 
   it('renders the file patch within an editor', function() {
@@ -1169,6 +1300,28 @@ describe('MultiFilePatchView', function() {
       assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6]);
       assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
       assert.isFalse(selectedRowsChanged.lastCall.args[2]);
+
+      selectedRowsChanged.resetHistory();
+
+      // Same rows
+      editor.setSelectedBufferRange([[5, 0], [6, 3]]);
+      assert.isFalse(selectedRowsChanged.called);
+
+      // Start row is different
+      editor.setSelectedBufferRange([[4, 0], [6, 3]]);
+
+      assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6]);
+      assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+      assert.isFalse(selectedRowsChanged.lastCall.args[2]);
+
+      selectedRowsChanged.resetHistory();
+
+      // End row is different
+      editor.setSelectedBufferRange([[4, 0], [7, 3]]);
+
+      assert.sameMembers(Array.from(selectedRowsChanged.lastCall.args[0]), [6, 7]);
+      assert.strictEqual(selectedRowsChanged.lastCall.args[1], 'hunk');
+      assert.isFalse(selectedRowsChanged.lastCall.args[2]);
     });
 
     it('notifies a callback when cursors span multiple files', function() {
@@ -1321,6 +1474,41 @@ describe('MultiFilePatchView', function() {
       assert.isFalse(toggleSymlinkChange.calledWith(fp2));
       assert.isFalse(toggleSymlinkChange.calledWith(fp3));
       assert.isFalse(toggleSymlinkChange.calledWith(fp4));
+    });
+
+    it('registers file mode and symlink commands depending on the staging status', function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.status('deleted');
+          fp.setOldFile(f => f.path('f0').symlinkTo('elsewhere'));
+          fp.nullNewFile();
+        })
+        .addFilePatch(fp => {
+          fp.status('added');
+          fp.nullOldFile();
+          fp.setNewFile(f => f.path('f0'));
+          fp.addHunk(h => h.added('0'));
+        })
+        .addFilePatch(fp => {
+          fp.setOldFile(f => f.path('f1'));
+          fp.setNewFile(f => f.path('f1').executable());
+          fp.addHunk(h => h.added('0'));
+        })
+        .build();
+
+      const wrapper = shallow(buildApp({multiFilePatch, stagingStatus: 'unstaged'}));
+
+      assert.isTrue(wrapper.exists('Command[command="github:stage-file-mode-change"]'));
+      assert.isTrue(wrapper.exists('Command[command="github:stage-symlink-change"]'));
+      assert.isFalse(wrapper.exists('Command[command="github:unstage-file-mode-change"]'));
+      assert.isFalse(wrapper.exists('Command[command="github:unstage-symlink-change"]'));
+
+      wrapper.setProps({stagingStatus: 'staged'});
+
+      assert.isFalse(wrapper.exists('Command[command="github:stage-file-mode-change"]'));
+      assert.isFalse(wrapper.exists('Command[command="github:stage-symlink-change"]'));
+      assert.isTrue(wrapper.exists('Command[command="github:unstage-file-mode-change"]'));
+      assert.isTrue(wrapper.exists('Command[command="github:unstage-symlink-change"]'));
     });
 
     it('toggles the current selection', function() {

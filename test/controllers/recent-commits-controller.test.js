@@ -3,9 +3,8 @@ import {shallow, mount} from 'enzyme';
 
 import RecentCommitsController from '../../lib/controllers/recent-commits-controller';
 import CommitDetailItem from '../../lib/items/commit-detail-item';
-import URIPattern from '../../lib/atom/uri-pattern';
 import {commitBuilder} from '../builder/commit';
-import {cloneRepository, buildRepository} from '../helpers';
+import {cloneRepository, buildRepository, registerGitHubOpener} from '../helpers';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('RecentCommitsController', function() {
@@ -210,16 +209,7 @@ describe('RecentCommitsController', function() {
 
   describe('workspace tracking', function() {
     beforeEach(function() {
-      const pattern = new URIPattern(CommitDetailItem.uriPattern);
-      // Prevent the Workspace from normalizing CommitDetailItem URIs
-      atomEnv.workspace.addOpener(uri => {
-        if (pattern.matches(uri).ok()) {
-          return {
-            getURI() { return uri; },
-          };
-        }
-        return undefined;
-      });
+      registerGitHubOpener(atomEnv);
     });
 
     it('updates the selected sha when its CommitDetailItem is activated', async function() {

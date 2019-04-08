@@ -3,6 +3,7 @@ import WorkdirContextPool from '../../../lib/models/workdir-context-pool';
 import BranchSet from '../../../lib/models/branch-set';
 import RemoteSet from '../../../lib/models/remote-set';
 import {getEndpoint} from '../../../lib/models/endpoint';
+import RefHolder from '../../../lib/models/ref-holder';
 import {InMemoryStrategy} from '../../../lib/shared/keytar-strategy';
 import EnableableOperation from '../../../lib/models/enableable-operation';
 import IssueishDetailItem from '../../../lib/items/issueish-detail-item';
@@ -171,6 +172,7 @@ export function pullRequestDetailViewProps(opts, overrides = {}) {
     switchToIssueish: () => {},
     destroy: () => {},
     openCommit: () => {},
+    openReviews: () => {},
 
     // atom env props
     workspace: {},
@@ -188,6 +190,10 @@ export function pullRequestDetailViewProps(opts, overrides = {}) {
     },
 
     itemType: IssueishDetailItem,
+    selectedTab: 0,
+    onTabSelected: () => {},
+    onOpenFilesTab: () => {},
+    refEditor: new RefHolder(),
 
     ...overrides,
   };
@@ -262,6 +268,7 @@ export function issueDetailViewProps(opts, overrides = {}) {
     },
 
     switchToIssueish: () => {},
+    reportMutationErrors: () => {},
 
     ...overrides,
   };

@@ -9,6 +9,7 @@
   'alt-g p': 'github:push'
   'alt-g shift-p': 'github:force-push'
   'alt-g =': 'github:clone'
+  'alt-g r': 'github:open-reviews-tab'
 
 'atom-text-editor':
   'alt-m 1': 'github:resolve-as-ours'
@@ -132,3 +133,20 @@
   'end': 'github:co-author:end'
   'delete': 'github:co-author:delete'
   'shift-backspace': 'github:co-author-exclude'
+
+'.platform-darwin .github-Reviews':
+  'cmd-=': 'github:more-context'
+  'cmd--': 'github:less-context'
+'.platform-win32 .github-Reviews':
+  'ctrl-=': 'github:more-context'
+  'ctrl--': 'github:less-context'
+'.platform-linux .github-Reviews':
+  'ctrl-=': 'github:more-context'
+  'ctrl--': 'github:less-context'
+
+'.platform-darwin .github-Review-reply atom-text-editor':
+  'cmd-enter': 'github:submit-comment'
+'.platform-win32 .github-Review-reply atom-text-editor':
+  'ctrl-enter': 'github:submit-comment'
+'.platform-linux .github-Review-reply atom-text-editor':
+  'ctrl-enter': 'github:submit-comment'
