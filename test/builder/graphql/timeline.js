@@ -4,6 +4,21 @@ import {nextID} from '../id-sequence';
 import {UserBuilder} from './user';
 const IssueishBuilder = defer('../issueish', 'IssueishBuilder');
 
+export const CheckRunBuilder = createSpecBuilderClass('CheckRun', {
+  __typename: {default: 'CheckRun'},
+  id: {default: nextID},
+}, 'Node & UniformResourceLocatable');
+
+export const CheckRunConnection = createConnectionBuilderClass('CheckRunConnection', CheckRunBuilder);
+
+export const CheckSuiteBuilder = createSpecBuilderClass('CheckSuite', {
+  __typename: {default: 'CheckSuite'},
+  id: {default: nextID},
+  checkRuns: {linked: CheckRunConnection, nullable: true},
+}, 'Node');
+
+export const CheckSuiteConnection = createConnectionBuilderClass('CheckSuiteConnection', CheckSuiteBuilder);
+
 export const StatusContextBuilder = createSpecBuilderClass('StatusContext', {
   //
 }, 'Node');
@@ -28,6 +43,7 @@ export const CommitBuilder = createSpecBuilderClass('Commit', {
     return `https://github.com/atom/github/commit/${sha}`;
   }},
   status: {linked: StatusBuilder},
+  checkSuites: {linked: CheckSuiteConnection, nullable: true},
 }, 'Node & GitObject & Subscribable & UniformResourceLocatable');
 
 export const CommitCommentBuilder = createSpecBuilderClass('CommitComment', {
@@ -73,3 +89,11 @@ export const MergedEventBuilder = createSpecBuilderClass('MergedEvent', {
   mergeRefName: {default: 'master'},
   createdAt: {default: '2019-01-01T10:00:00Z'},
 }, 'Node & UniformResourceLocatable');
+
+export function commitBuilder(...nodes) {
+  return CommitBuilder.onFragmentQuery(nodes);
+}
+
+export function checkSuiteBuilder(...nodes) {
+  return CheckSuiteBuilder.onFragmentQuery(nodes);
+}
