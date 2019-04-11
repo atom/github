@@ -193,8 +193,7 @@ describe('ReviewsView', function() {
         );
       }).addReviewThread(t => {
         t.addComment(c =>
-          c.id(2).path('file1').position(20).bodyHTML('thanks for all the fish').author(a => a.login('dolphin').avatarUrl('pic-of-dolphin'))
-            .lastEditedAt('2018-12-27T17:51:17Z').url('https://github.com/atom/github/pull/1995#discussion_r272475592'),
+          c.id(2).path('file1').position(20).bodyHTML('thanks for all the fish').author(a => a.login('dolphin').avatarUrl('pic-of-dolphin')),
         );
         t.addComment(c =>
           c.id(3).path('file1').position(20).bodyHTML('shhhh').state('PENDING'),
@@ -245,11 +244,11 @@ describe('ReviewsView', function() {
       assert.isFalse(summary.exists('.github-Review-edited'));
 
       const commentUrl = 'https://github.com/atom/github/pull/1995#discussion_r272475592';
-      const updated = aggregatedReviewsBuilder()
+      const updatedProps = aggregatedReviewsBuilder()
         .addReviewSummary(r => r.id(0).lastEditedAt('2018-12-27T17:51:17Z').url(commentUrl))
         .build();
 
-      wrapper.setProps({...updated});
+      wrapper.setProps({...updatedProps});
 
       const updatedSummary = wrapper.find('.github-ReviewSummary').at(0);
       assert.isTrue(updatedSummary.exists('.github-Review-edited'));
@@ -259,16 +258,31 @@ describe('ReviewsView', function() {
     });
 
     it('indicates that a thread comment has been edited', function() {
-      const thread = wrapper.find('details.github-Review').at(1);
+      const comment = wrapper.find('details.github-Review').at(0).find('.github-Review-comment').at(0);
+      assert.isFalse(comment.exists('.github-Review-edited'));
 
-      const comment0 = thread.find('.github-Review-comment').at(0);
-      assert.isTrue(comment0.exists('.github-Review-edited'));
-      const editedWrapper = comment0.find('a.github-Review-edited');
+      const commentUrl = 'https://github.com/atom/github/pull/1995#discussion_r272475592';
+      const updatedProps = aggregatedReviewsBuilder()
+        .addReviewSummary(r => r.id(0))
+        .addReviewThread(t => {
+          t.thread(t0 => t0.id('abcd'));
+          t.addComment(c =>
+            c.id(0).path('dir/file0').position(10).bodyHTML('i have opinions.').author(a => a.login('user0').avatarUrl('user0.jpg'))
+              .lastEditedAt('2018-12-27T17:51:17Z').url(commentUrl),
+          );
+          t.addComment(c =>
+            c.id(1).path('file0').position(10).bodyHTML('i disagree.').author(a => a.login('user1').avatarUrl('user1.jpg')).isMinimized(true),
+          );
+        })
+        .build();
+
+      wrapper.setProps({...updatedProps});
+
+      const updatedComment = wrapper.find('details.github-Review').at(0).find('.github-Review-comment').at(0);
+      assert.isTrue(updatedComment.exists('.github-Review-edited'));
+      const editedWrapper = updatedComment.find('a.github-Review-edited');
       assert.strictEqual(editedWrapper.text(), 'edited');
-      assert.strictEqual(editedWrapper.prop('href'), 'https://github.com/atom/github/pull/1995#discussion_r272475592');
-
-      const comment1 = thread.find('.github-Review-comment').at(1);
-      assert.isFalse(comment1.exists('.github-Review-edited'));
+      assert.strictEqual(editedWrapper.prop('href'), commentUrl);
     });
 
     describe('each thread', function() {
