@@ -239,7 +239,26 @@ describe('ReviewsView', function() {
       assert.strictEqual(comment.find('em').text(), 'This comment was hidden');
     });
 
-    it('indicates that a comment has been edited', function() {
+    it('indicates that a review summary comment has been edited', function() {
+      const summary = wrapper.find('.github-ReviewSummary').at(0);
+
+      assert.isFalse(summary.exists('.github-Review-edited'));
+
+      const commentUrl = 'https://github.com/atom/github/pull/1995#discussion_r272475592';
+      const updated = aggregatedReviewsBuilder()
+        .addReviewSummary(r => r.id(0).lastEditedAt('2018-12-27T17:51:17Z').url(commentUrl))
+        .build();
+
+      wrapper.setProps({...updated});
+
+      const updatedSummary = wrapper.find('.github-ReviewSummary').at(0);
+      assert.isTrue(updatedSummary.exists('.github-Review-edited'));
+      const editedWrapper = updatedSummary.find('a.github-Review-edited');
+      assert.strictEqual(editedWrapper.text(), 'edited');
+      assert.strictEqual(editedWrapper.prop('href'), commentUrl);
+    });
+
+    it('indicates that a thread comment has been edited', function() {
       const thread = wrapper.find('details.github-Review').at(1);
 
       const comment0 = thread.find('.github-Review-comment').at(0);
