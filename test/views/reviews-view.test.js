@@ -193,7 +193,7 @@ describe('ReviewsView', function() {
         );
       }).addReviewThread(t => {
         t.addComment(c =>
-          c.id(2).path('file1').position(20).bodyHTML('thanks for all the fish').author(a => a.login('dolphin').avatarUrl('pic-of-dolphin')),
+          c.id(2).path('file1').position(20).bodyHTML('thanks for all the fish').author(a => a.login('dolphin').avatarUrl('pic-of-dolphin')).lastEditedAt('2018-12-27T17:51:17Z'),
         );
         t.addComment(c =>
           c.id(3).path('file1').position(20).bodyHTML('shhhh').state('PENDING'),
@@ -236,6 +236,17 @@ describe('ReviewsView', function() {
       const thread = wrapper.find('details.github-Review').at(0);
       const comment = thread.find('.github-Review-comment--hidden');
       assert.strictEqual(comment.find('em').text(), 'This comment was hidden');
+    });
+
+    it('indicates that a comment has been edited', function() {
+      const thread = wrapper.find('details.github-Review').at(1);
+
+      const comment0 = thread.find('.github-Review-comment').at(0);
+      assert.isTrue(comment0.exists('.github-Review-edited'));
+      assert.strictEqual(comment0.find('a.github-Review-edited').text(), 'edited');
+
+      const comment1 = thread.find('.github-Review-comment').at(1);
+      assert.isFalse(comment1.exists('.github-Review-edited'));
     });
 
     describe('each thread', function() {
