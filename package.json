@@ -60,7 +60,7 @@
     "moment": "2.24.0",
     "node-emoji": "1.10.0",
     "prop-types": "15.7.2",
-    "react": "16.8.3",
+    "react": "16.8.6",
     "react-dom": "16.8.3",
     "react-relay": "3.0.0",
     "react-select": "1.2.1",
