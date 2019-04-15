@@ -44,8 +44,10 @@
     width: @size;
     height: @size;
     border-radius: @component-border-radius;
+    color: transparent;
     background-color: mix(@text-color, @base-background-color, 15%);
     box-shadow: 1px 0 @base-background-color;
+    overflow: hidden;
     transition: margin .12s cubic-bezier(.5,.1,0,1);
 
     &:nth-child(1) { z-index: 3; }
