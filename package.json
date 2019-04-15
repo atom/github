@@ -53,7 +53,7 @@
     "compare-sets": "1.0.1",
     "dugite": "1.87.0",
     "event-kit": "2.5.3",
-    "fs-extra": "4.0.3",
+    "fs-extra": "7.0.1",
     "graphql": "14.2.1",
     "keytar": "4.4.1",
     "lodash.memoize": "4.1.2",
