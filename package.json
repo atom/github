@@ -102,7 +102,7 @@
     "mocha-multi-reporters": "1.1.7",
     "mocha-stress": "1.0.0",
     "node-fetch": "2.3.0",
-    "nyc": "13.3.0",
+    "nyc": "14.0.0",
     "relay-compiler": "3.0.0",
     "semver": "6.0.0",
     "sinon": "7.3.1",
