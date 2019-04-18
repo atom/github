@@ -41,6 +41,7 @@ export const CommentBuilder = createSpecBuilderClass('PullRequestReviewComment',
   state: {default: 'SUBMITTED'},
   viewerCanReact: {default: true},
   viewerCanMinimize: {default: true},
+  authorAssociation: {default: 'NONE'},
 }, 'Node & Comment & Deletable & Updatable & UpdatableComment & Reactable & RepositoryNode');
 
 export const CommentConnectionBuilder = createConnectionBuilderClass('PullRequestReviewComment', CommentBuilder);
@@ -67,6 +68,7 @@ export const ReviewBuilder = createSpecBuilderClass('PullRequestReview', {
   comments: {linked: CommentConnectionBuilder},
   viewerCanReact: {default: true},
   reactionGroups: {linked: ReactionGroupBuilder, plural: true, singularName: 'reactionGroup'},
+  authorAssociation: {default: 'NONE'},
 }, 'Node & Comment & Deletable & Updatable & UpdatableComment & Reactable & RepositoryNode');
 
 export const CommitConnectionBuilder = createConnectionBuilderClass('PullRequestCommit', CommentBuilder);
