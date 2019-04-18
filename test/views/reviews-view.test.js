@@ -138,6 +138,34 @@ describe('ReviewsView', function() {
     assert.isFalse(reviews.at(6).exists('.github-Review-authorAssociationBadge'));
   });
 
+  it('displays an author association badge for review thread comments', function() {
+    const {summaries, commentThreads} = aggregatedReviewsBuilder()
+      .addReviewSummary(r => r.id(0))
+      .addReviewThread(t => {
+        t.thread(t0 => t0.id('abcd'));
+        t.addComment(c => c.id(0).authorAssociation('MEMBER'));
+        t.addComment(c => c.id(1).authorAssociation('OWNER'));
+        t.addComment(c => c.id(2).authorAssociation('COLLABORATOR'));
+        t.addComment(c => c.id(3).authorAssociation('CONTRIBUTOR'));
+        t.addComment(c => c.id(4).authorAssociation('FIRST_TIME_CONTRIBUTOR'));
+        t.addComment(c => c.id(5).authorAssociation('FIRST_TIMER'));
+        t.addComment(c => c.id(6).authorAssociation('NONE'));
+      })
+      .build();
+
+    const wrapper = shallow(buildApp({summaries, commentThreads}));
+
+    const comments = wrapper.find('.github-Review-comment');
+    assert.lengthOf(comments, 7);
+    assert.strictEqual(comments.at(0).find('.github-Review-authorAssociationBadge').text(), 'Member');
+    assert.strictEqual(comments.at(1).find('.github-Review-authorAssociationBadge').text(), 'Owner');
+    assert.strictEqual(comments.at(2).find('.github-Review-authorAssociationBadge').text(), 'Collaborator');
+    assert.strictEqual(comments.at(3).find('.github-Review-authorAssociationBadge').text(), 'Contributor');
+    assert.strictEqual(comments.at(4).find('.github-Review-authorAssociationBadge').text(), 'First-time contributor');
+    assert.strictEqual(comments.at(5).find('.github-Review-authorAssociationBadge').text(), 'First-timer');
+    assert.isFalse(comments.at(6).exists('.github-Review-authorAssociationBadge'));
+  });
+
   it('calls openIssueish when clicking on an issueish link in a review summary', function() {
     const openIssueish = sinon.spy();
 
