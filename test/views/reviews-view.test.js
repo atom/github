@@ -113,6 +113,31 @@ describe('ReviewsView', function() {
     assert.lengthOf(wrapper.find('details.github-Review'), 2);
   });
 
+  it('displays an author association badge for review summaries', function() {
+    const {summaries, commentThreads} = aggregatedReviewsBuilder()
+      .addReviewSummary(r => r.id(0).authorAssociation('MEMBER'))
+      .addReviewSummary(r => r.id(1).authorAssociation('OWNER'))
+      .addReviewSummary(r => r.id(2).authorAssociation('COLLABORATOR'))
+      .addReviewSummary(r => r.id(3).authorAssociation('CONTRIBUTOR'))
+      .addReviewSummary(r => r.id(4).authorAssociation('FIRST_TIME_CONTRIBUTOR'))
+      .addReviewSummary(r => r.id(5).authorAssociation('FIRST_TIMER'))
+      .addReviewSummary(r => r.id(6).authorAssociation('NONE'))
+      .build();
+
+    const wrapper = shallow(buildApp({summaries, commentThreads}));
+
+
+    const reviews = wrapper.find('.github-ReviewSummary');
+    assert.lengthOf(reviews, 7);
+    assert.strictEqual(reviews.at(0).find('.github-Review-authorAssociationBadge').text(), 'Member');
+    assert.strictEqual(reviews.at(1).find('.github-Review-authorAssociationBadge').text(), 'Owner');
+    assert.strictEqual(reviews.at(2).find('.github-Review-authorAssociationBadge').text(), 'Collaborator');
+    assert.strictEqual(reviews.at(3).find('.github-Review-authorAssociationBadge').text(), 'Contributor');
+    assert.strictEqual(reviews.at(4).find('.github-Review-authorAssociationBadge').text(), 'First-time contributor');
+    assert.strictEqual(reviews.at(5).find('.github-Review-authorAssociationBadge').text(), 'First-timer');
+    assert.isFalse(reviews.at(6).exists('.github-Review-authorAssociationBadge'));
+  });
+
   it('calls openIssueish when clicking on an issueish link in a review summary', function() {
     const openIssueish = sinon.spy();
 
@@ -286,7 +311,6 @@ describe('ReviewsView', function() {
         assert.strictEqual(editedWrapper.prop('href'), commentUrl);
       });
     });
-
 
     describe('each thread', function() {
       it('displays correct data', function() {
