@@ -84,23 +84,4 @@ describe('IssueishListController', function() {
     assert.strictEqual(view.prop('total'), 5);
     assert.deepEqual(view.prop('issueishes').map(issueish => issueish.getNumber()), [11, 13, 12]);
   });
-
-  it('opens reviews', async function() {
-    const atomEnv = global.buildAtomEnvironment();
-    sinon.stub(atomEnv.workspace, 'open').resolves();
-    sinon.stub(reporterProxy, 'addEvent');
-    const pr = createPullRequestResult({number: 1337});
-    Object.assign(pr.repository, {owner: {login: 'owner'}, name: 'repo'});
-    const wrapper = shallow(buildApp({
-      workspace: atomEnv.workspace,
-      endpoint: getEndpoint('github.com'),
-      results: [pr],
-    }));
-
-    await wrapper.find('IssueishListView').prop('openReviews')();
-    assert.isTrue(atomEnv.workspace.open.called);
-    assert.isTrue(reporterProxy.addEvent.calledWith('open-reviews-tab', {package: 'github', from: 'BareIssueishListController'}));
-
-    atomEnv.destroy();
-  });
 });
