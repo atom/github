@@ -4,8 +4,6 @@ import {shallow} from 'enzyme';
 import {createPullRequestResult} from '../fixtures/factories/pull-request-result';
 import Issueish from '../../lib/models/issueish';
 import {BareIssueishListController} from '../../lib/controllers/issueish-list-controller';
-import {getEndpoint} from '../../lib/models/endpoint';
-import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('IssueishListController', function() {
 
