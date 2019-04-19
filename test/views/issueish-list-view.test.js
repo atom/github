@@ -145,7 +145,7 @@ describe('IssueishListView', function() {
 
   it('renders review button only if needed', function() {
     const openReviews = sinon.spy();
-    const wrapper = mount(buildApp({total: 1, openReviews}));
+    const wrapper = mount(buildApp({issueishes: [allGreen], openReviews}));
     assert.isFalse(wrapper.find('.github-IssueishList-openReviewsButton').exists());
 
     wrapper.setProps({needReviewsButton: true});
