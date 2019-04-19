@@ -1,7 +1,3 @@
-<!---
-For community contributors -- Please fill out Part 1 of the following template. This will help our team collaborate with you and give us an opportunity to provide valuable feedback that could inform your development process. Sections in Part 2 are not mandatory to get the conversation started, but will help our team understand your vision better and allow us to give better feedback.
---->
-
 **_Part 1 - Required information_**
 
 # Pull Request Review -- Reviewer Flow
@@ -60,6 +56,36 @@ The header looks very similar to the one of All Reviews tab, with the exception 
 
 
 
+### Reviewer Workflow
+
+**Note**: In the name of clarity, in this RFC we will differentiate between "new comment" and "pending comment":
+- a new comment: _after_ a user decides to add a comment from the gutter, and _before_ the user actually adds it to a pending review. (i.e. a pending-pending comment, if you prefer confusion. :laughing:)
+- a pending comment: already added to a pending review
+
+#### 1. Start a review
+
+##### From the gutter
+
+within Files tab in `PullRequestDetailView`
+within an editor
+
+If user has checked out a PR branch, an "add comment" icon should show up *on hover* over the gutter of an editor of any file. Clicking on the icon will either activate new comment
+
+Nothing if not on a PR branch.
+
+##### By responding to a thread
+
+#### 2. Continue a review
+
+
+
+#### 3. Submit a review
+- The only way to submit a review within Atom is by using the "Submit review" button in the Pending Review tab
+- the button will be disabled if a review type has not been chosen from the dropdown menu
+- if there is any new comment that has not been added to the pending review, a warning modal should pop up
+- after publishing, the Pending Review tab will be destroyed. User will be led back to the All Reviews tab, which will immediately reflect the just published review.
+
+--------------------
 
 **_Part 2 - Additional information_**
 
