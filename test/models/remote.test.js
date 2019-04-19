@@ -4,11 +4,13 @@ describe('Remote', function() {
   it('detects and extracts information from GitHub repository URLs', function() {
     const urls = [
       ['git@github.com:atom/github.git', 'ssh'],
+      ['git@github.com:/atom/github.git', 'ssh'],
       ['https://github.com/atom/github.git', 'https'],
       ['https://git:pass@github.com/atom/github.git', 'https'],
       ['ssh+https://github.com/atom/github.git', 'ssh+https'],
       ['git://github.com/atom/github', 'git'],
       ['ssh://git@github.com:atom/github.git', 'ssh'],
+      ['ssh://git@github.com:/atom/github.git', 'ssh'],
     ];
 
     for (const [url, proto] of urls) {
