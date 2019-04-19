@@ -10,7 +10,7 @@ Provide code review to an existing pull request within Atom.
 
 ## :checkered_flag: Motivation
 
-We already have an innovative review-comments-in-dock (RCID) workflow built out for the receiving end of pull request reviews. In order to complete the full experience of code review within Atom, we should also build out a workflow for users to author pull request reviews.
+We already have an innovative review-comments-in-dock (RCID) workflow built out for the receiving end of pull request reviews. In order to complete the full code review experience within Atom, we should also build out a workflow for users to author pull request reviews.
 
 ## 🤯 Explanation
 
@@ -21,9 +21,9 @@ This tab shows all review summaries and review comments, including the ones that
 - When there is no pending review, button reads "Start a pending review", clicking on which will take you to the Pending Review tab in its empty state.
 - When there is already a pending review, the button reads "Resume review (2)". The number indicates the number of comments currently in the pending review. When adding more pending comments _within the All Reviews tab_, there should be some emphasis on the number changing -- akin to the button on dotcom. Clicking on this button takes user to the Pending Review tab.
 
-
-- rationale for scaling down the "Checkout" button
-- caveats of doing so
+##### On scaling down the "Checkout" button to just an icon
+- rationale
+- caveats
 - mitigation
 
 #### Responding to a comment thread
@@ -80,10 +80,10 @@ Nothing if not on a PR branch.
 
 
 #### 3. Submit a review
-- The only way to submit a review within Atom is by using the "Submit review" button in the Pending Review tab
-- the button will be disabled if a review type has not been chosen from the dropdown menu
-- if there is any new comment that has not been added to the pending review, a warning modal should pop up
-- after publishing, the Pending Review tab will be destroyed. User will be led back to the All Reviews tab, which will immediately reflect the just published review.
+- The only way to submit a review within Atom is by using the "Submit review" button in the Pending Review tab.
+- The button will be disabled if a review type has not been chosen from the dropdown menu.
+- If there is any new comment that has not been added to the pending review, a warning modal should pop up.
+- After publishing, the Pending Review tab will be destroyed. User will be led back to the All Reviews tab, which will immediately reflect the just published review.
 
 --------------------
 
