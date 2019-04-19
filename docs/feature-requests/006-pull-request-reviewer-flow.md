@@ -14,18 +14,51 @@ Provide code review to an existing pull request within Atom.
 
 ## :checkered_flag: Motivation
 
-We already have a workflow built out for the receiving end of pull request reviews; it only makes sense to also build out a workflow for users to author pull request reviews.
+We already have an innovative review-comments-in-dock (RCID) workflow built out for the receiving end of pull request reviews. In order to complete the full experience of code review within Atom, we should also build out a workflow for users to author pull request reviews.
 
 ## 🤯 Explanation
 
+### "All Reviews" tab
+This tab shows all review summaries and review comments, including the ones that are part of a _pending review_ that has not been submitted yet.
+
+#### Header
+- When there is no pending review, button reads "Start a pending review", clicking on which will take you to the Pending Review tab in its empty state.
+- When there is already a pending review, the button reads "Resume review (2)". The number indicates the number of comments currently in the pending review. When adding more pending comments _within the All Reviews tab_, there should be some emphasis on the number changing -- akin to the button on dotcom. Clicking on this button takes user to the Pending Review tab.
 
 
-Explain the proposal as if it was already implemented in the GitHub package and you were describing it to an Atom user. That generally means:
+- rationale for scaling down the "Checkout" button
+- caveats of doing so
+- mitigation
 
-- Introducing new named concepts.
-- Explaining the feature largely in terms of examples.
-- Explaining any changes to existing workflows.
-- Design mock-ups or diagrams depicting any new UI that will be introduced.
+#### Responding to a comment thread
+start a new review button
+
+#### Pending comments
+
+Pending comments within the All Reviews tab are styled differently from the already published comments. Pending comments contain a way to direct user to the Pending Review tab.
+
+
+
+
+### "Pending Review" tab
+This tab shows a *subset* of all reviews -- only the summary and comments of a pending review. Since a user is only allowed to have one pending review at a time, there should also only be one active Pending Review tab.
+
+#### Header
+The header looks very similar to the one of All Reviews tab, with the exception that the primary button now reads "See all reviews", and will send users back to the All Reviews tab.
+
+
+#### Summary section
+
+- sticky
+- drop down to select review type
+- button to submit review
+
+#### Comments section
+
+- empty state
+
+
+
 
 
 **_Part 2 - Additional information_**
