@@ -1,5 +1,6 @@
 import React from 'react';
 import {shallow} from 'enzyme';
+import {shell} from 'electron';
 
 import {createPullRequestResult} from '../fixtures/factories/pull-request-result';
 import Issueish from '../../lib/models/issueish';
@@ -82,4 +83,18 @@ describe('IssueishListController', function() {
     assert.strictEqual(view.prop('total'), 5);
     assert.deepEqual(view.prop('issueishes').map(issueish => issueish.getNumber()), [11, 13, 12]);
   });
+
+  describe('openOnGitHub', function() {
+    const url = 'https://github.com/atom/github/pull/2084';
+
+    it('calls shell.openExternal with specified url', async function() {
+      const wrapper = shallow(buildApp());
+      sinon.stub(shell, 'openExternal').callsArg(2);
+
+      await wrapper.instance().openOnGitHub(url);
+      assert.equal(shell.openExternal.args[0][0], url);
+    });
+    });
+  });
+
 });
