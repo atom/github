@@ -5,6 +5,7 @@ import {shell} from 'electron';
 import {createPullRequestResult} from '../fixtures/factories/pull-request-result';
 import Issueish from '../../lib/models/issueish';
 import {BareIssueishListController} from '../../lib/controllers/issueish-list-controller';
+import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('IssueishListController', function() {
 
@@ -94,6 +95,29 @@ describe('IssueishListController', function() {
       await wrapper.instance().openOnGitHub(url);
       assert.equal(shell.openExternal.args[0][0], url);
     });
+
+    it('fires `open-issueish-in-browser` event upon success', async function() {
+      const wrapper = shallow(buildApp());
+      sinon.stub(shell, 'openExternal').callsArg(2);
+      sinon.stub(reporterProxy, 'addEvent');
+
+      await wrapper.instance().openOnGitHub(url);
+      assert.equal(reporterProxy.addEvent.callCount, 1);
+
+      await assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-browser', {package: 'github', component: 'BareIssueishListController'}));
+    });
+
+    it('handles error when openOnGitHub fails', async function() {
+      const wrapper = shallow(buildApp());
+      sinon.stub(shell, 'openExternal').callsArgWith(2, new Error('oh noes'));
+      sinon.stub(reporterProxy, 'addEvent');
+
+      try {
+        await wrapper.instance().openOnGitHub(url);
+      } catch (err) {
+        assert.equal(err.message, 'oh noes');
+      }
+      assert.equal(reporterProxy.addEvent.callCount, 0);
     });
   });
 
