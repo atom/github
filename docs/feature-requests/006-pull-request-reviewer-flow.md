@@ -29,17 +29,21 @@ This tab shows all review summaries and review comments, including the ones that
 An alternative would be to add a footer bar at the bottom and place the add review button there. The caveat is that it might not be as noticeable as the header, and "start a new review" is an arguably more important action than "checkout".
 
 #### Responding to a comment thread
-start a new review button
+![responding to a comment thread](https://user-images.githubusercontent.com/6842965/56689748-cdd05700-66a9-11e9-90e8-266c69cbc589.png)
+
+User can respond to a comment thread by adding a single line comment (current implementation) or starting a new review. The two buttons should only show up when the comment textbox is in focus, or is _not_ empty.
+
+When there is already an existing pending review, there should only be **one** `btn-primary` button that reads "Comment".
 
 #### Pending comments
 
-Pending comments within the All Reviews tab are styled differently from the already published comments. Pending comments contain a way to direct user to the Pending Review tab.
+![image](https://user-images.githubusercontent.com/6842965/56692893-2ce59a00-66b1-11e9-81cc-bc7956bc8bec.png)
 
-
+Pending comments within the All Reviews tab are styled differently from the already published comments. Pending comments contain a badge, and when clicked, it will take user to the Pending Review tab.
 
 
 ### "Pending Review" tab
-This tab shows a *subset* of all reviews -- only the summary and comments of a pending review. Since a user is only allowed to have one pending review at a time, there should also only be one active Pending Review tab.
+This tab shows *a subset* of all reviews -- only the summary and comments of a pending review. Since a user is only allowed to have one pending review at a time, there should also only be maximum one Pending Review tab.
 
 #### Header
 The header looks very similar to the one of All Reviews tab, with the exception that the primary button now reads "See all reviews", and will send users back to the All Reviews tab.
