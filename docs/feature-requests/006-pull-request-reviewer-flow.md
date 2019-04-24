@@ -12,7 +12,26 @@ Provide code review to an existing pull request within Atom.
 
 We already have an innovative review-comments-in-dock (RCID) workflow built out for the receiving end of pull request reviews. In order to complete the full code review experience within Atom, we should also build out a workflow for users to author pull request reviews.
 
-## 🤯 Explanation
+## 🤯 Workflow Explanation
+
+This is a high level overview of what the workflow of a PR Review author should look like. More on the functionality and behaviour of each component in the next section.
+
+#### 1. Start a review
+
+There are three ways to start a review:
+1. Click "Start a review" button on the header of review dock, or footer of PR detail item, or on the empty state of review dock
+2. Respond to an existing review thread by clicking "Start a review"
+3. Click on a "add comment" icon on the gutter
+
+#### 2. Continue a review
+
+Once a pending review has been started, user can add more comments to it by:
+1. Responding to an existing review thread
+2. Clicking "add comment" icon on the gutter
+
+#### 3. Submit a review
+- The only way to submit a review within Atom is by using the "Submit review" button in the Pending Review tab.
+
 
 ### "All Reviews" tab
 This tab shows all review summaries and review comments, including the ones that are part of a _pending review_ that has not been submitted yet.
