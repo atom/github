@@ -113,6 +113,59 @@ describe('ReviewsView', function() {
     assert.lengthOf(wrapper.find('details.github-Review'), 2);
   });
 
+  it('displays an author association badge for review summaries', function() {
+    const {summaries, commentThreads} = aggregatedReviewsBuilder()
+      .addReviewSummary(r => r.id(0).authorAssociation('MEMBER'))
+      .addReviewSummary(r => r.id(1).authorAssociation('OWNER'))
+      .addReviewSummary(r => r.id(2).authorAssociation('COLLABORATOR'))
+      .addReviewSummary(r => r.id(3).authorAssociation('CONTRIBUTOR'))
+      .addReviewSummary(r => r.id(4).authorAssociation('FIRST_TIME_CONTRIBUTOR'))
+      .addReviewSummary(r => r.id(5).authorAssociation('FIRST_TIMER'))
+      .addReviewSummary(r => r.id(6).authorAssociation('NONE'))
+      .build();
+
+    const wrapper = shallow(buildApp({summaries, commentThreads}));
+
+
+    const reviews = wrapper.find('.github-ReviewSummary');
+    assert.lengthOf(reviews, 7);
+    assert.strictEqual(reviews.at(0).find('.github-Review-authorAssociationBadge').text(), 'Member');
+    assert.strictEqual(reviews.at(1).find('.github-Review-authorAssociationBadge').text(), 'Owner');
+    assert.strictEqual(reviews.at(2).find('.github-Review-authorAssociationBadge').text(), 'Collaborator');
+    assert.strictEqual(reviews.at(3).find('.github-Review-authorAssociationBadge').text(), 'Contributor');
+    assert.strictEqual(reviews.at(4).find('.github-Review-authorAssociationBadge').text(), 'First-time contributor');
+    assert.strictEqual(reviews.at(5).find('.github-Review-authorAssociationBadge').text(), 'First-timer');
+    assert.isFalse(reviews.at(6).exists('.github-Review-authorAssociationBadge'));
+  });
+
+  it('displays an author association badge for review thread comments', function() {
+    const {summaries, commentThreads} = aggregatedReviewsBuilder()
+      .addReviewSummary(r => r.id(0))
+      .addReviewThread(t => {
+        t.thread(t0 => t0.id('abcd'));
+        t.addComment(c => c.id(0).authorAssociation('MEMBER'));
+        t.addComment(c => c.id(1).authorAssociation('OWNER'));
+        t.addComment(c => c.id(2).authorAssociation('COLLABORATOR'));
+        t.addComment(c => c.id(3).authorAssociation('CONTRIBUTOR'));
+        t.addComment(c => c.id(4).authorAssociation('FIRST_TIME_CONTRIBUTOR'));
+        t.addComment(c => c.id(5).authorAssociation('FIRST_TIMER'));
+        t.addComment(c => c.id(6).authorAssociation('NONE'));
+      })
+      .build();
+
+    const wrapper = shallow(buildApp({summaries, commentThreads}));
+
+    const comments = wrapper.find('.github-Review-comment');
+    assert.lengthOf(comments, 7);
+    assert.strictEqual(comments.at(0).find('.github-Review-authorAssociationBadge').text(), 'Member');
+    assert.strictEqual(comments.at(1).find('.github-Review-authorAssociationBadge').text(), 'Owner');
+    assert.strictEqual(comments.at(2).find('.github-Review-authorAssociationBadge').text(), 'Collaborator');
+    assert.strictEqual(comments.at(3).find('.github-Review-authorAssociationBadge').text(), 'Contributor');
+    assert.strictEqual(comments.at(4).find('.github-Review-authorAssociationBadge').text(), 'First-time contributor');
+    assert.strictEqual(comments.at(5).find('.github-Review-authorAssociationBadge').text(), 'First-timer');
+    assert.isFalse(comments.at(6).exists('.github-Review-authorAssociationBadge'));
+  });
+
   it('calls openIssueish when clicking on an issueish link in a review summary', function() {
     const openIssueish = sinon.spy();
 
@@ -238,51 +291,53 @@ describe('ReviewsView', function() {
       assert.strictEqual(comment.find('em').text(), 'This comment was hidden');
     });
 
-    it('indicates that a review summary comment has been edited', function() {
-      const summary = wrapper.find('.github-ReviewSummary').at(0);
+    describe('indication that a comment has been edited', function() {
+      it('indicates that a review summary comment has been edited', function() {
+        const summary = wrapper.find('.github-ReviewSummary').at(0);
 
-      assert.isFalse(summary.exists('.github-Review-edited'));
+        assert.isFalse(summary.exists('.github-Review-edited'));
 
-      const commentUrl = 'https://github.com/atom/github/pull/1995#discussion_r272475592';
-      const updatedProps = aggregatedReviewsBuilder()
-        .addReviewSummary(r => r.id(0).lastEditedAt('2018-12-27T17:51:17Z').url(commentUrl))
-        .build();
+        const commentUrl = 'https://github.com/atom/github/pull/1995#discussion_r272475592';
+        const updatedProps = aggregatedReviewsBuilder()
+          .addReviewSummary(r => r.id(0).lastEditedAt('2018-12-27T17:51:17Z').url(commentUrl))
+          .build();
 
-      wrapper.setProps({...updatedProps});
+        wrapper.setProps({...updatedProps});
 
-      const updatedSummary = wrapper.find('.github-ReviewSummary').at(0);
-      assert.isTrue(updatedSummary.exists('.github-Review-edited'));
-      const editedWrapper = updatedSummary.find('a.github-Review-edited');
-      assert.strictEqual(editedWrapper.text(), 'edited');
-      assert.strictEqual(editedWrapper.prop('href'), commentUrl);
-    });
+        const updatedSummary = wrapper.find('.github-ReviewSummary').at(0);
+        assert.isTrue(updatedSummary.exists('.github-Review-edited'));
+        const editedWrapper = updatedSummary.find('a.github-Review-edited');
+        assert.strictEqual(editedWrapper.text(), 'edited');
+        assert.strictEqual(editedWrapper.prop('href'), commentUrl);
+      });
 
-    it('indicates that a thread comment has been edited', function() {
-      const comment = wrapper.find('details.github-Review').at(0).find('.github-Review-comment').at(0);
-      assert.isFalse(comment.exists('.github-Review-edited'));
+      it('indicates that a thread comment has been edited', function() {
+        const comment = wrapper.find('details.github-Review').at(0).find('.github-Review-comment').at(0);
+        assert.isFalse(comment.exists('.github-Review-edited'));
 
-      const commentUrl = 'https://github.com/atom/github/pull/1995#discussion_r272475592';
-      const updatedProps = aggregatedReviewsBuilder()
-        .addReviewSummary(r => r.id(0))
-        .addReviewThread(t => {
-          t.thread(t0 => t0.id('abcd'));
-          t.addComment(c =>
-            c.id(0).path('dir/file0').position(10).bodyHTML('i have opinions.').author(a => a.login('user0').avatarUrl('user0.jpg'))
-              .lastEditedAt('2018-12-27T17:51:17Z').url(commentUrl),
-          );
-          t.addComment(c =>
-            c.id(1).path('file0').position(10).bodyHTML('i disagree.').author(a => a.login('user1').avatarUrl('user1.jpg')).isMinimized(true),
-          );
-        })
-        .build();
+        const commentUrl = 'https://github.com/atom/github/pull/1995#discussion_r272475592';
+        const updatedProps = aggregatedReviewsBuilder()
+          .addReviewSummary(r => r.id(0))
+          .addReviewThread(t => {
+            t.thread(t0 => t0.id('abcd'));
+            t.addComment(c =>
+              c.id(0).path('dir/file0').position(10).bodyHTML('i have opinions.').author(a => a.login('user0').avatarUrl('user0.jpg'))
+                .lastEditedAt('2018-12-27T17:51:17Z').url(commentUrl),
+            );
+            t.addComment(c =>
+              c.id(1).path('file0').position(10).bodyHTML('i disagree.').author(a => a.login('user1').avatarUrl('user1.jpg')).isMinimized(true),
+            );
+          })
+          .build();
 
-      wrapper.setProps({...updatedProps});
+        wrapper.setProps({...updatedProps});
 
-      const updatedComment = wrapper.find('details.github-Review').at(0).find('.github-Review-comment').at(0);
-      assert.isTrue(updatedComment.exists('.github-Review-edited'));
-      const editedWrapper = updatedComment.find('a.github-Review-edited');
-      assert.strictEqual(editedWrapper.text(), 'edited');
-      assert.strictEqual(editedWrapper.prop('href'), commentUrl);
+        const updatedComment = wrapper.find('details.github-Review').at(0).find('.github-Review-comment').at(0);
+        assert.isTrue(updatedComment.exists('.github-Review-edited'));
+        const editedWrapper = updatedComment.find('a.github-Review-edited');
+        assert.strictEqual(editedWrapper.text(), 'edited');
+        assert.strictEqual(editedWrapper.prop('href'), commentUrl);
+      });
     });
 
     describe('each thread', function() {
