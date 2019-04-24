@@ -23,12 +23,10 @@ This tab shows all review summaries and review comments, including the ones that
 |<img width="380" alt="old header" src="https://user-images.githubusercontent.com/6842965/56446925-7f027600-62d3-11e9-8635-e17b946f3b1b.png">|<img width="380" alt="new header" src="https://user-images.githubusercontent.com/6842965/56446924-7f027600-62d3-11e9-98f5-0ea1e2826343.png">|<img width="380" alt="new header" src="https://user-images.githubusercontent.com/6842965/56447078-4911c180-62d4-11e9-8543-4935ba587b38.png">|
 
 - When there is no pending review, button reads "Start a review", clicking on which will take you to the Pending Review tab in its empty state.
-- When there is already a pending review, the button reads "Resume review (2)". The number indicates the number of comments currently in the pending review. When adding more pending comments _within the All Reviews tab_, there should be some emphasis on the number changing -- akin to the button on dotcom. Clicking on this button takes user to the Pending Review tab.
+- When there is already a pending review, the button reads "Resume review (2)". The number is a counter of comments currently in the pending review. When adding more pending comments _within the All Reviews tab_ (more on that flow below), there should be some emphasis on the counter changing -- akin to the button on dotcom. Clicking on this button takes user to the Pending Review tab.
 
-##### On scaling down the "Checkout" button to just an icon
-- rationale
-- caveats
-- mitigation
+##### Alternative: footer
+An alternative would be to add a footer bar at the bottom and place the add review button there. The caveat is that it might not be as noticeable as the header, and "start a new review" is an arguably more important action than "checkout".
 
 #### Responding to a comment thread
 start a new review button
