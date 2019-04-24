@@ -66,16 +66,15 @@ Pending comments within the All Reviews tab are styled differently from the alre
 ### "Pending Review" tab
 This tab shows *a subset* of all reviews -- only the summary and comments of a pending review. Since a user is only allowed to have one pending review at a time, there should also only be maximum one Pending Review tab.
 
-#### Header
+#### Header (or the alternate footer)
 The header looks very similar to the one of All Reviews tab, with the exception that the primary button now reads "See all reviews", and will send users back to the All Reviews tab.
 
 
 #### Summary section
 
-- sticky
-- drop down to select review type
-- button to submit review
-- The button will be disabled if a review type has not been chosen from the dropdown menu.
+![pending review summary](https://user-images.githubusercontent.com/6842965/56699584-23196200-66c4-11e9-94a4-193c9d662bb3.png)
+
+The summary section of the Pending Review tab is sticky, so it stays within view regardless of how long the list of comments below it is. The icon on the left indicates the type of review, which can be selected in the dropdown underneath the text box. The button to submit review will be disabled a review type has not been chosen from the dropdown menu.
 
 
 #### Comments section
@@ -86,7 +85,7 @@ The header looks very similar to the one of All Reviews tab, with the exception 
 ### New Comment
 ![new comment](https://user-images.githubusercontent.com/6842965/56695406-fdd22700-66b6-11e9-9e7e-fe85e2507a66.png)
 
-A new comment block can appear in either All Reviews tab or Pending Reviews tab, depending on the scenarios covered in "Add comment gutter icon" section below. When in focus, a new comment block always has a glowing border to emphasize itself. If there is already a pending review, there should only be one `btn-primary` button that reads "Comment".
+A new comment block can appear in either All Reviews tab or Pending Review tab, depending on the scenarios covered in "Add comment gutter icon" section below. When in focus, a new comment block always has a glowing border to emphasize itself. If there is already a pending review, there should only be one `btn-primary` button that reads "Comment".
 
 
 ### "Add comment" gutter icon
