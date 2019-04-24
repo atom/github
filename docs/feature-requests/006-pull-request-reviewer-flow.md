@@ -30,7 +30,9 @@ Once a pending review has been started, user can add more comments to it by:
 2. Clicking "add comment" icon on the gutter
 
 #### 3. Submit a review
-- The only way to submit a review within Atom is by using the "Submit review" button in the Pending Review tab.
+The only way to submit a review within Atom is by using the "Submit review" button in the Pending Review tab. After publishing the review, the Pending Review tab will be destroyed. User will be led back to the All Reviews tab, which will immediately reflect the just published review.
+
+## 🤯 Components Explanation
 
 
 ### "All Reviews" tab
@@ -56,9 +58,9 @@ When there is already an existing pending review, there should only be **one** `
 
 #### Pending comments
 
-![image](https://user-images.githubusercontent.com/6842965/56692893-2ce59a00-66b1-11e9-81cc-bc7956bc8bec.png)
+![pending comment](https://user-images.githubusercontent.com/6842965/56692893-2ce59a00-66b1-11e9-81cc-bc7956bc8bec.png)
 
-Pending comments within the All Reviews tab are styled differently from the already published comments. Pending comments contain a badge, and when clicked, it will take user to the Pending Review tab.
+Pending comments within the All Reviews tab are styled differently from the already published comments. Pending comments contain a badge, and when clicked, will take user to the Pending Review tab.
 
 
 ### "Pending Review" tab
@@ -73,6 +75,8 @@ The header looks very similar to the one of All Reviews tab, with the exception 
 - sticky
 - drop down to select review type
 - button to submit review
+- The button will be disabled if a review type has not been chosen from the dropdown menu.
+
 
 #### Comments section
 
@@ -80,7 +84,9 @@ The header looks very similar to the one of All Reviews tab, with the exception 
 
 
 ### New Comment
-![image](https://user-images.githubusercontent.com/6842965/56695406-fdd22700-66b6-11e9-9e7e-fe85e2507a66.png)
+![new comment](https://user-images.githubusercontent.com/6842965/56695406-fdd22700-66b6-11e9-9e7e-fe85e2507a66.png)
+
+A new comment block can appear in either All Reviews tab or Pending Reviews tab, depending on the scenarios covered in "Add comment gutter icon" section below. When in focus, a new comment block always has a glowing border to emphasize itself. If there is already a pending review, there should only be one `btn-primary` button that reads "Comment".
 
 
 ### "Add comment" gutter icon
@@ -94,53 +100,24 @@ The flow of starting a review or adding a comment from the gutter varies a bit d
 
 * If there is no reviews at all
   1. User clicks on "add comment" icon in gutter
-  2. *Pending reiview* dock opens in empty state
-  3. New comment block is added to the pending review dock
+  2. *Pending Review* tab opens in empty state
+  3. New comment block is added to the Pending Review tab
 
 
 * If there are existing reviews and no pending review
   1. User clicks on "add comment" icon in gutter
-  2. *All reviews* dock open
-  3. New comment block is added to the all reviews dock
+  2. *All Reviews* tab open
+  3. New comment block is added to the All Reviews tab
   4. User can choose between "Add a single comment" or "start a review"
-  5. a) "add single comment": comment is added to the all reviews dock
-     b) "start a review": user is redirected to the pending dock with the newly added pending comment there
+  5. a) "add single comment": comment is added to the All Reviews tab
+     b) "start a review": user is redirected to the pending tab with the newly added pending comment there
 
 
 * If there is a pending review
   1. User clicks on "add comment" icon in gutter
-  2. *Pending reviews* dock open
-  3. New comment block is added to the pending review dock
+  2. *Pending reviews* tab open
+  3. New comment block is added to the Pending Review tab
 
-
-### Reviewer Workflow
-
-**Note**: In the name of clarity, in this RFC we will differentiate between "new comment" and "pending comment":
-- a new comment: _after_ a user decides to add a comment from the gutter, and _before_ the user actually adds it to a pending review. (i.e. a pending-pending comment, if you prefer confusion. :laughing:)
-- a pending comment: already added to a pending review
-
-#### 1. Start a review
-
-##### From the gutter
-
-within Files tab in `PullRequestDetailView`
-within an editor
-
-If user has checked out a PR branch, an "add comment" icon should show up *on hover* over the gutter of an editor of any file. Clicking on the icon will either activate new comment
-
-Nothing if not on a PR branch.
-
-##### By responding to a thread
-
-#### 2. Continue a review
-
-
-
-#### 3. Submit a review
-- The only way to submit a review within Atom is by using the "Submit review" button in the Pending Review tab.
-- The button will be disabled if a review type has not been chosen from the dropdown menu.
-- If there is any new comment that has not been added to the pending review, a warning modal should pop up.
-- After publishing, the Pending Review tab will be destroyed. User will be led back to the All Reviews tab, which will immediately reflect the just published review.
 
 --------------------
 
