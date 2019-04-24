@@ -20,17 +20,17 @@ This is a high level overview of what the workflow of a PR Review author should 
 
 There are three ways to start a review:
 1. Click "Start a review" button on the header of review dock, or footer of PR detail item, or on the empty state of review dock
-2. Respond to an existing review thread by clicking "Start a review"
-3. Click on a "add comment" icon on the gutter
+2. [Respond to an existing review thread by clicking "Start a review"](#responding-to-a-comment-thread)
+3. [Click on a "add comment" icon on the gutter](#add-comment-gutter-icon)
 
 #### 2. Continue a review
 
 Once a pending review has been started, user can add more comments to it by:
-1. Responding to an existing review thread
-2. Clicking "add comment" icon on the gutter
+1. [Responding to an existing review thread](#responding-to-a-comment-thread)
+2. [Clicking "add comment" icon on the gutter](#add-comment-gutter-icon)
 
 #### 3. Submit a review
-The only way to submit a review within Atom is by using the "Submit review" button in the Pending Review tab. After publishing the review, the Pending Review tab will be destroyed. User will be led back to the All Reviews tab, which will immediately reflect the just published review.
+The only way to submit a review within Atom is by using the ["Submit review" button in the Pending Review tab](#summary-section). After publishing the review, the Pending Review tab will be destroyed. User will be led back to the All Reviews tab, which will immediately reflect the just published review.
 
 ## 🤯 Components Explanation
 
@@ -89,7 +89,7 @@ The comments section of the Pending Review tab looks very similar to that of the
 ### New Comment
 ![new comment](https://user-images.githubusercontent.com/6842965/56695406-fdd22700-66b6-11e9-9e7e-fe85e2507a66.png)
 
-A new comment block can appear in either All Reviews tab or Pending Review tab, depending on the scenarios covered in "Add comment gutter icon" section below. When in focus, a new comment block always has a glowing border to emphasize itself. If there is already a pending review, there should only be one `btn-primary` button that reads "Comment".
+A new comment block can appear in either All Reviews tab or Pending Review tab, depending on the scenarios covered in [the section below](#add-comment-gutter-icon). When in focus, a new comment block always has a glowing border to emphasize itself. If there is already a pending review, there should only be one `btn-primary` button that reads "Comment".
 
 
 ### "Add comment" gutter icon
