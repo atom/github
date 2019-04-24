@@ -74,12 +74,16 @@ The header looks very similar to the one of All Reviews tab, with the exception 
 
 ![pending review summary](https://user-images.githubusercontent.com/6842965/56699584-23196200-66c4-11e9-94a4-193c9d662bb3.png)
 
-The summary section of the Pending Review tab is sticky, so it stays within view regardless of how long the list of comments below it is. The icon on the left indicates the type of review, which can be selected in the dropdown underneath the text box. The button to submit review will be disabled a review type has not been chosen from the dropdown menu.
+The summary section of the Pending Review tab is sticky (although still collapsible), so it stays within view regardless of how long the list of comments below it is. The icon on the left indicates the type of review, which can be selected in the dropdown underneath the text box. The button to submit review will be disabled a review type has not been chosen from the dropdown menu.
 
 
 #### Comments section
 
-- empty state
+![pending review comments](https://user-images.githubusercontent.com/6842965/56699828-31b44900-66c5-11e9-948c-a5c03215e5d8.png)
+
+The comments section of the Pending Review tab looks very similar to that of the All Reviews tab, except that the progress bar is replaced by a small comment counter on top of the whole section.
+
+**Empty State** of this section should contain a picture tutorial of how to add a comment via gutter icon.
 
 
 ### New Comment
