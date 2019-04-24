@@ -64,6 +64,35 @@ The header looks very similar to the one of All Reviews tab, with the exception 
 ![image](https://user-images.githubusercontent.com/6842965/56695406-fdd22700-66b6-11e9-9e7e-fe85e2507a66.png)
 
 
+### "Add comment" gutter icon
+
+A user can start a review or add a comment to an existing pending review by clicking on the "add comment" icon which shows up on hover over the gutter of:
+
+1. MultiFilePatch view within Files tab in `PullRequestDetailView`
+2. an editor *if on a checked out PR branch*
+
+The flow of starting a review or adding a comment from the gutter varies a bit depending on the state of reviews:
+
+* If there is no reviews at all
+  1. User clicks on "add comment" icon in gutter
+  2. *Pending reiview* dock opens in empty state
+  3. New comment block is added to the pending review dock
+
+
+* If there are existing reviews and no pending review
+  1. User clicks on "add comment" icon in gutter
+  2. *All reviews* dock open
+  3. New comment block is added to the all reviews dock
+  4. User can choose between "Add a single comment" or "start a review"
+  5. a) "add single comment": comment is added to the all reviews dock
+     b) "start a review": user is redirected to the pending dock with the newly added pending comment there
+
+
+* If there is a pending review
+  1. User clicks on "add comment" icon in gutter
+  2. *Pending reviews* dock open
+  3. New comment block is added to the pending review dock
+
 
 ### Reviewer Workflow
 
