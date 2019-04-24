@@ -112,8 +112,7 @@ The flow of starting a review or adding a comment from the gutter varies a bit d
   2. *All Reviews* tab open
   3. New comment block is added to the All Reviews tab
   4. User can choose between "Add a single comment" or "start a review"
-  5. a) "add single comment": comment is added to the All Reviews tab
-     b) "start a review": user is redirected to the pending tab with the newly added pending comment there
+  5. (a) "add single comment": comment is added to the All Reviews tab; (b) "start a review": user is redirected to the pending tab with the newly added pending comment there
 
 
 * If there is a pending review
