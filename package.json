@@ -55,7 +55,7 @@
     "event-kit": "2.5.3",
     "fs-extra": "4.0.3",
     "graphql": "14.2.1",
-    "keytar": "4.4.1",
+    "keytar": "4.5.0",
     "lodash.memoize": "4.1.2",
     "moment": "2.24.0",
     "node-emoji": "1.10.0",
