@@ -60,6 +60,9 @@ The header looks very similar to the one of All Reviews tab, with the exception 
 - empty state
 
 
+### New Comment
+![image](https://user-images.githubusercontent.com/6842965/56695406-fdd22700-66b6-11e9-9e7e-fe85e2507a66.png)
+
 
 
 ### Reviewer Workflow
