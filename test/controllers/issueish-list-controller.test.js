@@ -93,7 +93,7 @@ describe('IssueishListController', function() {
       sinon.stub(shell, 'openExternal').callsArg(2);
 
       await wrapper.instance().openOnGitHub(url);
-      assert.equal(shell.openExternal.args[0][0], url);
+      assert.isTrue(shell.openExternal.calledWith(url));
     });
 
     it('fires `open-issueish-in-browser` event upon success', async function() {
