@@ -102,7 +102,7 @@ describe('IssueishListController', function() {
       sinon.stub(reporterProxy, 'addEvent');
 
       await wrapper.instance().openOnGitHub(url);
-      assert.equal(reporterProxy.addEvent.callCount, 1);
+      assert.strictEqual(reporterProxy.addEvent.callCount, 1);
 
       await assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-browser', {package: 'github', component: 'BareIssueishListController'}));
     });
@@ -115,9 +115,9 @@ describe('IssueishListController', function() {
       try {
         await wrapper.instance().openOnGitHub(url);
       } catch (err) {
-        assert.equal(err.message, 'oh noes');
+        assert.strictEqual(err.message, 'oh noes');
       }
-      assert.equal(reporterProxy.addEvent.callCount, 0);
+      assert.strictEqual(reporterProxy.addEvent.callCount, 0);
     });
   });
 
