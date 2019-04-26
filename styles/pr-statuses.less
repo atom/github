@@ -50,6 +50,10 @@
     border: 1px solid @base-border-color;
     border-top: none;
 
+    &--checkRun {
+      padding-left: @component-padding*2;
+    }
+
     &:last-child {
       border-radius: 0 0 @component-border-radius @component-border-radius;
     }
@@ -61,6 +65,12 @@
       .icon::before { margin-right: 0; }
     }
 
+    &-name {
+      font-weight: bold;
+      color: @text-color-info;
+      margin-right: 0.5em;
+    }
+
     &-context {
       flex: 1;
       color: @text-color-subtle;
@@ -70,8 +80,13 @@
       }
     }
 
+    &-title {
+      margin-right: 0.5em;
+    }
+
     &-details-link {
       margin-left: .5em;
+      color: @text-color-info;
       a {
         color: @text-color-info;
       }
@@ -81,7 +96,7 @@
 
   // States --------------------
 
-  &--warning {
+  &--pending {
     color: @gh-background-color-yellow;
   }
 
@@ -89,7 +104,7 @@
     color: @gh-background-color-green;
   }
 
-  &--error {
+  &--failure {
     color: @gh-background-color-red;
   }
 }
