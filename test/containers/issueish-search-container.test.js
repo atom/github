@@ -2,11 +2,11 @@ import React from 'react';
 import {shallow, mount} from 'enzyme';
 
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
-import {createPullRequestResult} from '../fixtures/factories/pull-request-result';
 import Search, {nullSearch} from '../../lib/models/search';
 import {getEndpoint} from '../../lib/models/endpoint';
 import IssueishSearchContainer from '../../lib/containers/issueish-search-container';
 import {ManualStateObserver} from '../helpers';
+import {relayResponseBuilder} from '../builder/graphql/query';
 
 describe('IssueishSearchContainer', function() {
   let observer;
@@ -65,9 +65,14 @@ describe('IssueishSearchContainer', function() {
       variables: {
         query: 'type:pr author:me',
         first: 20,
+        checkSuiteCount: 10,
+        checkSuiteCursor: null,
+        checkRunCount: 10,
+        checkRunCursor: null,
       },
-    }, {
-      search: {issueCount: 0, nodes: []},
+    }, op => {
+      return relayResponseBuilder(op)
+        .build();
     });
 
     const search = new Search('pull requests', 'type:pr author:me');
@@ -81,16 +86,21 @@ describe('IssueishSearchContainer', function() {
   });
 
   it('passes an empty result list and an error prop to the controller when errored', async function() {
-    const {reject} = expectRelayQuery({
+    expectRelayQuery({
       name: 'issueishSearchContainerQuery',
       variables: {
         query: 'type:pr',
         first: 20,
+        checkSuiteCount: 10,
+        checkSuiteCursor: null,
+        checkRunCount: 10,
+        checkRunCursor: null,
       },
-    }, {});
-    const e = new Error('error');
-    e.rawStack = e.stack;
-    reject(e);
+    }, op => {
+      return relayResponseBuilder(op)
+        .addError('uh oh')
+        .build();
+    }).resolve();
 
     const wrapper = mount(buildApp({}));
 
@@ -98,7 +108,7 @@ describe('IssueishSearchContainer', function() {
       wrapper.update().find('BareIssueishListController').filterWhere(n => !n.prop('isLoading')).exists(),
     );
     const controller = wrapper.find('BareIssueishListController');
-    assert.strictEqual(controller.prop('error'), e);
+    assert.deepEqual(controller.prop('error').errors, [{message: 'uh oh'}]);
     assert.lengthOf(controller.prop('results'), 0);
   });
 
@@ -108,15 +118,27 @@ describe('IssueishSearchContainer', function() {
       variables: {
         query: 'type:pr author:me',
         first: 20,
+        checkSuiteCount: 10,
+        checkSuiteCursor: null,
+        checkRunCount: 10,
+        checkRunCursor: null,
       },
-    }, {
-      search: {
-        issueCount: 2,
-        nodes: [
-          createPullRequestResult({id: 'pr0', number: 1}),
-          createPullRequestResult({id: 'pr1', number: 2}),
-        ],
-      },
+    }, op => {
+      return relayResponseBuilder(op)
+        .search(s => {
+          s.issueCount(2);
+          s.addNode(n => n.bePullRequest(pr => {
+            pr.id('pr0');
+            pr.number(1);
+            pr.commits(conn => conn.addNode());
+          }));
+          s.addNode(n => n.bePullRequest(pr => {
+            pr.id('pr1');
+            pr.number(2);
+            pr.commits(conn => conn.addNode());
+          }));
+        })
+        .build();
     });
 
     const search = new Search('pull requests', 'type:pr author:me');
@@ -138,12 +160,21 @@ describe('IssueishSearchContainer', function() {
       variables: {
         query: 'type:pr author:me',
         first: 20,
+        checkSuiteCount: 10,
+        checkSuiteCursor: null,
+        checkRunCount: 10,
+        checkRunCursor: null,
       },
-    }, {
-      search: {
-        issueCount: 1,
-        nodes: [createPullRequestResult({number: 1})],
-      },
+    }, op => {
+      return relayResponseBuilder(op)
+        .search(s => {
+          s.issueCount(1);
+          s.addNode(n => n.bePullRequest(pr => {
+            pr.number(1);
+            pr.commits(conn => conn.addNode());
+          }));
+        })
+        .build();
     });
 
     const search = new Search('pull requests', 'type:pr author:me');
@@ -161,12 +192,21 @@ describe('IssueishSearchContainer', function() {
       variables: {
         query: 'type:pr author:me',
         first: 20,
+        checkSuiteCount: 10,
+        checkSuiteCursor: null,
+        checkRunCount: 10,
+        checkRunCursor: null,
       },
-    }, {
-      search: {
-        issueCount: 1,
-        nodes: [createPullRequestResult({number: 2})],
-      },
+    }, op => {
+      return relayResponseBuilder(op)
+        .search(s => {
+          s.issueCount(1);
+          s.addNode(n => n.bePullRequest(pr => {
+            pr.number(2);
+            pr.commits(conn => conn.addNode());
+          }));
+        })
+        .build();
     });
 
     resolve1();
