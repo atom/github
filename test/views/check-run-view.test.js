@@ -38,7 +38,7 @@ describe('CheckRunView', function() {
 
     assert.strictEqual(wrapper.find('.github-PrStatuses-list-item-title').text(), 'this is the title');
 
-    assert.strictEqual(wrapper.find('.github-PrStatuses-list-item-summary').text(), 'some stuff happened');
+    assert.strictEqual(wrapper.find('.github-PrStatuses-list-item-summary').prop('markdown'), 'some stuff happened');
 
     assert.strictEqual(wrapper.find('.github-PrStatuses-list-item-details-link').text(), 'Details');
     assert.strictEqual(wrapper.find('.github-PrStatuses-list-item-details-link').prop('href'), 'https://ci.com/job/123');
@@ -57,8 +57,4 @@ describe('CheckRunView', function() {
     assert.isFalse(wrapper.exists('.github-PrStatuses-list-item-title'));
     assert.isFalse(wrapper.exists('.github-PrStatuses-list-item-summary'));
   });
-
-  it('renders the summary field as markdown');
-
-  it('escapes malicious content within markdown fields');
 });
