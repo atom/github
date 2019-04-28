@@ -33,6 +33,10 @@ describe('integration: check out a pull request', function() {
         headName: 'repo',
         headRef: 'refs/heads/pr-head',
         first: 5,
+        checkSuiteCount: 10,
+        checkSuiteCursor: null,
+        checkRunCount: 10,
+        checkRunCursor: null,
       },
     }, op => {
       return relayResponseBuilder(op)
@@ -50,13 +54,20 @@ describe('integration: check out a pull request', function() {
       variables: {
         query: 'repo:owner/repo type:pr state:open',
         first: 20,
+        checkSuiteCount: 10,
+        checkSuiteCursor: null,
+        checkRunCount: 10,
+        checkRunCursor: null,
       },
     }, op => {
       return relayResponseBuilder(op)
         .search(s => {
           s.issueCount(10);
           for (const n of [0, 1, 2]) {
-            s.addNode(r => r.bePullRequest(pr => pr.number(n)));
+            s.addNode(r => r.bePullRequest(pr => {
+              pr.number(n);
+              pr.commits(conn => conn.addNode());
+            }));
           }
         })
         .build();
@@ -80,6 +91,10 @@ describe('integration: check out a pull request', function() {
         threadCursor: null,
         commentCount: PAGE_SIZE,
         commentCursor: null,
+        checkSuiteCount: 10,
+        checkSuiteCursor: null,
+        checkRunCount: 10,
+        checkRunCursor: null,
       },
     }, op => {
       return relayResponseBuilder(op)
