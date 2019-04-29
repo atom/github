@@ -203,7 +203,7 @@ describe('CommitDetailItem', function() {
 
     it('calls its callback immediately if an editor is present and alive', async function() {
       const wrapper = mount(buildPaneApp());
-      const item = await open(wrapper);
+      const item = await open();
 
       wrapper.update().find('CommitDetailContainer').prop('refEditor').setter(editor);
 
@@ -214,7 +214,7 @@ describe('CommitDetailItem', function() {
 
     it('does not call its callback if an editor is present but destroyed', async function() {
       const wrapper = mount(buildPaneApp());
-      const item = await open(wrapper);
+      const item = await open();
 
       wrapper.update().find('CommitDetailContainer').prop('refEditor').setter({isAlive() { return false; }});
 
@@ -225,7 +225,7 @@ describe('CommitDetailItem', function() {
 
     it('calls its callback later if the editor changes', async function() {
       const wrapper = mount(buildPaneApp());
-      const item = await open(wrapper);
+      const item = await open();
 
       const cb = sinon.spy();
       sub = item.observeEmbeddedTextEditor(cb);
@@ -236,7 +236,7 @@ describe('CommitDetailItem', function() {
 
     it('does not call its callback after its editor is destroyed', async function() {
       const wrapper = mount(buildPaneApp());
-      const item = await open(wrapper);
+      const item = await open();
 
       const cb = sinon.spy();
       sub = item.observeEmbeddedTextEditor(cb);

@@ -54,7 +54,7 @@ describe('CommitPreviewItem', function() {
     );
   }
 
-  function open(wrapper, options = {}) {
+  function open(options = {}) {
     const opts = {
       workingDirectory: repository.getWorkingDirectoryPath(),
       ...options,
@@ -65,7 +65,7 @@ describe('CommitPreviewItem', function() {
 
   it('constructs and opens the correct URI', async function() {
     const wrapper = mount(buildPaneApp());
-    await open(wrapper);
+    await open();
 
     assert.isTrue(wrapper.update().find('CommitPreviewItem').exists());
   });
@@ -73,37 +73,37 @@ describe('CommitPreviewItem', function() {
   it('passes extra props to its container', async function() {
     const extra = Symbol('extra');
     const wrapper = mount(buildPaneApp({extra}));
-    await open(wrapper);
+    await open();
 
     assert.strictEqual(wrapper.update().find('CommitPreviewContainer').prop('extra'), extra);
   });
 
   it('locates the repository from the context pool', async function() {
     const wrapper = mount(buildPaneApp());
-    await open(wrapper);
+    await open();
 
     assert.strictEqual(wrapper.update().find('CommitPreviewContainer').prop('repository'), repository);
   });
 
   it('passes an absent repository if the working directory is unrecognized', async function() {
     const wrapper = mount(buildPaneApp());
-    await open(wrapper, {workingDirectory: '/nah'});
+    await open({workingDirectory: '/nah'});
 
     assert.isTrue(wrapper.update().find('CommitPreviewContainer').prop('repository').isAbsent());
   });
 
   it('returns a fixed title and icon', async function() {
-    const wrapper = mount(buildPaneApp());
-    const item = await open(wrapper);
+    mount(buildPaneApp());
+    const item = await open();
 
     assert.strictEqual(item.getTitle(), 'Staged Changes');
     assert.strictEqual(item.getIconName(), 'tasklist');
   });
 
   it('terminates pending state', async function() {
-    const wrapper = mount(buildPaneApp());
+    mount(buildPaneApp());
 
-    const item = await open(wrapper);
+    const item = await open();
     const callback = sinon.spy();
     const sub = item.onDidTerminatePendingState(callback);
 
@@ -117,9 +117,9 @@ describe('CommitPreviewItem', function() {
   });
 
   it('may be destroyed once', async function() {
-    const wrapper = mount(buildPaneApp());
+    mount(buildPaneApp());
 
-    const item = await open(wrapper);
+    const item = await open();
     const callback = sinon.spy();
     const sub = item.onDidDestroy(callback);
 
@@ -131,14 +131,14 @@ describe('CommitPreviewItem', function() {
   });
 
   it('serializes itself as a CommitPreviewStub', async function() {
-    const wrapper = mount(buildPaneApp());
-    const item0 = await open(wrapper, {workingDirectory: '/dir0'});
+    mount(buildPaneApp());
+    const item0 = await open({workingDirectory: '/dir0'});
     assert.deepEqual(item0.serialize(), {
       deserializer: 'CommitPreviewStub',
       uri: 'atom-github://commit-preview?workdir=%2Fdir0',
     });
 
-    const item1 = await open(wrapper, {workingDirectory: '/dir1'});
+    const item1 = await open({workingDirectory: '/dir1'});
     assert.deepEqual(item1.serialize(), {
       deserializer: 'CommitPreviewStub',
       uri: 'atom-github://commit-preview?workdir=%2Fdir1',
@@ -146,15 +146,15 @@ describe('CommitPreviewItem', function() {
   });
 
   it('has an item-level accessor for the current working directory', async function() {
-    const wrapper = mount(buildPaneApp());
-    const item = await open(wrapper, {workingDirectory: '/dir7'});
+    mount(buildPaneApp());
+    const item = await open({workingDirectory: '/dir7'});
     assert.strictEqual(item.getWorkingDirectory(), '/dir7');
   });
 
   describe('focus()', function() {
     it('imperatively focuses the value of the initial focus ref', async function() {
-      const wrapper = mount(buildPaneApp());
-      const item = await open(wrapper);
+      mount(buildPaneApp());
+      const item = await open();
 
       const focusSpy = {focus: sinon.spy()};
       item.refInitialFocus.setter(focusSpy);
@@ -165,8 +165,8 @@ describe('CommitPreviewItem', function() {
     });
 
     it('is a no-op if there is no initial focus ref', async function() {
-      const wrapper = mount(buildPaneApp());
-      const item = await open(wrapper);
+      mount(buildPaneApp());
+      const item = await open();
 
       item.refInitialFocus.setter(null);
 
@@ -189,7 +189,7 @@ describe('CommitPreviewItem', function() {
 
     it('calls its callback immediately if an editor is present and alive', async function() {
       const wrapper = mount(buildPaneApp());
-      const item = await open(wrapper);
+      const item = await open();
 
       wrapper.update().find('CommitPreviewContainer').prop('refEditor').setter(editor);
 
@@ -200,7 +200,7 @@ describe('CommitPreviewItem', function() {
 
     it('does not call its callback if an editor is present but destroyed', async function() {
       const wrapper = mount(buildPaneApp());
-      const item = await open(wrapper);
+      const item = await open();
 
       wrapper.update().find('CommitPreviewContainer').prop('refEditor').setter({isAlive() { return false; }});
 
@@ -211,7 +211,7 @@ describe('CommitPreviewItem', function() {
 
     it('calls its callback later if the editor changes', async function() {
       const wrapper = mount(buildPaneApp());
-      const item = await open(wrapper);
+      const item = await open();
 
       const cb = sinon.spy();
       sub = item.observeEmbeddedTextEditor(cb);
@@ -222,7 +222,7 @@ describe('CommitPreviewItem', function() {
 
     it('does not call its callback after its editor is destroyed', async function() {
       const wrapper = mount(buildPaneApp());
-      const item = await open(wrapper);
+      const item = await open();
 
       const cb = sinon.spy();
       sub = item.observeEmbeddedTextEditor(cb);

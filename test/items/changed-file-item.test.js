@@ -189,7 +189,7 @@ describe('ChangedFileItem', function() {
 
     it('calls its callback immediately if an editor is present and alive', async function() {
       const wrapper = mount(buildPaneApp());
-      const item = await open(wrapper);
+      const item = await open();
 
       wrapper.update().find('ChangedFileContainer').prop('refEditor').setter(editor);
 
@@ -200,7 +200,7 @@ describe('ChangedFileItem', function() {
 
     it('does not call its callback if an editor is present but destroyed', async function() {
       const wrapper = mount(buildPaneApp());
-      const item = await open(wrapper);
+      const item = await open();
 
       wrapper.update().find('ChangedFileContainer').prop('refEditor').setter({isAlive() { return false; }});
 
@@ -211,7 +211,7 @@ describe('ChangedFileItem', function() {
 
     it('calls its callback later if the editor changes', async function() {
       const wrapper = mount(buildPaneApp());
-      const item = await open(wrapper);
+      const item = await open();
 
       const cb = sinon.spy();
       sub = item.observeEmbeddedTextEditor(cb);
@@ -222,7 +222,7 @@ describe('ChangedFileItem', function() {
 
     it('does not call its callback after its editor is destroyed', async function() {
       const wrapper = mount(buildPaneApp());
-      const item = await open(wrapper);
+      const item = await open();
 
       const cb = sinon.spy();
       sub = item.observeEmbeddedTextEditor(cb);
