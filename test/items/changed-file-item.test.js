@@ -57,7 +57,7 @@ describe('ChangedFileItem', function() {
     );
   }
 
-  function open(wrapper, options = {}) {
+  function open(options = {}) {
     const opts = {
       relPath: 'a.txt',
       workingDirectory: repository.getWorkingDirectoryPath(),
@@ -70,14 +70,14 @@ describe('ChangedFileItem', function() {
 
   it('locates the repository from the context pool', async function() {
     const wrapper = mount(buildPaneApp());
-    await open(wrapper);
+    await open();
 
     assert.strictEqual(wrapper.update().find('ChangedFileContainer').prop('repository'), repository);
   });
 
   it('passes an absent repository if the working directory is unrecognized', async function() {
     const wrapper = mount(buildPaneApp());
-    await open(wrapper, {workingDirectory: '/nope'});
+    await open({workingDirectory: '/nope'});
 
     assert.isTrue(wrapper.update().find('ChangedFileContainer').prop('repository').isAbsent());
   });
@@ -85,22 +85,22 @@ describe('ChangedFileItem', function() {
   it('passes other props to the container', async function() {
     const other = Symbol('other');
     const wrapper = mount(buildPaneApp({other}));
-    await open(wrapper);
+    await open();
 
     assert.strictEqual(wrapper.update().find('ChangedFileContainer').prop('other'), other);
   });
 
   describe('getTitle()', function() {
     it('renders an unstaged title', async function() {
-      const wrapper = mount(buildPaneApp());
-      const item = await open(wrapper, {stagingStatus: 'unstaged'});
+      mount(buildPaneApp());
+      const item = await open({stagingStatus: 'unstaged'});
 
       assert.strictEqual(item.getTitle(), 'Unstaged Changes: a.txt');
     });
 
     it('renders a staged title', async function() {
-      const wrapper = mount(buildPaneApp());
-      const item = await open(wrapper, {stagingStatus: 'staged'});
+      mount(buildPaneApp());
+      const item = await open({stagingStatus: 'staged'});
 
       assert.strictEqual(item.getTitle(), 'Staged Changes: a.txt');
     });
@@ -150,14 +150,14 @@ describe('ChangedFileItem', function() {
   });
 
   it('serializes itself as a FilePatchControllerStub', async function() {
-    const wrapper = mount(buildPaneApp());
-    const item0 = await open(wrapper, {relPath: 'a.txt', workingDirectory: '/dir0', stagingStatus: 'unstaged'});
+    mount(buildPaneApp());
+    const item0 = await open({relPath: 'a.txt', workingDirectory: '/dir0', stagingStatus: 'unstaged'});
     assert.deepEqual(item0.serialize(), {
       deserializer: 'FilePatchControllerStub',
       uri: 'atom-github://file-patch/a.txt?workdir=%2Fdir0&stagingStatus=unstaged',
     });
 
-    const item1 = await open(wrapper, {relPath: 'b.txt', workingDirectory: '/dir1', stagingStatus: 'staged'});
+    const item1 = await open({relPath: 'b.txt', workingDirectory: '/dir1', stagingStatus: 'staged'});
     assert.deepEqual(item1.serialize(), {
       deserializer: 'FilePatchControllerStub',
       uri: 'atom-github://file-patch/b.txt?workdir=%2Fdir1&stagingStatus=staged',
@@ -165,8 +165,8 @@ describe('ChangedFileItem', function() {
   });
 
   it('has some item-level accessors', async function() {
-    const wrapper = mount(buildPaneApp());
-    const item = await open(wrapper, {relPath: 'a.txt', workingDirectory: '/dir', stagingStatus: 'unstaged'});
+    mount(buildPaneApp());
+    const item = await open({relPath: 'a.txt', workingDirectory: '/dir', stagingStatus: 'unstaged'});
 
     assert.strictEqual(item.getStagingStatus(), 'unstaged');
     assert.strictEqual(item.getFilePath(), 'a.txt');
