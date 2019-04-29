@@ -52,7 +52,7 @@ export class FragmentSpec extends Spec {
         );
         throw new Error(`Unrecognized node kind ${node.kind}`);
       } else {
-        return fn(node);
+        return fn({...node});
       }
     });
 
@@ -62,7 +62,6 @@ export class FragmentSpec extends Spec {
       for (let i = selections.length - 1; i >= 0; i--) {
         if (selections[i].kind === 'InlineFragment') {
           // Replace inline fragments in-place with their selected fields *if* the GraphQL type name matches.
-
           if (!typeNameSet.has(selections[i].type)) {
             continue;
           }
@@ -77,6 +76,7 @@ export class FragmentSpec extends Spec {
     };
 
     for (const node of this.nodes) {
+      node.selections = node.selections.slice();
       flattenFragments(node.selections);
     }
   }
