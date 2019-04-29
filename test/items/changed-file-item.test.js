@@ -178,7 +178,9 @@ describe('ChangedFileItem', function() {
     let sub, editor;
 
     beforeEach(function() {
-      editor = Symbol('editor');
+      editor = {
+        isAlive() { return true; },
+      };
     });
 
     afterEach(function() {
@@ -205,6 +207,17 @@ describe('ChangedFileItem', function() {
 
       wrapper.update().find('ChangedFileContainer').prop('refEditor').setter(editor);
       assert.isTrue(cb.calledWith(editor));
+    });
+
+    it('does not call its callback after its editor is destroyed', async function() {
+      const wrapper = mount(buildPaneApp());
+      const item = await open(wrapper);
+
+      const cb = sinon.spy();
+      sub = item.observeEmbeddedTextEditor(cb);
+
+      wrapper.update().find('ChangedFileContainer').prop('refEditor').setter({isAlive() { return false; }});
+      assert.isFalse(cb.called);
     });
   });
 });
