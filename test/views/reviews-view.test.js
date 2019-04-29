@@ -9,6 +9,7 @@ import {aggregatedReviewsBuilder} from '../builder/graphql/aggregated-reviews-bu
 import {multiFilePatchBuilder} from '../builder/patch';
 import {checkoutStates} from '../../lib/controllers/pr-checkout-controller';
 import * as reporterProxy from '../../lib/reporter-proxy';
+import {GHOST_USER} from '../../lib/helpers';
 
 describe('ReviewsView', function() {
   let atomEnv;
@@ -113,6 +114,33 @@ describe('ReviewsView', function() {
     assert.lengthOf(wrapper.find('details.github-Review'), 2);
   });
 
+  it('displays ghost user information if author is null', function() {
+    const {summaries, commentThreads} = aggregatedReviewsBuilder()
+      .addReviewSummary(r => r.id(0))
+      .addReviewThread(t => t.addComment().addComment())
+      .build();
+
+    const wrapper = shallow(buildApp({summaries, commentThreads}));
+
+    // summary
+    assert.strictEqual(wrapper.find('.github-ReviewSummary-username').text(), GHOST_USER.login);
+    assert.strictEqual(wrapper.find('.github-ReviewSummary-username').prop('href'), GHOST_USER.url);
+    assert.strictEqual(wrapper.find('.github-ReviewSummary-avatar').prop('src'), GHOST_USER.avatarUrl);
+    assert.strictEqual(wrapper.find('.github-ReviewSummary-avatar').prop('alt'), GHOST_USER.login);
+
+    // root comment
+    assert.strictEqual(wrapper.find('.github-Review-username').at(0).text(), GHOST_USER.login);
+    assert.strictEqual(wrapper.find('.github-Review-username').at(0).prop('href'), GHOST_USER.url);
+    assert.strictEqual(wrapper.find('.github-Review-avatar').at(0).prop('src'), GHOST_USER.avatarUrl);
+    assert.strictEqual(wrapper.find('.github-Review-avatar').at(0).prop('alt'), GHOST_USER.login);
+
+    // non-root comment
+    assert.strictEqual(wrapper.find('.github-Review-username').at(1).text(), GHOST_USER.login);
+    assert.strictEqual(wrapper.find('.github-Review-username').at(1).prop('href'), GHOST_USER.url);
+    assert.strictEqual(wrapper.find('.github-Review-avatar').at(1).prop('src'), GHOST_USER.avatarUrl);
+    assert.strictEqual(wrapper.find('.github-Review-avatar').at(1).prop('alt'), GHOST_USER.login);
+  });
+
   it('displays an author association badge for review summaries', function() {
     const {summaries, commentThreads} = aggregatedReviewsBuilder()
       .addReviewSummary(r => r.id(0).authorAssociation('MEMBER'))
@@ -125,7 +153,6 @@ describe('ReviewsView', function() {
       .build();
 
     const wrapper = shallow(buildApp({summaries, commentThreads}));
-
 
     const reviews = wrapper.find('.github-ReviewSummary');
     assert.lengthOf(reviews, 7);
