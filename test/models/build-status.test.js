@@ -105,7 +105,7 @@ describe('BuildStatus', function() {
 
   it('interprets a NEUTRAL check conclusion', function() {
     assert.deepEqual(buildStatusFromCheckResult({status: 'COMPLETED', conclusion: 'NEUTRAL'}), {
-      icon: 'comment',
+      icon: 'dash',
       classSuffix: 'neutral',
     });
   });
@@ -151,6 +151,13 @@ describe('BuildStatus', function() {
     const neutrals = [
       buildStatusFromCheckResult({status: 'COMPLETED', conclusion: 'NEUTRAL'}),
     ];
+
+    it('combines nothing into NEUTRAL', function() {
+      assert.deepEqual(combineBuildStatuses(), {
+        icon: 'dash',
+        classSuffix: 'neutral',
+      });
+    });
 
     it('combines anything and ACTION_REQUIRED into ACTION_REQUIRED', function() {
       const all = [
@@ -282,6 +289,13 @@ describe('BuildStatus', function() {
           assert.deepEqual(combineBuildStatuses(neutralStatus, otherStatus), otherStatus);
         }
       }
+    });
+
+    it('combines NEUTRALs into NEUTRAL', function() {
+      assert.deepEqual(combineBuildStatuses(neutrals[0], neutrals[0]), {
+        icon: 'dash',
+        classSuffix: 'neutral',
+      });
     });
   });
 });
