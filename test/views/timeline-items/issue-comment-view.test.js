@@ -2,6 +2,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import {BareIssueCommentView} from '../../../lib/views/timeline-items/issue-comment-view';
+import {GHOST_USER} from '../../../lib/helpers';
 
 describe('IssueCommentView', function() {
   function buildApp(opts, overrideProps = {}) {
@@ -19,6 +20,7 @@ describe('IssueCommentView', function() {
         bodyHTML: o.bodyHTML,
         createdAt: o.createdAt,
         url: 'https://github.com/aaa/bbb/issues/123',
+        author: null,
       },
       switchToIssueish: () => {},
       ...overrideProps,
@@ -49,10 +51,11 @@ describe('IssueCommentView', function() {
     assert.strictEqual(wrapper.find('GithubDotcomMarkdown').prop('html'), '<p>body</p>');
   });
 
-  it('renders when no author is provided', function() {
+  it('renders ghost author info when no author is provided', function() {
     const wrapper = shallow(buildApp({includeAuthor: false}));
 
-    assert.isFalse(wrapper.find('img.author-avatar').exists());
-    assert.match(wrapper.find('.comment-message-header').text(), /^someone commented/);
+    const avatarImg = wrapper.find('img.author-avatar');
+    assert.strictEqual(avatarImg.prop('src'), GHOST_USER.avatarUrl);
+    assert.match(wrapper.find('.comment-message-header').text(), new RegExp(`^${GHOST_USER.login} commented`));
   });
 });
