@@ -98,7 +98,7 @@ export const PullRequestBuilder = createSpecBuilderClass('PullRequest', {
     const number = f.number || 1;
     return `https://github.com/${ownerLogin}/${repoName}/pull/${number}`;
   }},
-  author: {linked: UserBuilder, default: null},
+  author: {linked: UserBuilder, nullable: true, default: null},
   repository: {linked: RepositoryBuilder},
   headRepository: {linked: RepositoryBuilder, nullable: true},
   headRepositoryOwner: {linked: UserBuilder},
