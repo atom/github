@@ -215,6 +215,7 @@ export function issueDetailViewProps(opts, overrides = {}) {
     issueTitle: 'title',
     issueBodyHTML: '<p>body</p>',
     issueBaseRef: 'master',
+    includeAuthor: true,
     issueAuthorLogin: 'author',
     issueAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/000?v=4',
     issueishNumber: 1,

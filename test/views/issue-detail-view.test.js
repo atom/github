@@ -20,7 +20,6 @@ describe('IssueDetailView', function() {
       issueKind: 'Issue',
       issueTitle: 'Issue title',
       issueBodyHTML: '<code>nope</code>',
-      includeAuthor: true,
       issueAuthorLogin: 'author1',
       issueAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/2',
       issueishNumber: 200,
@@ -56,7 +55,7 @@ describe('IssueDetailView', function() {
   });
 
   it('displays ghost author if author is null', function() {
-    const wrapper = shallow(buildApp({}));
+    const wrapper = shallow(buildApp({includeAuthor: false}));
 
     assert.strictEqual(wrapper.find('.github-IssueishDetailView-avatar').prop('href'), GHOST_USER.url);
     assert.strictEqual(wrapper.find('.github-IssueishDetailView-avatarImage').prop('src'), GHOST_USER.avatarUrl);
