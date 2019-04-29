@@ -192,14 +192,16 @@ describe('CommitDetailItem', function() {
     let sub, editor;
 
     beforeEach(function() {
-      editor = Symbol('editor');
+      editor = {
+        isAlive() { return true; },
+      };
     });
 
     afterEach(function() {
       sub && sub.dispose();
     });
 
-    it('calls its callback immediately if an editor is present', async function() {
+    it('calls its callback immediately if an editor is present and alive', async function() {
       const wrapper = mount(buildPaneApp());
       const item = await open(wrapper);
 
@@ -208,6 +210,17 @@ describe('CommitDetailItem', function() {
       const cb = sinon.spy();
       sub = item.observeEmbeddedTextEditor(cb);
       assert.isTrue(cb.calledWith(editor));
+    });
+
+    it('does not call its callback if an editor is present but destroyed', async function() {
+      const wrapper = mount(buildPaneApp());
+      const item = await open(wrapper);
+
+      wrapper.update().find('CommitDetailContainer').prop('refEditor').setter({isAlive() { return false; }});
+
+      const cb = sinon.spy();
+      sub = item.observeEmbeddedTextEditor(cb);
+      assert.isFalse(cb.called);
     });
 
     it('calls its callback later if the editor changes', async function() {
@@ -219,6 +232,17 @@ describe('CommitDetailItem', function() {
 
       wrapper.update().find('CommitDetailContainer').prop('refEditor').setter(editor);
       assert.isTrue(cb.calledWith(editor));
+    });
+
+    it('does not call its callback after its editor is destroyed', async function() {
+      const wrapper = mount(buildPaneApp());
+      const item = await open(wrapper);
+
+      const cb = sinon.spy();
+      sub = item.observeEmbeddedTextEditor(cb);
+
+      wrapper.update().find('CommitDetailContainer').prop('refEditor').setter({isAlive() { return false; }});
+      assert.isFalse(cb.called);
     });
   });
 });
