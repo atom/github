@@ -230,7 +230,7 @@ export function issueDetailViewProps(opts, overrides = {}) {
     };
   };
 
-  return {
+  const props = {
     relay: {
       refetch: o.relayRefetch,
     },
@@ -259,11 +259,7 @@ export function issueDetailViewProps(opts, overrides = {}) {
         url: `https://github.com/${o.issueHeadRepoOwner}/${o.issueHeadRepoName}`,
         sshUrl: `git@github.com:${o.issueHeadRepoOwner}/${o.issueHeadRepoName}.git`,
       },
-      author: {
-        login: o.issueAuthorLogin,
-        avatarUrl: o.issueAuthorAvatarURL,
-        url: `https://github.com/${o.issueAuthorLogin}`,
-      },
+      author: null,
       reactionGroups: o.issueReactions.map(buildReaction),
     },
 
@@ -272,4 +268,14 @@ export function issueDetailViewProps(opts, overrides = {}) {
 
     ...overrides,
   };
+
+  if (o.includeAuthor) {
+    props.issue.author = {
+      login: o.issueAuthorLogin,
+      avatarUrl: o.issueAuthorAvatarURL,
+      url: `https://github.com/${o.issueAuthorLogin}`,
+    };
+  }
+
+  return props;
 }

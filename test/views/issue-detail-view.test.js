@@ -5,6 +5,7 @@ import {BareIssueDetailView} from '../../lib/views/issue-detail-view';
 import EmojiReactionsController from '../../lib/controllers/emoji-reactions-controller';
 import {issueDetailViewProps} from '../fixtures/props/issueish-pane-props';
 import * as reporterProxy from '../../lib/reporter-proxy';
+import {GHOST_USER} from '../../lib/helpers';
 
 describe('IssueDetailView', function() {
   function buildApp(opts, overrideProps = {}) {
@@ -19,6 +20,7 @@ describe('IssueDetailView', function() {
       issueKind: 'Issue',
       issueTitle: 'Issue title',
       issueBodyHTML: '<code>nope</code>',
+      includeAuthor: true,
       issueAuthorLogin: 'author1',
       issueAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/2',
       issueishNumber: 200,
@@ -51,6 +53,14 @@ describe('IssueDetailView', function() {
 
     assert.isNotNull(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('issue'));
     assert.notOk(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('pullRequest'));
+  });
+
+  it('displays ghost author if author is null', function() {
+    const wrapper = shallow(buildApp({}));
+
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-avatar').prop('href'), GHOST_USER.url);
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-avatarImage').prop('src'), GHOST_USER.avatarUrl);
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-avatarImage').prop('alt'), GHOST_USER.login);
   });
 
   it('renders a placeholder issue body', function() {
