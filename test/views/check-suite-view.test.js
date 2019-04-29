@@ -12,6 +12,7 @@ describe('CheckSuiteView', function() {
     const props = {
       checkSuite: checkSuiteBuilder(checkSuiteQuery).build(),
       checkRuns: [],
+      switchToIssueish: () => {},
       ...override,
     };
 

@@ -10,6 +10,7 @@ describe('CheckRunView', function() {
   function buildApp(override = {}) {
     const props = {
       checkRun: checkRunBuilder(checkRunQuery).build(),
+      switchToIssueish: () => {},
       ...override,
     };
 
@@ -56,5 +57,17 @@ describe('CheckRunView', function() {
     const wrapper = shallow(buildApp({checkRun}));
     assert.isFalse(wrapper.exists('.github-PrStatuses-list-item-title'));
     assert.isFalse(wrapper.exists('.github-PrStatuses-list-item-summary'));
+  });
+
+  it('handles issueish navigation from links in the build summary', function() {
+    const checkRun = checkRunBuilder(checkRunQuery)
+      .summary('#1234')
+      .build();
+
+    const switchToIssueish = sinon.spy();
+    const wrapper = shallow(buildApp({switchToIssueish, checkRun}));
+
+    wrapper.find('GithubDotcomMarkdown').prop('switchToIssueish')();
+    assert.isTrue(switchToIssueish.called);
   });
 });
