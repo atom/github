@@ -74,6 +74,16 @@
 
   &-section {
     border-bottom: 1px solid @base-border-color;
+
+    &.resolved-comments {
+      border-bottom: 0;
+      padding-left: @component-padding;
+      .github-Reviews {
+        &-title, &-header {
+          color: @text-color-subtle;
+        }
+      }
+    }
   }
 
   &-header {
