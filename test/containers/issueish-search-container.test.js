@@ -1,6 +1,7 @@
 import React from 'react';
 import {shallow, mount} from 'enzyme';
 
+import {CHECK_SUITE_PAGE_SIZE, CHECK_RUN_PAGE_SIZE} from '../../lib/helpers';
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import Search, {nullSearch} from '../../lib/models/search';
 import {getEndpoint} from '../../lib/models/endpoint';
@@ -65,9 +66,9 @@ describe('IssueishSearchContainer', function() {
       variables: {
         query: 'type:pr author:me',
         first: 20,
-        checkSuiteCount: 10,
+        checkSuiteCount: CHECK_SUITE_PAGE_SIZE,
         checkSuiteCursor: null,
-        checkRunCount: 10,
+        checkRunCount: CHECK_RUN_PAGE_SIZE,
         checkRunCursor: null,
       },
     }, op => {
@@ -91,9 +92,9 @@ describe('IssueishSearchContainer', function() {
       variables: {
         query: 'type:pr',
         first: 20,
-        checkSuiteCount: 10,
+        checkSuiteCount: CHECK_SUITE_PAGE_SIZE,
         checkSuiteCursor: null,
-        checkRunCount: 10,
+        checkRunCount: CHECK_RUN_PAGE_SIZE,
         checkRunCursor: null,
       },
     }, op => {
@@ -118,9 +119,9 @@ describe('IssueishSearchContainer', function() {
       variables: {
         query: 'type:pr author:me',
         first: 20,
-        checkSuiteCount: 10,
+        checkSuiteCount: CHECK_SUITE_PAGE_SIZE,
         checkSuiteCursor: null,
-        checkRunCount: 10,
+        checkRunCount: CHECK_RUN_PAGE_SIZE,
         checkRunCursor: null,
       },
     }, op => {
@@ -160,9 +161,9 @@ describe('IssueishSearchContainer', function() {
       variables: {
         query: 'type:pr author:me',
         first: 20,
-        checkSuiteCount: 10,
+        checkSuiteCount: CHECK_SUITE_PAGE_SIZE,
         checkSuiteCursor: null,
-        checkRunCount: 10,
+        checkRunCount: CHECK_RUN_PAGE_SIZE,
         checkRunCursor: null,
       },
     }, op => {
@@ -192,9 +193,9 @@ describe('IssueishSearchContainer', function() {
       variables: {
         query: 'type:pr author:me',
         first: 20,
-        checkSuiteCount: 10,
+        checkSuiteCount: CHECK_SUITE_PAGE_SIZE,
         checkSuiteCursor: null,
-        checkRunCount: 10,
+        checkRunCount: CHECK_RUN_PAGE_SIZE,
         checkRunCursor: null,
       },
     }, op => {
