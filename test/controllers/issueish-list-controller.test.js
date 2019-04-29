@@ -1,10 +1,10 @@
 import React from 'react';
 import {shallow} from 'enzyme';
+import {shell} from 'electron';
 
 import {createPullRequestResult} from '../fixtures/factories/pull-request-result';
 import Issueish from '../../lib/models/issueish';
 import {BareIssueishListController} from '../../lib/controllers/issueish-list-controller';
-import {getEndpoint} from '../../lib/models/endpoint';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('IssueishListController', function() {
@@ -85,22 +85,40 @@ describe('IssueishListController', function() {
     assert.deepEqual(view.prop('issueishes').map(issueish => issueish.getNumber()), [11, 13, 12]);
   });
 
-  it('opens reviews', async function() {
-    const atomEnv = global.buildAtomEnvironment();
-    sinon.stub(atomEnv.workspace, 'open').resolves();
-    sinon.stub(reporterProxy, 'addEvent');
-    const pr = createPullRequestResult({number: 1337});
-    Object.assign(pr.repository, {owner: {login: 'owner'}, name: 'repo'});
-    const wrapper = shallow(buildApp({
-      workspace: atomEnv.workspace,
-      endpoint: getEndpoint('github.com'),
-      results: [pr],
-    }));
+  describe('openOnGitHub', function() {
+    const url = 'https://github.com/atom/github/pull/2084';
 
-    await wrapper.find('IssueishListView').prop('openReviews')();
-    assert.isTrue(atomEnv.workspace.open.called);
-    assert.isTrue(reporterProxy.addEvent.calledWith('open-reviews-tab', {package: 'github', from: 'BareIssueishListController'}));
+    it('calls shell.openExternal with specified url', async function() {
+      const wrapper = shallow(buildApp());
+      sinon.stub(shell, 'openExternal').callsArg(2);
 
-    atomEnv.destroy();
+      await wrapper.instance().openOnGitHub(url);
+      assert.isTrue(shell.openExternal.calledWith(url));
+    });
+
+    it('fires `open-issueish-in-browser` event upon success', async function() {
+      const wrapper = shallow(buildApp());
+      sinon.stub(shell, 'openExternal').callsArg(2);
+      sinon.stub(reporterProxy, 'addEvent');
+
+      await wrapper.instance().openOnGitHub(url);
+      assert.strictEqual(reporterProxy.addEvent.callCount, 1);
+
+      await assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-browser', {package: 'github', component: 'BareIssueishListController'}));
+    });
+
+    it('handles error when openOnGitHub fails', async function() {
+      const wrapper = shallow(buildApp());
+      sinon.stub(shell, 'openExternal').callsArgWith(2, new Error('oh noes'));
+      sinon.stub(reporterProxy, 'addEvent');
+
+      try {
+        await wrapper.instance().openOnGitHub(url);
+      } catch (err) {
+        assert.strictEqual(err.message, 'oh noes');
+      }
+      assert.strictEqual(reporterProxy.addEvent.callCount, 0);
+    });
   });
+
 });

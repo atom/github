@@ -115,4 +115,29 @@ describe('IssueishSearchesController', function() {
     );
     assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-pane', {package: 'github', from: 'issueish-list'}));
   });
+
+  it('passes a handler to open reviews and reports an event', async function() {
+    sinon.spy(atomEnv.workspace, 'open');
+
+    const wrapper = shallow(buildApp());
+    const container = wrapper.find('IssueishSearchContainer').at(0);
+
+    const issueish = new Issueish({
+      number: 2084,
+      url: 'https://github.com/atom/github/pull/2084',
+      author: {login: 'kuychaco', avatarUrl: 'https://avatars3.githubusercontent.com/u/7910250?v=4'},
+      createdAt: '2019-04-01T10:00:00',
+      repository: {id: '0'},
+      commits: {nodes: []},
+    });
+
+    sinon.stub(reporterProxy, 'addEvent');
+    await container.prop('onOpenReviews')(issueish);
+    assert.isTrue(
+      atomEnv.workspace.open.calledWith(
+        `atom-github://reviews/github.com/atom/github/2084?workdir=${encodeURIComponent(__dirname)}`,
+      ),
+    );
+    assert.isTrue(reporterProxy.addEvent.calledWith('open-reviews-tab', {package: 'github', from: 'IssueishSearchesController'}));
+  });
 });
