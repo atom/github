@@ -1,0 +1,11 @@
+{
+  "name": "schema-automerge",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./index.js"
+  },
+  "dependencies": {
+    "actions-toolkit": "^2.0.0"
+  }
+}
