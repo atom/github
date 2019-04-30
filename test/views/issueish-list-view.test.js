@@ -163,6 +163,20 @@ describe('IssueishListView', function() {
       more.find('.github-IssueishList-more a').simulate('click');
       assert.isTrue(onMoreClick.called);
     });
+
+    it('calls its `showActionsMenu` handler when the menu icon is clicked', function() {
+      const issueishes = [allGreen, mixed, allRed];
+      const showActionsMenu = sinon.stub();
+      const wrapper = shallow(buildApp({
+        isLoading: false,
+        total: 3,
+        issueishes,
+        showActionsMenu,
+      }));
+
+      wrapper.find('Octicon.github-IssueishList-item--menu').at(1).simulate('click');
+      assert.isTrue(showActionsMenu.calledWith(mixed));
+    });
   });
 
   it('renders review button only if needed', function() {
