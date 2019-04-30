@@ -118,14 +118,14 @@ describe('IssueishListView', function() {
       const wrapper = shallow(buildApp({isLoading: false, total: 1}));
       const result = wrapper.find('Accordion').renderProp('children')(allGreen);
       const accumulated = result.find(CheckSuitesAccumulator).renderProp('children')({runsBySuite: new Map()});
-      assert.strictEqual(accumulated.find('Octicon').prop('icon'), 'check');
+      assert.strictEqual(accumulated.find('Octicon.github-IssueishList-item--status').prop('icon'), 'check');
     });
 
     it('renders an x if all status checks have failed', function() {
       const wrapper = shallow(buildApp({isLoading: false, total: 1}));
       const result = wrapper.find('Accordion').renderProp('children')(allRed);
       const accumulated = result.find(CheckSuitesAccumulator).renderProp('children')({runsBySuite: new Map()});
-      assert.strictEqual(accumulated.find('Octicon').prop('icon'), 'x');
+      assert.strictEqual(accumulated.find('Octicon.github-IssueishList-item--status').prop('icon'), 'x');
     });
 
     it('renders a donut chart if status checks are mixed', function() {
@@ -144,7 +144,7 @@ describe('IssueishListView', function() {
       const result = wrapper.find('Accordion').renderProp('children')(noStatus);
       const accumulated = result.find(CheckSuitesAccumulator).renderProp('children')({runsBySuite: new Map()});
 
-      assert.strictEqual(accumulated.find('Octicon').prop('icon'), 'dash');
+      assert.strictEqual(accumulated.find('Octicon.github-IssueishList-item--status').prop('icon'), 'dash');
     });
 
     it('calls its onIssueishClick handler when an item is clicked', function() {
@@ -173,21 +173,27 @@ describe('IssueishListView', function() {
         issueishes,
         showActionsMenu,
       }));
+      const result = wrapper.find('Accordion').renderProp('children')(mixed);
+      const child = result.find(CheckSuitesAccumulator).renderProp('children')({runsBySuite: new Map()});
 
-      wrapper.find('Octicon.github-IssueishList-item--menu').at(1).simulate('click');
+      child.find('Octicon.github-IssueishList-item--menu').simulate('click', {
+        preventDefault() {},
+        stopPropagation() {},
+      });
       assert.isTrue(showActionsMenu.calledWith(mixed));
     });
   });
 
   it('renders review button only if needed', function() {
     const openReviews = sinon.spy();
-    const wrapper = shallow(buildApp({total: 1, openReviews}));
-    assert.isFalse(wrapper.exists('.github-IssueishList-openReviewsButton'));
+    const wrapper = shallow(buildApp({total: 1, issueishes: [allGreen], openReviews}));
+    const child0 = wrapper.find('Accordion').renderProp('reviewsButton')();
+    assert.isFalse(child0.exists('.github-IssueishList-openReviewsButton'));
 
     wrapper.setProps({needReviewsButton: true});
-    const reviews = wrapper.find('Accordion').renderProp('reviewsButton')();
-    assert.isTrue(reviews.exists('.github-IssueishList-openReviewsButton'));
-    reviews.find('.github-IssueishList-openReviewsButton').simulate('click', {stopPropagation() {}});
+    const child1 = wrapper.find('Accordion').renderProp('reviewsButton')();
+    assert.isTrue(child1.exists('.github-IssueishList-openReviewsButton'));
+    child1.find('.github-IssueishList-openReviewsButton').simulate('click', {stopPropagation() {}});
     assert.isTrue(openReviews.called);
   });
 });
