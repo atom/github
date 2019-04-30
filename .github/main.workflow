@@ -1,5 +1,5 @@
 workflow "GraphQL schema update" {
-  on = "schedule(0 1 * * MON)"
+  on = "schedule(0 1 * * 1)"
   resolves = "Update schema"
 }
 
