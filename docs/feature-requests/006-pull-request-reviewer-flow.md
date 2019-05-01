@@ -40,7 +40,7 @@ This tab shows all review summaries and review comments, including the ones that
 
 #### Header tabs
 | header with no pending review | header with pending review |
-|---|---| --- |
+|---|---|
 |<img width="380" alt="new header" src="https://user-images.githubusercontent.com/6842965/57045364-57989b00-6c3b-11e9-8e95-309a17441d98.png">|<img width="380" alt="new header" src="https://user-images.githubusercontent.com/6842965/57045356-54051400-6c3b-11e9-8918-1ba043163c4d.png">|
 
 - When there is no pending review, button reads "Start a new review", clicking on which will take you to the Pending Review tab in its empty state.
