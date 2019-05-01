@@ -49,7 +49,7 @@ export const StatusBuilder = createSpecBuilderClass('Status', {
 
 export const CommitBuilder = createSpecBuilderClass('Commit', {
   id: {default: nextID},
-  author: {linked: UserBuilder},
+  author: {linked: UserBuilder, default: null, nullable: true},
   committer: {linked: UserBuilder},
   authoredByCommitter: {default: true},
   sha: {default: '0000000000000000000000000000000000000000'},
@@ -66,7 +66,7 @@ export const CommitBuilder = createSpecBuilderClass('Commit', {
 
 export const CommitCommentBuilder = createSpecBuilderClass('CommitComment', {
   id: {default: nextID},
-  author: {linked: UserBuilder},
+  author: {linked: UserBuilder, default: null, nullable: true},
   commit: {linked: CommitBuilder},
   bodyHTML: {default: '<em>comment body</em>'},
   createdAt: {default: '2019-01-01T10:00:00Z'},
@@ -95,7 +95,7 @@ export const HeadRefForcePushedEventBuilder = createSpecBuilderClass('HeadRefFor
 }, 'Node');
 
 export const IssueCommentBuilder = createSpecBuilderClass('IssueComment', {
-  author: {linked: UserBuilder},
+  author: {linked: UserBuilder, default: null, nullable: true},
   bodyHTML: {default: '<em>issue comment</em>'},
   createdAt: {default: '2019-01-01T10:00:00Z'},
   url: {default: 'https://github.com/atom/github/issue/123'},
