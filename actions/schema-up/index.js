@@ -20,16 +20,18 @@ Toolkit.run(async tools => {
   await tools.runInWorkspace('git', ['commit', '--all', '--message=":arrow_up: GraphQL schema"']);
 
   tools.log.info('Re-running relay compiler.');
-  await tools.runInWorkspace(
+  const {failed: relayFailed, all: relayOutput} = await tools.runInWorkspace(
     path.resolve(__dirname, 'node_modules', '.bin', 'relay-compiler'),
     ['--src', './lib', '--schema', 'graphql/schema.graphql'],
+    {reject: false},
   );
 
   const {exitCode: hasRelayChanges} = await tools.runInWorkspace(
     'git', ['diff', '--quiet', '--', '**/__generated__/*.graphql.js'],
     {reject: false},
   );
-  if (hasRelayChanges === 0) {
+
+  if (hasRelayChanges === 0 && !relayFailed) {
     tools.log.info('Generated relay files are unchanged.');
     await tools.runInWorkspace('git', ['push']);
     tools.exit.success('Schema is up to date on master.');
@@ -53,14 +55,25 @@ Toolkit.run(async tools => {
   const branchName = `schema-update/${Date.now()}`;
   tools.log.info(`Commiting relay-compiler changes to a new branch ${branchName}.`);
   await tools.runInWorkspace('git', ['checkout', '-b', branchName]);
-  await tools.runInWorkspace('git', ['commit', '--all', '--message=":gear: relay-compiler changes"']);
+  if (!relayFailed) {
+    await tools.runInWorkspace('git', ['commit', '--all', '--message=":gear: relay-compiler changes"']);
+  }
   await tools.runInWorkspace('git', ['push', 'origin', branchName]);
 
   tools.log.info('Creating a pull request.');
 
-  const body = `:robot: _This automated pull request brought to you by a GitHub action_ :robot:
+  let body = `:robot: _This automated pull request brought to you by [a GitHub action](/actions/schema-up)_ :robot:
 
-The GraphQL schema has been automatically updated and relay-compiler has been re-run on the package source.`;
+The GraphQL schema has been automatically updated and \`relay-compiler\` has been re-run on the package source.`;
+
+  if (!relayFailed) {
+    body += ' The modified files have been committed to this branch and pushed. ';
+    body += 'If all of the tests pass in CI, merge with confidence :zap:';
+  } else {
+    body += ' `relay-compiler` failed with the following output:\n\n```\n';
+    body += relayOutput;
+    body += '\n```\n\nCheck out this branch to fix things so we don\'t break.';
+  }
 
   const {data: createPR} = await tools.github.graphql(`
     mutation CreatePullRequest($owner: String!, $repo: String!, $body: String!, $headRefName: String!) {
