@@ -38,16 +38,13 @@ The only way to submit a review within Atom is by using the ["Submit review" but
 ### "All Reviews" tab
 This tab shows all review summaries and review comments, including the ones that are part of a _pending review_ that has not been submitted yet.
 
-#### Header
-| current header | proposed header | proposed header with pending review |
+#### Header tabs
+| header with no pending review | header with pending review |
 |---|---| --- |
-|<img width="380" alt="old header" src="https://user-images.githubusercontent.com/6842965/56446925-7f027600-62d3-11e9-8635-e17b946f3b1b.png">|<img width="380" alt="new header" src="https://user-images.githubusercontent.com/6842965/56446924-7f027600-62d3-11e9-98f5-0ea1e2826343.png">|<img width="380" alt="new header" src="https://user-images.githubusercontent.com/6842965/56447078-4911c180-62d4-11e9-8543-4935ba587b38.png">|
+|<img width="380" alt="new header" src="https://user-images.githubusercontent.com/6842965/57045364-57989b00-6c3b-11e9-8e95-309a17441d98.png">|<img width="380" alt="new header" src="https://user-images.githubusercontent.com/6842965/57045356-54051400-6c3b-11e9-8918-1ba043163c4d.png">|
 
-- When there is no pending review, button reads "Start a review", clicking on which will take you to the Pending Review tab in its empty state.
-- When there is already a pending review, the button reads "Resume review (2)". The number is a counter of comments currently in the pending review. When adding more pending comments _within the All Reviews tab_ (more on that flow below), there should be some emphasis on the counter changing -- akin to the button on dotcom. Clicking on this button takes user to the Pending Review tab.
-
-##### Alternative: footer
-An alternative would be to add a footer bar at the bottom and place the add review button there. The caveat is that it might not be as noticeable as the header, and "start a new review" is an arguably more important action than "checkout".
+- When there is no pending review, button reads "Start a new review", clicking on which will take you to the Pending Review tab in its empty state.
+- When there is already a pending review, the button is replaced by a regular tab that reads "Pending Review (2)". The number is a counter of comments currently in the pending review. When adding more pending comments _within the All Reviews tab_ (more on that flow below), there should be some emphasis on the counter changing -- akin to the button on dotcom.
 
 #### Responding to a comment thread
 ![responding to a comment thread](https://user-images.githubusercontent.com/6842965/56689748-cdd05700-66a9-11e9-90e8-266c69cbc589.png)
@@ -83,7 +80,7 @@ The summary section of the Pending Review tab is sticky (although still collapsi
 
 The comments section of the Pending Review tab looks very similar to that of the All Reviews tab, except that the progress bar is replaced by a small comment counter on top of the whole section.
 
-**Empty State** of this section should contain a picture tutorial of how to add a comment via gutter icon.
+**Empty State** of this section should contain a graphical tutorial of how to add a comment via gutter icon, along with a way to quickly navigate to the files changed tab so users can start adding comments right away.
 
 
 ### New Comment
@@ -94,10 +91,7 @@ A new comment block can appear in either All Reviews tab or Pending Review tab, 
 
 ### "Add comment" gutter icon
 
-A user can start a review or add a comment to an existing pending review by clicking on the "add comment" icon which shows up on hover over the gutter of:
-
-1. MultiFilePatch view within Files tab in `PullRequestDetailView`
-2. an editor *if on a checked out PR branch*
+A user can start a review or add a comment to an existing pending review by clicking on the "add comment" icon which shows up on hover over the gutter of `MultiFilePatch` view within Files tab in `PullRequestDetailView`.
 
 The flow of starting a review or adding a comment from the gutter varies a bit depending on the state of reviews:
 
