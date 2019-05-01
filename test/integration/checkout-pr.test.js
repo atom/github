@@ -206,7 +206,7 @@ describe('integration: check out a pull request', function() {
     await teardown(context);
   });
 
-  it.only('opens a pane item for a pull request by clicking on an entry in the GitHub tab', async function() {
+  it('opens a pane item for a pull request by clicking on an entry in the GitHub tab', async function() {
     // Open the GitHub tab and wait for results to be rendered
     await atomEnv.commands.dispatch(workspaceElement, 'github:toggle-github-tab');
     await assert.async.isTrue(wrapper.update().find('.github-IssueishList-item').exists());
