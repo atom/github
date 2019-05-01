@@ -115,36 +115,23 @@ The flow of starting a review or adding a comment from the gutter varies a bit d
   3. New comment block is added to the Pending Review tab
 
 
---------------------
-
-**_Part 2 - Additional information_**
-
 ## :anchor: Drawbacks
 
-Why should we *not* do this?
+None considered, since this is a crucial part of a holistic pull request review experience.
 
 ## :thinking: Rationale and alternatives
 
-- Why is this approach the best in the space of possible approaches?
-- What other approaches have been considered and what is the rationale for not choosing them?
-- What is the impact of not doing this?
-
-## :question: Unresolved questions
-
-- What unresolved questions do you expect to resolve through the Feature Request process before this gets merged?
-- What unresolved questions do you expect to resolve through the implementation of this feature before it is released in a new version of the package?
+Since we have already decided and implemented review tab to _view_ PR review, it makes sense to extend the tab's functionality to include the capability of authoring a review.
 
 ## :warning: Out of Scope
 
-- What related issues do you consider out of scope for this Feature Request that could be addressed in the future independently of the solution that comes out of this Feature Request?
+- Allowing review comments to be left in regions _outside of_ the modified region of a PR
+- Adding comments from editor instead of just from files changed tab in `PRDetailView`
 
 ## :construction: Implementation phases
 
-- Can this functionality be introduced in multiple, distinct, self-contained pull requests?
-- A specification for when the feature is considered "done."
+An "edit comment" functionality will be needed for this feature. It can be a standalone piece that gets tackled separately, before starting the PR review authoring experience.
 
 ## :white_check_mark: Feature description for Atom release blog post
 
-- When this feature is shipped, what would we like to say or show in our Atom release blog post (example: http://blog.atom.io/2018/07/31/atom-1-29.html)
-- Feel free to drop ideas and gifs here during development
-- Once development is complete, write a blurb for the release coordinator to copy/paste into the Atom release blog
+TBD
