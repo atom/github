@@ -16,6 +16,7 @@ import * as reporterProxy from '../../lib/reporter-proxy';
 import {repositoryBuilder} from '../builder/graphql/repository';
 import {pullRequestBuilder} from '../builder/graphql/pr';
 import {cloneRepository, buildRepository} from '../helpers';
+import {GHOST_USER} from '../../lib/helpers';
 
 import repositoryQuery from '../../lib/views/__generated__/prDetailView_repository.graphql';
 import pullRequestQuery from '../../lib/views/__generated__/prDetailView_pullRequest.graphql';
@@ -137,6 +138,14 @@ describe('PullRequestDetailView', function() {
 
     assert.strictEqual(wrapper.find('.github-IssueishDetailView-baseRefName').text(), 'master');
     assert.strictEqual(wrapper.find('.github-IssueishDetailView-headRefName').text(), 'tt/heck-yes');
+  });
+
+  it('renders ghost user if author is null', function() {
+    const wrapper = shallow(buildApp({}));
+
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-avatar').prop('href'), GHOST_USER.url);
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-avatarImage').prop('src'), GHOST_USER.avatarUrl);
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-avatarImage').prop('alt'), GHOST_USER.login);
   });
 
   it('renders footer and passes review thread props through', function() {

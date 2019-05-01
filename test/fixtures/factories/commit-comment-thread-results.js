@@ -6,6 +6,7 @@ export function createCommitComment(opts = {}) {
   const o = {
     id: idGen.generate('comment-comment'),
     commitOid: '1234abcd',
+    includeAuthor: true,
     authorLogin: 'author0',
     authorAvatarUrl: 'https://avatars2.githubusercontent.com/u/0?v=12',
     bodyHTML: '<p>body</p>',
@@ -14,14 +15,9 @@ export function createCommitComment(opts = {}) {
     ...opts,
   };
 
-  return {
+  const comment = {
     id: o.id,
-    author: {
-      __typename: 'User',
-      id: idGen.generate('user'),
-      login: o.authorLogin,
-      avatarUrl: o.authorAvatarUrl,
-    },
+    author: null,
     commit: {
       oid: o.commitOid,
     },
@@ -29,6 +25,17 @@ export function createCommitComment(opts = {}) {
     createdAt: o.createdAt,
     path: o.commentPath,
   };
+
+  if (o.includeAuthor) {
+    comment.author = {
+      __typename: 'User',
+      id: idGen.generate('user'),
+      login: o.authorLogin,
+      avatarUrl: o.authorAvatarUrl,
+    }
+  }
+
+  return comment;
 }
 
 export function createCommitCommentThread(opts = {}) {
