@@ -18,7 +18,7 @@ export const IssueBuilder = createSpecBuilderClass('Issue', {
   number: {default: 123},
   state: {default: 'OPEN'},
   bodyHTML: {default: '<h1>HI</h1>'},
-  author: {linked: UserBuilder, default: null},
+  author: {linked: UserBuilder, default: null, nullable: true},
   reactionGroups: {linked: ReactionGroupBuilder, plural: true, singularName: 'reactionGroup'},
   viewerCanReact: {default: true},
   timeline: {linked: createConnectionBuilderClass('IssueTimeline', IssueTimelineItemBuilder)},
