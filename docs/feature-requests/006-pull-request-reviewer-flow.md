@@ -101,7 +101,7 @@ A user can start a review or add a comment to an existing pending review by clic
 
 The flow of starting a review or adding a comment from the gutter varies a bit depending on the state of reviews:
 
-* If there is no reviews at all
+* If there are no reviews at all
   1. User clicks on "add comment" icon in gutter
   2. *Pending Review* tab opens in empty state
   3. New comment block is added to the Pending Review tab
