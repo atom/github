@@ -219,6 +219,7 @@ We could open dotcom for repository creation, but then we would have no way to s
 This effort should not include:
 
 * GitHub enterprise support. (:sad:) We have separate issues ([#270](https://github.com/atom/github/issues/270), [#919](https://github.com/atom/github/issues/919)) to track that, although this does complicate its eventual implementation, because the clone and create dialogs need to be Enterprise-aware.
+* General remote management ([#555](https://github.com/atom/github/issues/555)).
 
 ## :construction: Implementation phases
 
