@@ -60,8 +60,7 @@ Toolkit.run(async tools => {
 
   const body = `:robot: _This automated pull request brought to you by a GitHub action_ :robot:
 
-The GraphQL schema has been automatically updated and relay-compiler has been re-run on the package source. This
-pull request will be automatically merged if all status checks are :white_check_mark:.`;
+The GraphQL schema has been automatically updated and relay-compiler has been re-run on the package source.`;
 
   const {data: createPR} = await tools.github.graphql(`
     mutation CreatePullRequest($owner: String!, $repo: String!, $body: String!, $headRefName: String!) {
