@@ -46,7 +46,7 @@ Toolkit.run(async tools => {
   }
 
   tools.log.info('Checking for unmerged schema update pull requests.');
-  const response = await tools.github.graphql(`
+  const openPullRequestsQuery = await tools.github.graphql(`
     query openPullRequestsQuery($owner: String!, $repo: String!, $labelName: String!) {
       repository(owner: $owner, name: $repo) {
         id
@@ -56,8 +56,6 @@ Toolkit.run(async tools => {
       }
     }
   `, {...tools.context.repo, labelName: schemaUpdateLabel.name});
-  tools.log.info('GraphQL response: ' + require('util').inspect(response));
-  const {openPullRequestsQuery} = response;
 
   const repositoryId = openPullRequestsQuery.repository.id;
 
@@ -88,7 +86,7 @@ The GraphQL schema has been automatically updated and \`relay-compiler\` has bee
     body += '\n```\n\nCheck out this branch to fix things so we don\'t break.';
   }
 
-  const {createPullRequestMutation} = await tools.github.graphql(`
+  const createPullRequestMutation = await tools.github.graphql(`
     mutation createPullRequestMutation($repositoryId: ID!, $headRefName: String!, $body: String!) {
       createPullRequest(input: {
         repositoryId: $repositoryId
@@ -111,7 +109,8 @@ The GraphQL schema has been automatically updated and \`relay-compiler\` has bee
 
   const createdPullRequest = createPullRequestMutation.createPullRequest.pullRequest;
   tools.log.info(
-    `Pull request #${createdPullRequest.number} has been opened with the changes from this schema upgrade.`);
+    `Pull request #${createdPullRequest.number} has been opened with the changes from this schema upgrade.`,
+  );
 
   await tools.github.graphql(`
     mutation labelPullRequestMutation($id: ID!, $labelIDs: [ID!]!) {
