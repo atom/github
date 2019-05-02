@@ -704,6 +704,454 @@ type ChangeUserStatusPayload {
   status: UserStatus
 }
 
+"""A single check annotation."""
+type CheckAnnotation {
+  """The annotation's severity level."""
+  annotationLevel: CheckAnnotationLevel
+
+  """The path to the file that this annotation was made on."""
+  blobUrl: URI!
+
+  """Identifies the primary key from the database."""
+  databaseId: Int
+
+  """The position of this annotation."""
+  location: CheckAnnotationSpan!
+
+  """The annotation's message."""
+  message: String!
+
+  """The path that this annotation was made on."""
+  path: String!
+
+  """Additional information about the annotation."""
+  rawDetails: String
+
+  """The annotation's title"""
+  title: String
+}
+
+"""The connection type for CheckAnnotation."""
+type CheckAnnotationConnection {
+  """A list of edges."""
+  edges: [CheckAnnotationEdge]
+
+  """A list of nodes."""
+  nodes: [CheckAnnotation]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+
+"""Information from a check run analysis to specific lines of code."""
+input CheckAnnotationData {
+  """The path of the file to add an annotation to."""
+  path: String!
+
+  """The location of the annotation"""
+  location: CheckAnnotationRange!
+
+  """Represents an annotation's information level"""
+  annotationLevel: CheckAnnotationLevel!
+
+  """A short description of the feedback for these lines of code."""
+  message: String!
+
+  """The title that represents the annotation."""
+  title: String
+
+  """Details about this annotation."""
+  rawDetails: String
+}
+
+"""An edge in a connection."""
+type CheckAnnotationEdge {
+  """A cursor for use in pagination."""
+  cursor: String!
+
+  """The item at the end of the edge."""
+  node: CheckAnnotation
+}
+
+"""Represents an annotation's information level."""
+enum CheckAnnotationLevel {
+  """An annotation indicating an inescapable error."""
+  FAILURE
+
+  """An annotation indicating some information."""
+  NOTICE
+
+  """An annotation indicating an ignorable error."""
+  WARNING
+}
+
+"""A character position in a check annotation."""
+type CheckAnnotationPosition {
+  """Column number (1 indexed)."""
+  column: Int
+
+  """Line number (1 indexed)."""
+  line: Int!
+}
+
+"""Information from a check run analysis to specific lines of code."""
+input CheckAnnotationRange {
+  """The starting line of the range."""
+  startLine: Int!
+
+  """The starting column of the range."""
+  startColumn: Int
+
+  """The ending line of the range."""
+  endLine: Int!
+
+  """The ending column of the range."""
+  endColumn: Int
+}
+
+"""An inclusive pair of positions for a check annotation."""
+type CheckAnnotationSpan {
+  """End position (inclusive)."""
+  end: CheckAnnotationPosition!
+
+  """Start position (inclusive)."""
+  start: CheckAnnotationPosition!
+}
+
+"""The possible states for a check suite or run conclusion."""
+enum CheckConclusionState {
+  """The check suite or run requires action."""
+  ACTION_REQUIRED
+
+  """The check suite or run has timed out."""
+  TIMED_OUT
+
+  """The check suite or run has been cancelled."""
+  CANCELLED
+
+  """The check suite or run has failed."""
+  FAILURE
+
+  """The check suite or run has succeeded."""
+  SUCCESS
+
+  """The check suite or run was neutral."""
+  NEUTRAL
+}
+
+"""A check run."""
+type CheckRun implements Node & UniformResourceLocatable {
+  """The check run's annotations"""
+  annotations(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ): CheckAnnotationConnection
+
+  """The check suite that this run is a part of."""
+  checkSuite: CheckSuite!
+
+  """Identifies the date and time when the check run was completed."""
+  completedAt: DateTime
+
+  """The conclusion of the check run."""
+  conclusion: CheckConclusionState
+
+  """Identifies the primary key from the database."""
+  databaseId: Int
+
+  """
+  The URL from which to find full details of the check run on the integrator's site.
+  """
+  detailsUrl: URI
+
+  """A reference for the check run on the integrator's system."""
+  externalId: String
+  id: ID!
+
+  """The name of the check for this check run."""
+  name: String!
+
+  """The permalink to the check run summary."""
+  permalink: URI!
+
+  """The repository associated with this check run."""
+  repository: Repository!
+
+  """The HTTP path for this check run."""
+  resourcePath: URI!
+
+  """Identifies the date and time when the check run was started."""
+  startedAt: DateTime
+
+  """The current status of the check run."""
+  status: CheckStatusState!
+
+  """A string representing the check run's summary"""
+  summary: String
+
+  """A string representing the check run's text"""
+  text: String
+
+  """A string representing the check run"""
+  title: String
+
+  """The HTTP URL for this check run."""
+  url: URI!
+}
+
+"""Possible further actions the integrator can perform."""
+input CheckRunAction {
+  """The text to be displayed on a button in the web UI."""
+  label: String!
+
+  """A short explanation of what this action would do."""
+  description: String!
+
+  """A reference for the action on the integrator's system. """
+  identifier: String!
+}
+
+"""The connection type for CheckRun."""
+type CheckRunConnection {
+  """A list of edges."""
+  edges: [CheckRunEdge]
+
+  """A list of nodes."""
+  nodes: [CheckRun]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+
+"""An edge in a connection."""
+type CheckRunEdge {
+  """A cursor for use in pagination."""
+  cursor: String!
+
+  """The item at the end of the edge."""
+  node: CheckRun
+}
+
+"""The filters that are available when fetching check runs."""
+input CheckRunFilter {
+  """Filters the check runs by this type."""
+  checkType: CheckRunType
+
+  """Filters the check runs created by this application ID."""
+  appId: Int
+
+  """Filters the check runs by this name."""
+  checkName: String
+
+  """Filters the check runs by this status."""
+  status: CheckStatusState
+}
+
+"""Descriptive details about the check run."""
+input CheckRunOutput {
+  """A title to provide for this check run."""
+  title: String!
+
+  """The summary of the check run (supports Commonmark)."""
+  summary: String!
+
+  """The details of the check run (supports Commonmark)."""
+  text: String
+
+  """The annotations that are made as part of the check run."""
+  annotations: [CheckAnnotationData!]
+
+  """
+  Images attached to the check run output displayed in the GitHub pull request UI.
+  """
+  images: [CheckRunOutputImage!]
+}
+
+"""
+Images attached to the check run output displayed in the GitHub pull request UI.
+"""
+input CheckRunOutputImage {
+  """The alternative text for the image."""
+  alt: String!
+
+  """The full URL of the image."""
+  imageUrl: URI!
+
+  """A short image description."""
+  caption: String
+}
+
+"""The possible types of check runs."""
+enum CheckRunType {
+  """Every check run available."""
+  ALL
+
+  """The latest check run."""
+  LATEST
+}
+
+"""The possible states for a check suite or run status."""
+enum CheckStatusState {
+  """The check suite or run has been queued."""
+  QUEUED
+
+  """The check suite or run is in progress."""
+  IN_PROGRESS
+
+  """The check suite or run has been completed."""
+  COMPLETED
+
+  """The check suite or run has been requested."""
+  REQUESTED
+}
+
+"""A check suite."""
+type CheckSuite implements Node {
+  """The GitHub App which created this check suite."""
+  app: App
+
+  """The name of the branch for this check suite."""
+  branch: Ref
+
+  """The check runs associated with a check suite."""
+  checkRuns(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Filters the check runs by this type."""
+    filterBy: CheckRunFilter
+  ): CheckRunConnection
+
+  """The commit for this check suite"""
+  commit: Commit!
+
+  """The conclusion of this check suite."""
+  conclusion: CheckConclusionState
+
+  """Identifies the date and time when the object was created."""
+  createdAt: DateTime!
+
+  """Identifies the primary key from the database."""
+  databaseId: Int
+  id: ID!
+
+  """A list of open pull requests matching the check suite."""
+  matchingPullRequests(
+    """A list of states to filter the pull requests by."""
+    states: [PullRequestState!]
+
+    """A list of label names to filter the pull requests by."""
+    labels: [String!]
+
+    """The head ref name to filter the pull requests by."""
+    headRefName: String
+
+    """The base ref name to filter the pull requests by."""
+    baseRefName: String
+
+    """Ordering options for pull requests returned from the connection."""
+    orderBy: IssueOrder
+
+    """Returns the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ): PullRequestConnection
+
+  """The push that triggered this check suite."""
+  push: Push
+
+  """The repository associated with this check suite."""
+  repository: Repository!
+
+  """The status of this check suite."""
+  status: CheckStatusState!
+
+  """Identifies the date and time when the object was last updated."""
+  updatedAt: DateTime!
+}
+
+"""The auto-trigger preferences that are available for check suites."""
+input CheckSuiteAutoTriggerPreference {
+  """The node ID of the application that owns the check suite."""
+  appId: ID!
+
+  """
+  Set to `true` to enable automatic creation of CheckSuite events upon pushes to the repository.
+  """
+  setting: Boolean!
+}
+
+"""The connection type for CheckSuite."""
+type CheckSuiteConnection {
+  """A list of edges."""
+  edges: [CheckSuiteEdge]
+
+  """A list of nodes."""
+  nodes: [CheckSuite]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+
+"""An edge in a connection."""
+type CheckSuiteEdge {
+  """A cursor for use in pagination."""
+  cursor: String!
+
+  """The item at the end of the edge."""
+  node: CheckSuite
+}
+
+"""The filters that are available when fetching check suites."""
+input CheckSuiteFilter {
+  """Filters the check suites created by this application ID."""
+  appId: Int
+
+  """Filters the check suites by this name."""
+  checkName: String
+}
+
 """Autogenerated input type of ClearLabelsFromLabelable"""
 input ClearLabelsFromLabelableInput {
   """The id of the labelable object to clear the labels from."""
@@ -1033,6 +1481,26 @@ type Commit implements Node & GitObject & Subscribable & UniformResourceLocatabl
 
   """The number of changed files in this commit."""
   changedFiles: Int!
+
+  """The check suites associated with a commit."""
+  checkSuites(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Filters the check suites by this type."""
+    filterBy: CheckSuiteFilter
+  ): CheckSuiteConnection
 
   """Comments made on the commit."""
   comments(
@@ -2113,6 +2581,79 @@ input CreateBranchProtectionRuleInput {
 type CreateBranchProtectionRulePayload {
   """The newly created BranchProtectionRule."""
   branchProtectionRule: BranchProtectionRule
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated input type of CreateCheckRun"""
+input CreateCheckRunInput {
+  """The node ID of the repository."""
+  repositoryId: ID!
+
+  """The name of the check."""
+  name: String!
+
+  """The SHA of the head commit."""
+  headSha: GitObjectID!
+
+  """
+  The URL of the integrator's site that has the full details of the check.
+  """
+  detailsUrl: URI
+
+  """A reference for the run on the integrator's system."""
+  externalId: String
+
+  """The current status."""
+  status: RequestableCheckStatusState
+
+  """The time that the check run began."""
+  startedAt: DateTime
+
+  """The final conclusion of the check."""
+  conclusion: CheckConclusionState
+
+  """The time that the check run finished."""
+  completedAt: DateTime
+
+  """Descriptive details about the run."""
+  output: CheckRunOutput
+
+  """
+  Possible further actions the integrator can perform, which a user may trigger.
+  """
+  actions: [CheckRunAction!]
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated return type of CreateCheckRun"""
+type CreateCheckRunPayload {
+  """The newly created check run."""
+  checkRun: CheckRun
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated input type of CreateCheckSuite"""
+input CreateCheckSuiteInput {
+  """The Node ID of the repository."""
+  repositoryId: ID!
+
+  """The SHA of the head commit."""
+  headSha: GitObjectID!
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated return type of CreateCheckSuite"""
+type CreateCheckSuitePayload {
+  """The newly created check suite."""
+  checkSuite: CheckSuite
 
   """A unique identifier for the client performing the mutation."""
   clientMutationId: String
@@ -5549,6 +6090,12 @@ type Mutation {
   """Create a new branch protection rule"""
   createBranchProtectionRule(input: CreateBranchProtectionRuleInput!): CreateBranchProtectionRulePayload
 
+  """Create a check run."""
+  createCheckRun(input: CreateCheckRunInput!): CreateCheckRunPayload
+
+  """Create a check suite"""
+  createCheckSuite(input: CreateCheckSuiteInput!): CreateCheckSuitePayload
+
   """Creates a new issue."""
   createIssue(input: CreateIssueInput!): CreateIssuePayload
 
@@ -5624,6 +6171,9 @@ type Mutation {
   """Set review requests on a pull request."""
   requestReviews(input: RequestReviewsInput!): RequestReviewsPayload
 
+  """Rerequests an existing check suite."""
+  rerequestCheckSuite(input: RerequestCheckSuiteInput!): RerequestCheckSuitePayload
+
   """Marks a review thread as resolved."""
   resolveReviewThread(input: ResolveReviewThreadInput!): ResolveReviewThreadPayload
 
@@ -5641,6 +6191,12 @@ type Mutation {
 
   """Create a new branch protection rule"""
   updateBranchProtectionRule(input: UpdateBranchProtectionRuleInput!): UpdateBranchProtectionRulePayload
+
+  """Update a check run"""
+  updateCheckRun(input: UpdateCheckRunInput!): UpdateCheckRunPayload
+
+  """Modifies the settings of an existing check suite"""
+  updateCheckSuitePreferences(input: UpdateCheckSuitePreferencesInput!): UpdateCheckSuitePreferencesPayload
 
   """Updates an Issue."""
   updateIssue(input: UpdateIssueInput!): UpdateIssuePayload
@@ -8259,6 +8815,26 @@ enum PullRequestTimelineItemsItemType {
   UNSUBSCRIBED_EVENT
 }
 
+"""A Git push."""
+type Push implements Node {
+  id: ID!
+
+  """The SHA after the push"""
+  nextSha: GitObjectID
+
+  """The permalink for this push."""
+  permalink: URI!
+
+  """The SHA before the push"""
+  previousSha: GitObjectID
+
+  """The user who pushed"""
+  pusher: User!
+
+  """The repository that was pushed to"""
+  repository: Repository!
+}
+
 """A team or user who has the ability to push to a protected branch."""
 type PushAllowance implements Node {
   """The actor that can push."""
@@ -10286,6 +10862,18 @@ type RepositoryTopicEdge {
   node: RepositoryTopic
 }
 
+"""The possible states that can be requested when creating a check run."""
+enum RequestableCheckStatusState {
+  """The check suite or run has been queued."""
+  QUEUED
+
+  """The check suite or run is in progress."""
+  IN_PROGRESS
+
+  """The check suite or run has been completed."""
+  COMPLETED
+}
+
 """Types that can be requested reviewers."""
 union RequestedReviewer = User | Team
 
@@ -10317,6 +10905,27 @@ type RequestReviewsPayload {
 
   """The edge from the pull request to the requested reviewers."""
   requestedReviewersEdge: UserEdge
+}
+
+"""Autogenerated input type of RerequestCheckSuite"""
+input RerequestCheckSuiteInput {
+  """The Node ID of the repository."""
+  repositoryId: ID!
+
+  """The Node ID of the check suite."""
+  checkSuiteId: ID!
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated return type of RerequestCheckSuite"""
+type RerequestCheckSuitePayload {
+  """The requested check suite."""
+  checkSuite: CheckSuite
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
 }
 
 """Autogenerated input type of ResolveReviewThread"""
@@ -11957,6 +12566,79 @@ type UpdateBranchProtectionRulePayload {
 
   """A unique identifier for the client performing the mutation."""
   clientMutationId: String
+}
+
+"""Autogenerated input type of UpdateCheckRun"""
+input UpdateCheckRunInput {
+  """The node ID of the repository."""
+  repositoryId: ID!
+
+  """The node of the check."""
+  checkRunId: ID!
+
+  """The name of the check."""
+  name: String
+
+  """
+  The URL of the integrator's site that has the full details of the check.
+  """
+  detailsUrl: URI
+
+  """A reference for the run on the integrator's system."""
+  externalId: String
+
+  """The current status."""
+  status: RequestableCheckStatusState
+
+  """The time that the check run began."""
+  startedAt: DateTime
+
+  """The final conclusion of the check."""
+  conclusion: CheckConclusionState
+
+  """The time that the check run finished."""
+  completedAt: DateTime
+
+  """Descriptive details about the run."""
+  output: CheckRunOutput
+
+  """
+  Possible further actions the integrator can perform, which a user may trigger.
+  """
+  actions: [CheckRunAction!]
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated return type of UpdateCheckRun"""
+type UpdateCheckRunPayload {
+  """The updated check run."""
+  checkRun: CheckRun
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated input type of UpdateCheckSuitePreferences"""
+input UpdateCheckSuitePreferencesInput {
+  """The Node ID of the repository."""
+  repositoryId: ID!
+
+  """The check suite preferences to modify."""
+  autoTriggerPreferences: [CheckSuiteAutoTriggerPreference!]!
+
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+}
+
+"""Autogenerated return type of UpdateCheckSuitePreferences"""
+type UpdateCheckSuitePreferencesPayload {
+  """A unique identifier for the client performing the mutation."""
+  clientMutationId: String
+
+  """The updated repository."""
+  repository: Repository
 }
 
 """Autogenerated input type of UpdateIssueComment"""
