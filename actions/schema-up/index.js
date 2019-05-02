@@ -25,7 +25,7 @@ Toolkit.run(async tools => {
   }
 
   tools.log.info('Committing schema changes.');
-  await tools.runInWorkspace('git', ['commit', '--all', '--message=":arrow_up: GraphQL schema"']);
+  await tools.runInWorkspace('git', ['commit', '--all', '--message', ':arrow_up: GraphQL schema']);
 
   tools.log.info('Re-running relay compiler.');
   const {failed: relayFailed, all: relayOutput} = await tools.runInWorkspace(
