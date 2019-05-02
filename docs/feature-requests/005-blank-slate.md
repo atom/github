@@ -133,6 +133,56 @@ Clicking the "Clone" button:
 * Ensures that the clone destination is the active GitHub package context.
 * Closes the "Clone repository" dialog.
 
+## Connect repository dialog
+
+The connect repository dialog is similar to the [clone repository dialog](#clone-repository-dialog), but omits the controls related to choosing a clone destination.
+
+The connect repository dialog begins in search mode. As you type within the text input, once more than three characters have been entered, repositories on GitHub matching the entered text appear in the result list below. Repositories may be identified by full clone URL, `owner/name` pair, or a unique substring of `owner/name`.
+
+> TODO: connect repository, search results
+
+### GitHub clone mode
+
+Clicking on an entry in the search result list or entering the full clone URL of a GitHub repository changes the dialog to "GitHub clone" mode:
+
+> TODO: connect repository, GitHub clone mode
+
+If the authenticated user cannot push to the chosen GitHub repository, the "fork" checkbox is pre-checked.
+
+While the "fork" checkbox is checked, the "fork destination" dropdown is also shown, populated with organizations to which the user belongs. Organizations within which the user does not has permission to create repositories are disabled with an explanatory suffix. The user's account is selected by default in the "fork destination" dropdown. The "upstream remote name" input is shown and populated with the value of the Atom config setting `github.upstreamRemoteName`.
+
+> TODO: connect repository, GitHub clone mode, fork destination selection: no existing forks
+
+If the user already has push rights to a fork of the chosen repository, they are prompted to clone an existing fork instead.
+
+> TODO: connect repository, GitHub clone mode, fork destination selection: existing forks
+
+Clicking on an existing fork modifies the search query to select the chosen fork.
+
+### Non-GitHub clone mode
+
+Entering the full clone URL of a non-GitHub repository changes the dialog to "non-GitHub clone" mode:
+
+> TODO: connect repository, non-GitHub clone mode
+
+### Common behavior
+
+The "remote name" input is pre-populated with the value of the Atom setting `github.cloneSourceRemoteName`. If it's changed to be empty, or to contain characters that are not valid in a git remote name, an error message is shown.
+
+The "Connect" button is enabled when:
+
+* A remote source is uniquely identified, by GitHub `name/owner` or git URL;
+* The "remote name" input is populated with a valid git remote name;
+* The fork checkbox is unchecked, or it is checked, an enabled fork destination is chosen from the dropdown, and the "upstream remote name" input is populated with a valid git remote name.
+
+Clicking the "Connect" button:
+
+* If the fork checkbox is checked, forks the repository to the chosen fork destination.
+* Adds the chosen repository or the newly created fork as a remote with the chosen remote name.
+* If the fork checkbox was checked, adds the fork source as a remote with the chosen upstream remote name.
+* Ensures that the connected local repository is the active GitHub package context.
+* Closes the "Connect repository" dialog.
+
 ## Create repository dialog
 
 The create repository dialog may be opened in either "no local repository" mode or "local repository" mode.
