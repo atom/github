@@ -69,7 +69,7 @@ Toolkit.run(async tools => {
   tools.log.info(`Commiting relay-compiler changes to a new branch ${branchName}.`);
   await tools.runInWorkspace('git', ['checkout', '-b', branchName]);
   if (!relayFailed) {
-    await tools.runInWorkspace('git', ['commit', '--all', '--message=":gear: relay-compiler changes"']);
+    await tools.runInWorkspace('git', ['commit', '--all', '--message', ':gear: relay-compiler changes']);
   }
   await tools.runInWorkspace('git', ['push', 'origin', branchName]);
 
