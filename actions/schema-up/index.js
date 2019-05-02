@@ -54,6 +54,8 @@ Toolkit.run(async tools => {
     }
   `, {...tools.context.repo, labelName: schemaUpdateLabel.name});
 
+  const repositoryId = openSchemaUpdatePRs.repository.id;
+
   if (openSchemaUpdatePRs.repository.pullRequests.totalCount > 0) {
     tools.exit.failure('One or more schema update pull requests are already open. Please resolve those first.');
   }
@@ -82,10 +84,12 @@ The GraphQL schema has been automatically updated and \`relay-compiler\` has bee
   }
 
   const {data: createPR} = await tools.github.graphql(`
-    mutation CreatePullRequest($repositoryId: ID!, $baseRefName: String!, $body: String!, $headRefName: String!) {
+    mutation CreatePullRequest($repositoryId: ID!, $headRefName: String!, $body: String!) {
       createPullRequest(input: {
+        repositoryId: $repositoryId
         title: "GraphQL schema update"
         body: $body
+        baseRefName: "master"
         headRefName: $headRefName
       }) {
         pullRequest {
@@ -94,7 +98,11 @@ The GraphQL schema has been automatically updated and \`relay-compiler\` has bee
         }
       }
     }
-  `, {...tools.context.repo, body, headRefName: branchName});
+  `, {
+    repositoryId,
+    headRefName: branchName,
+    body,
+  });
 
   const createdPullRequest = createPR.createPullRequest.pullRequest;
   tools.log.info(
