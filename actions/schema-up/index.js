@@ -15,7 +15,7 @@ Toolkit.run(async tools => {
   tools.log.info('Fetching the latest GraphQL schema changes.');
   await fetchSchema();
 
-  const {exitCode: hasSchemaChanges} = await tools.runInWorkspace(
+  const {code: hasSchemaChanges} = await tools.runInWorkspace(
     'git', ['diff', '--quiet', '--', 'graphql/schema.graphql'],
     {reject: false},
   );
@@ -35,7 +35,7 @@ Toolkit.run(async tools => {
   );
   tools.log.info('Relay output:\n%s', relayOutput);
 
-  const {exitCode: hasRelayChanges} = await tools.runInWorkspace(
+  const {code: hasRelayChanges} = await tools.runInWorkspace(
     'git', ['diff', '--quiet'],
     {reject: false},
   );
