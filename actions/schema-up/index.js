@@ -46,8 +46,8 @@ Toolkit.run(async tools => {
   }
 
   tools.log.info('Checking for unmerged schema update pull requests.');
-  const {data: openSchemaUpdatePRs} = await tools.github.graphql(`
-    query OpenPullRequests($owner: String!, $repo: String!, $labelName: String!) {
+  const {openPullRequestsQuery} = await tools.github.graphql(`
+    query openPullRequestsQuery($owner: String!, $repo: String!, $labelName: String!) {
       repository(owner: $owner, name: $repo) {
         id
         pullRequests(first: 1, states: [OPEN], labels: [$labelName]) {
@@ -57,9 +57,9 @@ Toolkit.run(async tools => {
     }
   `, {...tools.context.repo, labelName: schemaUpdateLabel.name});
 
-  const repositoryId = openSchemaUpdatePRs.repository.id;
+  const repositoryId = openPullRequestsQuery.repository.id;
 
-  if (openSchemaUpdatePRs.repository.pullRequests.totalCount > 0) {
+  if (openPullRequestsQuery.repository.pullRequests.totalCount > 0) {
     tools.exit.failure('One or more schema update pull requests are already open. Please resolve those first.');
   }
 
@@ -86,8 +86,8 @@ The GraphQL schema has been automatically updated and \`relay-compiler\` has bee
     body += '\n```\n\nCheck out this branch to fix things so we don\'t break.';
   }
 
-  const {data: createPR} = await tools.github.graphql(`
-    mutation CreatePullRequest($repositoryId: ID!, $headRefName: String!, $body: String!) {
+  const {createPullRequestMutation} = await tools.github.graphql(`
+    mutation createPullRequestMutation($repositoryId: ID!, $headRefName: String!, $body: String!) {
       createPullRequest(input: {
         repositoryId: $repositoryId
         title: "GraphQL schema update"
@@ -107,12 +107,12 @@ The GraphQL schema has been automatically updated and \`relay-compiler\` has bee
     body,
   });
 
-  const createdPullRequest = createPR.createPullRequest.pullRequest;
+  const createdPullRequest = createPullRequestMutation.createPullRequest.pullRequest;
   tools.log.info(
     `Pull request #${createdPullRequest.number} has been opened with the changes from this schema upgrade.`);
 
   await tools.github.graphql(`
-    mutation LabelPullRequest($id: ID!, $labelIDs: [ID!]!) {
+    mutation labelPullRequestMutation($id: ID!, $labelIDs: [ID!]!) {
       addLabelsToLabelable(input: {
         labelableId: $id,
         labelIds: $labelIDs
