@@ -5,6 +5,8 @@ LABEL "com.github.actions.description"="Update GraphQL schema and adjust Relay f
 LABEL "com.github.actions.icon"="arrow-up-right"
 LABEL "com.github.actions.color"="blue"
 
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+
 # Copy the package.json and package-lock.json
 COPY package*.json /
 
