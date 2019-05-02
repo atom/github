@@ -28,11 +28,13 @@ Toolkit.run(async tools => {
   await tools.runInWorkspace('git', ['commit', '--all', '--message', ':arrow_up: GraphQL schema']);
 
   tools.log.info('Re-running relay compiler.');
-  const {failed: relayFailed, all: relayOutput} = await tools.runInWorkspace(
+  const result = await tools.runInWorkspace(
     path.resolve(__dirname, 'node_modules', '.bin', 'relay-compiler'),
     ['--src', './lib', '--schema', 'graphql/schema.graphql'],
     {reject: false},
   );
+  tools.log.info('exec output: ' + require('util').inspect(result));
+  const {failed: relayFailed, all: relayOutput} = result;
 
   const {exitCode: hasRelayChanges} = await tools.runInWorkspace(
     'git', ['diff', '--quiet', '--', '**/__generated__/*.graphql.js'],
