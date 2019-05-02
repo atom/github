@@ -145,10 +145,6 @@ The "owner" drop-down is populated with the user's account name and the list of 
 
 The "repository name" field is initially empty and focused. As the user types, an error message appears if a repository with the chosen name and owner already exists.
 
-The "add .gitignore" dropdown is populated with the value "none" and a selectable value for each file in the root directory of [the github/gitignore repository](https://github.com/github/gitignore). These values are cached per Atom renderer process. "none" is selected by default.
-
-The "license template" dropdown is populated with the value "none" and a selectable value chosen from [the "commonly used licenses" API endpoint on GitHub](https://developer.github.com/v3/licenses/#list-commonly-used-licenses). These values are cached per Atom renderer process. "none" is selected by default.
-
 The "source remote name" input is pre-populated with the value of the Atom setting `github.cloneSourceRemoteName`. If it's changed to be empty, or to contain characters that are not valid in a git remote name, an error message is shown.
 
 The clone destination path is pre-populated with the directory specified as `core.projectHome` in the user's Atom settings joined with the repository name. If the destination directory already exists, the path is considered invalid and an error message is shown.
@@ -166,18 +162,11 @@ Clicking the "Create" button:
 The major difference in this mode is that certain controls are pre-populated with values from the state of the provided local repository.
 
 * The "repository name" field is pre-populated with the directory name of the local repository's root directory.
-* The "create README" checkbox is unchecked. It is disabled if a file matching `README.*` is already present in the local repository.
-* The "add .gitignore" dropdown is disabled if a file called `.gitignore` is already present in the local repository.
-* The "license template" dropdown is disabled if a file matching `LICENSE.*` is already present in the local repository.
 * The "source remote" field is invalid if a remote with the given name is already present in the local repository.
 
 Clicking the "Create" button also behaves slightly differently:
 
 * Initializes a git repository in the local repository path if it is not already a git repository.
-* Adds a templated README if "create README" was checked.
-* Adds a stock `.gitignore` file if "add .gitignore" was not "none".
-* Adds the license template as a file called `LICENSE` if "license template" was not "none". Values for `[fullname]`, `[login]`, `[year]`, and other placeholders are replaced with best guesses from the user's GitHub account information, consist with [choosealicense.com](https://github.com/github/choosealicense.com#auto-populated-fields).
-* Creates a commit if any files were added.
 * Creates a repository on GitHub with the chosen owner, name, and description.
 * Adds a remote with the specified "source remote name" and sets it to the clone URL of the newly created repository, respecting the https/ssh toggle.
 * If a branch called `master` is present in the local repository, its push and fetch upstreams are configured to be the source remote.
@@ -199,7 +188,7 @@ When multiple remotes are present in the current repository and the push-pull st
 
 Modal dialogs are disruptive to UX flow. You can't start creating a repository, have another thought and make a quick edit, then come back to it. This design uses a lot of them.
 
-The "Create repository" flow includes a lot of dotcom-isms. We can make _some_ things nicer with the local context we have to work with - like guessing a repository name from the project directory - but we're likely to frequently fall behind what's available on the dotcom repository creation page.
+The "Create repository" flow is missing some of the functionality that the dotcom page has, like initializing a README and a license. We can make _some_ things nicer with the local context we have to work with - like guessing a repository name from the project directory - but we'd be unlikely to keep up with what's available on dotcom.
 
 There is no "create repository" mutation available in the GraphQL API, so we'll need to use the REST API for that.
 
