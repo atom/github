@@ -83,25 +83,25 @@ This is the state we handle now: when an active repository is present and has on
 
 The clone repository dialog begins in search mode. As you type within the text input, once more than three characters have been entered, repositories on GitHub matching the entered text appear in the result list below. Repositories may be identified by full clone URL, `owner/name` pair, or a unique substring of `owner/name`.
 
-> TODO: clone repository, empty search input
+<img width="650" alt="clone dialog, empty search" src="https://user-images.githubusercontent.com/17565/57096303-f5937080-6ce2-11e9-8d71-e63677dcba7c.png">
 
-> TODO: clone repository, search input with several characters
+<img width="650" alt="clone dialog, search results" src="https://user-images.githubusercontent.com/17565/57096339-07751380-6ce3-11e9-92ab-4714d6c9df8a.png">
 
 ### GitHub clone mode
 
 Clicking on an entry in the search result list or entering the full clone URL of a GitHub repository changes the dialog to "GitHub clone" mode:
 
-> TODO: clone repository, GitHub clone mode
+<img width="650" alt="clone dialog, GitHub mode" src="https://user-images.githubusercontent.com/17565/57096364-15c32f80-6ce3-11e9-978a-d79ea9ae5334.png">
 
 If the authenticated user cannot push to the chosen GitHub repository, the "fork" checkbox is pre-checked.
 
 While the "fork" checkbox is checked, the "fork destination" dropdown is also shown, populated with organizations to which the user belongs. Organizations within which the user does not has permission to create repositories are disabled with an explanatory suffix. The user's account is selected by default in the "fork destination" dropdown. The "upstream remote name" input is shown and populated with the value of the Atom config setting `github.upstreamRemoteName`.
 
-> TODO: clone repository, GitHub clone mode, fork destination selection: no existing forks
+<img width="650" alt="clone dialog, fork checked" src="https://user-images.githubusercontent.com/17565/57096389-283d6900-6ce3-11e9-8040-f5feb07394b5.png">
 
 If the user already has push rights to a fork of the chosen repository, they are prompted to clone an existing fork instead.
 
-> TODO: clone repository, GitHub clone mode, fork destination selection: existing forks
+<img width="650" alt="clone dialog, existing forks" src="https://user-images.githubusercontent.com/17565/57096421-35f2ee80-6ce3-11e9-8222-bb02390f7239.png">
 
 Clicking on an existing fork modifies the search query to select the chosen fork.
 
@@ -109,15 +109,13 @@ Clicking on an existing fork modifies the search query to select the chosen fork
 
 Entering the full clone URL of a non-GitHub repository changes the dialog to "non-GitHub clone" mode:
 
-> TODO: clone repository, non-GitHub clone mode
+<img width="650" alt="clone-dialog-nongithub" src="https://user-images.githubusercontent.com/17565/57096447-4c00af00-6ce3-11e9-811b-02f472ccaa52.png">
 
 ### Common behavior
 
 The "source remote name" input is pre-populated with the value of the Atom setting `github.cloneSourceRemoteName`. If it's changed to be empty, or to contain characters that are not valid in a git remote name, an error message is shown.
 
 The clone destination path is pre-populated with the directory specified as `core.projectHome` in the user's Atom settings joined with the repository name. If the destination directory already exists, the path is considered invalid and an error message is shown.
-
-> TODO: clone repository, invalid clone destination path
 
 The "Clone" button is enabled when:
 
