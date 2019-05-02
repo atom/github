@@ -9,6 +9,9 @@ const schemaUpdateLabel = {
 };
 
 Toolkit.run(async tools => {
+  await tools.runInWorkspace('git', ['config', '--global', 'user.email', 'hubot@github.com']);
+  await tools.runInWorkspace('git', ['config', '--global', 'user.name', 'hubot']);
+
   tools.log.info('Fetching the latest GraphQL schema changes.');
   await fetchSchema();
 
