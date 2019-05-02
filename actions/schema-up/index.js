@@ -15,12 +15,10 @@ Toolkit.run(async tools => {
   tools.log.info('Fetching the latest GraphQL schema changes.');
   await fetchSchema();
 
-  const result0 = await tools.runInWorkspace(
+  const {exitCode: hasSchemaChanges} = await tools.runInWorkspace(
     'git', ['diff', '--quiet', '--', 'graphql/schema.graphql'],
     {reject: false},
   );
-  tools.log.info('git diff result: ' + require('util').inspect(result0));
-  const {exitCode: hasSchemaChanges} = result0;
   if (hasSchemaChanges === 0) {
     tools.log.info('No schema changes to fetch.');
     tools.exit.neutral('Nothing to do.');
@@ -37,12 +35,10 @@ Toolkit.run(async tools => {
   );
   tools.log.info('Relay output:\n%s', relayOutput);
 
-  const result1 = await tools.runInWorkspace(
+  const {exitCode: hasRelayChanges} = await tools.runInWorkspace(
     'git', ['diff', '--quiet'],
     {reject: false},
   );
-  tools.log.info('git diff result: ' + require('util').inspect(result1));
-  const {exitCode: hasRelayChanges} = result1;
 
   if (hasRelayChanges === 0 && !relayFailed) {
     tools.log.info('Generated relay files are unchanged.');
