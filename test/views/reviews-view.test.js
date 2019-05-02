@@ -35,6 +35,7 @@ describe('ReviewsView', function() {
       summarySectionOpen: true,
       commentSectionOpen: true,
       threadIDsOpen: new Set(),
+      highlightedThreadIDs: new Set(),
 
       number: 100,
       repo: 'github',
