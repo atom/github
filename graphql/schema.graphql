@@ -4907,11 +4907,6 @@ type MarketplaceListing implements Node {
   """The listing's introductory description rendered to HTML."""
   fullDescriptionHTML: HTML!
 
-  """
-  Whether this listing has been submitted for review from GitHub for approval to be displayed in the Marketplace.
-  """
-  hasApprovalBeenRequested: Boolean! @deprecated(reason: "`hasApprovalBeenRequested` will be removed. Use `isVerificationPendingFromDraft` instead. Removal on 2019-10-01 UTC.")
-
   """Does this listing have any plans with a free trial?"""
   hasPublishedFreeTrialPlans: Boolean!
 
@@ -4931,14 +4926,8 @@ type MarketplaceListing implements Node {
   """Whether this listing's app has been installed for the current viewer"""
   installedForViewer: Boolean!
 
-  """Whether this listing has been approved for display in the Marketplace."""
-  isApproved: Boolean! @deprecated(reason: "`isApproved` will be removed. Use `isPublic` instead. Removal on 2019-10-01 UTC.")
-
   """Whether this listing has been removed from the Marketplace."""
   isArchived: Boolean!
-
-  """Whether this listing has been removed from the Marketplace."""
-  isDelisted: Boolean! @deprecated(reason: "`isDelisted` will be removed. Use `isArchived` instead. Removal on 2019-10-01 UTC.")
 
   """
   Whether this listing is still an editable draft that has not been submitted
@@ -5860,48 +5849,6 @@ type Organization implements Node & Actor & RegistryPackageOwner & RegistryPacka
   Returns how many more items this profile owner can pin to their profile.
   """
   pinnedItemsRemaining: Int!
-
-  """A list of repositories this user has pinned to their profile"""
-  pinnedRepositories(
-    """If non-null, filters repositories according to privacy"""
-    privacy: RepositoryPrivacy
-
-    """Ordering options for repositories returned from the connection"""
-    orderBy: RepositoryOrder
-
-    """
-    Array of viewer's affiliation options for repositories returned from the
-    connection. For example, OWNER will include only repositories that the
-    current viewer owns.
-    """
-    affiliations: [RepositoryAffiliation]
-
-    """
-    Array of owner's affiliation options for repositories returned from the
-    connection. For example, OWNER will include only repositories that the
-    organization or user being viewed owns.
-    """
-    ownerAffiliations: [RepositoryAffiliation]
-
-    """
-    If non-null, filters repositories according to whether they have been locked
-    """
-    isLocked: Boolean
-
-    """Returns the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-  ): RepositoryConnection! @deprecated(reason: "pinnedRepositories will be removed Use ProfileOwner.pinnedItems instead. Removal on 2019-07-01 UTC.")
 
   """Find project by number."""
   project(
@@ -10220,48 +10167,6 @@ interface RepositoryOwner {
   """The username used to login."""
   login: String!
 
-  """A list of repositories this user has pinned to their profile"""
-  pinnedRepositories(
-    """If non-null, filters repositories according to privacy"""
-    privacy: RepositoryPrivacy
-
-    """Ordering options for repositories returned from the connection"""
-    orderBy: RepositoryOrder
-
-    """
-    Array of viewer's affiliation options for repositories returned from the
-    connection. For example, OWNER will include only repositories that the
-    current viewer owns.
-    """
-    affiliations: [RepositoryAffiliation]
-
-    """
-    Array of owner's affiliation options for repositories returned from the
-    connection. For example, OWNER will include only repositories that the
-    organization or user being viewed owns.
-    """
-    ownerAffiliations: [RepositoryAffiliation]
-
-    """
-    If non-null, filters repositories according to whether they have been locked
-    """
-    isLocked: Boolean
-
-    """Returns the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-  ): RepositoryConnection! @deprecated(reason: "pinnedRepositories will be removed Use ProfileOwner.pinnedItems instead. Removal on 2019-07-01 UTC.")
-
   """A list of repositories that the user owns."""
   repositories(
     """If non-null, filters repositories according to privacy"""
@@ -10522,12 +10427,6 @@ type ReviewDismissedEvent implements Node & UniformResourceLocatable {
   """
   dismissalMessageHTML: String
   id: ID!
-
-  """Identifies the message associated with the 'review_dismissed' event."""
-  message: String! @deprecated(reason: "`message` is being removed because it not nullable, whereas the underlying field is optional. Use `dismissalMessage` instead. Removal on 2019-07-01 UTC.")
-
-  """The message associated with the event, rendered to HTML."""
-  messageHtml: HTML! @deprecated(reason: "`messageHtml` is being removed because it not nullable, whereas the underlying field is optional. Use `dismissalMessageHTML` instead. Removal on 2019-07-01 UTC.")
 
   """
   Identifies the previous state of the review with the 'review_dismissed' event.
@@ -12632,48 +12531,6 @@ type User implements Node & Actor & RegistryPackageOwner & RegistryPackageSearch
   Returns how many more items this profile owner can pin to their profile.
   """
   pinnedItemsRemaining: Int!
-
-  """A list of repositories this user has pinned to their profile"""
-  pinnedRepositories(
-    """If non-null, filters repositories according to privacy"""
-    privacy: RepositoryPrivacy
-
-    """Ordering options for repositories returned from the connection"""
-    orderBy: RepositoryOrder
-
-    """
-    Array of viewer's affiliation options for repositories returned from the
-    connection. For example, OWNER will include only repositories that the
-    current viewer owns.
-    """
-    affiliations: [RepositoryAffiliation]
-
-    """
-    Array of owner's affiliation options for repositories returned from the
-    connection. For example, OWNER will include only repositories that the
-    organization or user being viewed owns.
-    """
-    ownerAffiliations: [RepositoryAffiliation]
-
-    """
-    If non-null, filters repositories according to whether they have been locked
-    """
-    isLocked: Boolean
-
-    """Returns the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-  ): RepositoryConnection! @deprecated(reason: "pinnedRepositories will be removed Use ProfileOwner.pinnedItems instead. Removal on 2019-07-01 UTC.")
 
   """Find project by number."""
   project(
