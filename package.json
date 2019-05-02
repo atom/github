@@ -121,6 +121,18 @@
     }
   },
   "configSchema": {
+    "scenario": {
+      "type": "string",
+      "default": "none",
+      "enum": [
+        "none",
+        "nolocal",
+        "local-uninitialized",
+        "local-initialized-noremotes"
+      ],
+      "title": "Prototype scenario",
+      "description": "Force the GitHub tab to display a prototype for the blank slate feature request instead of normal operation."
+    },
     "keyboardNavigationDelay": {
       "type": "number",
       "default": 300,
