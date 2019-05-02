@@ -40,8 +40,8 @@ Toolkit.run(async tools => {
   tools.log.info('Checking for unmerged schema update pull requests.');
   const {data: openSchemaUpdatePRs} = await tools.github.graphql(`
     query OpenPullRequests($owner: String!, $repo: String!) {
-      repository(owner: $owner, name: repo) {
-        pullRequests(first: 1, states: [OPEN], labels: ["schema update"]) {
+      repository(owner: $owner, name: $repo) {
+        pullRequests(first: 1, states: [OPEN], labels: [schemaUpdateLabel.name]) {
           totalCount
         }
       }
@@ -76,7 +76,7 @@ The GraphQL schema has been automatically updated and \`relay-compiler\` has bee
   }
 
   const {data: createPR} = await tools.github.graphql(`
-    mutation CreatePullRequest($owner: String!, $repo: String!, $body: String!, $headRefName: String!) {
+    mutation CreatePullRequest($repositoryId: ID!, $baseRefName: String!, $body: String!, $headRefName: String!) {
       createPullRequest(input: {
         title: "GraphQL schema update"
         body: $body
@@ -98,14 +98,14 @@ The GraphQL schema has been automatically updated and \`relay-compiler\` has bee
     mutation LabelPullRequest($id: ID!, $labelIDs: [ID!]!) {
       addLabelsToLabelable(input: {
         labelableId: $id,
-        labelIds: []
+        labelIds: $labelIDs
       }) {
         labelable {
           id
         }
       }
     }
-  `, {id: createdPullRequest.id, labelIDs: ['MDU6TGFiZWwxMzQyMzM1MjQ2']});
+  `, {id: createdPullRequest.id, labelIDs: [schemaUpdateLabel.id]});
 }, {
   secrets: ['GITHUB_TOKEN'],
 });
