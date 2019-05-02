@@ -61,7 +61,7 @@ Toolkit.run(async tools => {
   const repositoryId = openPullRequestsQuery.repository.id;
 
   if (openPullRequestsQuery.repository.pullRequests.totalCount > 0) {
-    tools.exit.failure('One or more schema update pull requests are already open. Please resolve those first.');
+    tools.exit.neutral('One or more schema update pull requests are already open. Please resolve those first.');
   }
 
   const branchName = `schema-update/${Date.now()}`;
