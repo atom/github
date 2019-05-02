@@ -3,6 +3,11 @@ const path = require('path');
 const {Toolkit} = require('actions-toolkit');
 const fetchSchema = require('./fetch-schema');
 
+const schemaUpdateLabel = {
+  name: 'schema update',
+  id: 'MDU6TGFiZWwxMzQyMzM1MjQ2',
+};
+
 Toolkit.run(async tools => {
   tools.log.info('Fetching the latest GraphQL schema changes.');
   await fetchSchema();
@@ -39,14 +44,15 @@ Toolkit.run(async tools => {
 
   tools.log.info('Checking for unmerged schema update pull requests.');
   const {data: openSchemaUpdatePRs} = await tools.github.graphql(`
-    query OpenPullRequests($owner: String!, $repo: String!) {
+    query OpenPullRequests($owner: String!, $repo: String!, $labelName: String!) {
       repository(owner: $owner, name: $repo) {
-        pullRequests(first: 1, states: [OPEN], labels: [schemaUpdateLabel.name]) {
+        id
+        pullRequests(first: 1, states: [OPEN], labels: [$labelName]) {
           totalCount
         }
       }
     }
-  `, {...tools.context.repo});
+  `, {...tools.context.repo, labelName: schemaUpdateLabel.name});
 
   if (openSchemaUpdatePRs.repository.pullRequests.totalCount > 0) {
     tools.exit.failure('One or more schema update pull requests are already open. Please resolve those first.');
