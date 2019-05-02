@@ -118,9 +118,7 @@ The GraphQL schema has been automatically updated and \`relay-compiler\` has bee
         labelableId: $id,
         labelIds: $labelIDs
       }) {
-        labelable {
-          id
-        }
+        clientMutationId
       }
     }
   `, {id: createdPullRequest.id, labelIDs: [schemaUpdateLabel.id]});
