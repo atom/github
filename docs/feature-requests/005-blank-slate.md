@@ -28,7 +28,7 @@ In each situation below, our user's goal is the same: to have the repository the
 
 We detect this state when the active repository is absent, meaning there are no project root directories.
 
-> TODO: prototype
+<img width="400" alt="github tab, no local repositories" src="https://user-images.githubusercontent.com/17565/57078325-0d0b3300-6cbc-11e9-9bb0-49087d7911b5.png">
 
 #### ...no dotcom repository
 
@@ -46,7 +46,7 @@ Clicking the "Clone GitHub repository" button opens the [Clone repository dialog
 
 We detect this state when the active repository is empty, meaning the current project root has no Git repository.
 
-> TODO: prototype
+<img width="400" alt="github tab, local repository is uninitialized" src="https://user-images.githubusercontent.com/17565/57078458-5065a180-6cbc-11e9-94d7-f4a6f94bee54.png">
 
 #### ...no dotcom repository
 
@@ -58,7 +58,8 @@ Clicking the "Create GitHub repository" button opens the [Create repository dial
 
 We detect this state when the active repository is present but has no dotcom remotes.
 
-> TODO: prototype
+<img width="400" alt="github tab, local repository with no GitHub remotes" src="https://user-images.githubusercontent.com/17565/57078536-72f7ba80-6cbc-11e9-84e8-8c2384caccdc.png">
+
 
 #### ...no dotcom repository
 
