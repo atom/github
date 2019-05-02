@@ -120,6 +120,9 @@ The GraphQL schema has been automatically updated and \`relay-compiler\` has bee
       }
     }
   `, {id: createdPullRequest.id, labelIDs: [schemaUpdateLabel.id]});
+  tools.exit.success(
+    `Pull request #${createdPullRequest.number} has been opened and labelled for this schema upgrade.`,
+  );
 }, {
   secrets: ['GITHUB_TOKEN'],
 });
