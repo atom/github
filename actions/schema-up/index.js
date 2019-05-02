@@ -46,7 +46,7 @@ Toolkit.run(async tools => {
   }
 
   tools.log.info('Checking for unmerged schema update pull requests.');
-  const {openPullRequestsQuery} = await tools.github.graphql(`
+  const response = await tools.github.graphql(`
     query openPullRequestsQuery($owner: String!, $repo: String!, $labelName: String!) {
       repository(owner: $owner, name: $repo) {
         id
@@ -56,6 +56,8 @@ Toolkit.run(async tools => {
       }
     }
   `, {...tools.context.repo, labelName: schemaUpdateLabel.name});
+  tools.log.info('GraphQL response: ' + require('util').inspect(response));
+  const {openPullRequestsQuery} = response;
 
   const repositoryId = openPullRequestsQuery.repository.id;
 
