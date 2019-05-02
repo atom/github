@@ -42,34 +42,71 @@
   }
 }
 
-.github-LocalUninit {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  height: 100%;
-
-  &-LargeIcon:before {
-    margin-right: 0;
-    margin-top: @component-padding * 5;
-    margin-bottom: @component-padding * 5;
-    width: auto;
-    height: auto;
-    font-size: 8em;
-    color: mix(@base-background-color, @text-color, 66%); // 2/3 of bg color
+.github-Clone {
+  &-header span {
+    margin-right: @component-padding/2;
   }
 
-  &-explanation , &-banner, &-LargeIcon {
-    text-align: center;
+  hr {
+    border-top-color: @pane-item-border-color;
   }
 
-  &-option {
+  &-searchResults {
+    &--empty {
+      text-align: center;
+      color: @text-color-subtle;
+    }
+  }
+
+  &-fork {
     display: flex;
     flex-direction: row;
     align-items: center;
+
+    label, input {
+      margin: 0 @component-padding 0 0;
+    }
+
+    span.icon::before {
+      margin-right: 0;
+    }
   }
 
-  &-actionBtn {
-    flex: 1;
-    margin: 0 10%;
+  &-forkDestination {
+    width: 20em;
+
+    &-optionImage {
+      border-radius: 5px;
+      margin-right: @component-padding/2;
+    }
+  }
+
+  &-fork-list {
+    margin: 0 @component-padding*2;
+
+    img {
+      border-radius: 5px;
+      margin: 0 @component-padding/2 0 0;
+    }
+  }
+
+  &-sourceRemote , &-upstreamRemote {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    label {
+      margin: 0 @component-padding 0 0;
+      width: 12em;
+    }
+
+    .github-AtomTextEditor-container {
+      width: 10em;
+    }
+  }
+
+  &-actions {
+    display: flex;
+    justify-content: flex-end;
   }
 }
