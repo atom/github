@@ -36,7 +36,7 @@ Toolkit.run(async tools => {
   tools.log.info('Relay output:\n%s', relayOutput);
 
   const {exitCode: hasRelayChanges} = await tools.runInWorkspace(
-    'git', ['diff', '--quiet', '--', '**/__generated__/*.graphql.js'],
+    'git', ['diff', '--quiet'],
     {reject: false},
   );
 
