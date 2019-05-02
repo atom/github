@@ -86,7 +86,9 @@ The GraphQL schema has been automatically updated and \`relay-compiler\` has bee
     body += relayError;
     body += '\n```\n\nCheck out this branch to fix things so we don\'t break.';
   }
+  tools.log.info('Pull request body:\n%s', body);
 
+  /*
   const createPullRequestMutation = await tools.github.graphql(`
     mutation createPullRequestMutation($repositoryId: ID!, $headRefName: String!, $body: String!) {
       createPullRequest(input: {
@@ -126,6 +128,8 @@ The GraphQL schema has been automatically updated and \`relay-compiler\` has bee
   tools.exit.success(
     `Pull request #${createdPullRequest.number} has been opened and labelled for this schema upgrade.`,
   );
+  */
+  tools.exit.success('Not creating pull request to reduce testing noise');
 }, {
   secrets: ['GITHUB_TOKEN'],
 });
