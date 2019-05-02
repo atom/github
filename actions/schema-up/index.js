@@ -28,7 +28,7 @@ Toolkit.run(async tools => {
   await tools.runInWorkspace('git', ['commit', '--all', '--message', ':arrow_up: GraphQL schema']);
 
   tools.log.info('Re-running relay compiler.');
-  const {failed: relayFailed, stderr: relayError, stdout: relayOutput} = await tools.runInWorkspace(
+  const {failed: relayFailed, stdout: relayOutput} = await tools.runInWorkspace(
     path.resolve(__dirname, 'node_modules', '.bin', 'relay-compiler'),
     ['--watchman', 'false', '--src', './lib', '--schema', 'graphql/schema.graphql'],
     {reject: false},
@@ -84,7 +84,7 @@ The GraphQL schema has been automatically updated and \`relay-compiler\` has bee
     body += 'If all of the tests pass in CI, merge with confidence :zap:';
   } else {
     body += ' `relay-compiler` failed with the following output:\n\n```\n';
-    body += relayError;
+    body += relayOutput;
     body += '\n```\n\nCheck out this branch to fix things so we don\'t break.';
   }
   tools.log.info('Pull request body:\n%s', body);
