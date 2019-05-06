@@ -196,7 +196,7 @@ The clone destination path is pre-populated with the directory specified as `cor
 
 Clicking the "Create" button:
 
-* Creates a repository on GitHub with the chosen owner, name, description, README, `.gitignore`, and license templates.
+* Creates a repository on GitHub with the chosen owner and name.
 * Clones the newly created repository to the clone destination path with its source remote set to the source remote name.
 * Adds the clone destination path as a project root.
 * Ensures that the clone destination path is the active GitHub package context.
