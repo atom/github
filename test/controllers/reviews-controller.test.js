@@ -95,20 +95,22 @@ describe('ReviewsController', function() {
     assert.strictEqual(opWrapper.find(ReviewsView).prop('extra'), extra);
   });
 
-  it('scrolls to a specific thread on mount', function() {
+  it('scrolls to and highlight a specific thread on mount', function() {
     clock = sinon.useFakeTimers();
     const wrapper = shallow(buildApp({initThreadID: 'thread0'}));
     let opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
 
     assert.include(opWrapper.find(ReviewsView).prop('threadIDsOpen'), 'thread0');
+    assert.include(opWrapper.find(ReviewsView).prop('highlightedThreadIDs'), 'thread0');
     assert.strictEqual(opWrapper.find(ReviewsView).prop('scrollToThreadID'), 'thread0');
 
     clock.tick(2000);
     opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
+    assert.notInclude(opWrapper.find(ReviewsView).prop('highlightedThreadIDs'), 'thread0');
     assert.isNull(opWrapper.find(ReviewsView).prop('scrollToThreadID'));
   });
 
-  it('scrolls to a specific thread on update', function() {
+  it('scrolls to and highlight a specific thread on update', function() {
     clock = sinon.useFakeTimers();
     const wrapper = shallow(buildApp());
     let opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
@@ -118,11 +120,13 @@ describe('ReviewsController', function() {
     opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
 
     assert.include(opWrapper.find(ReviewsView).prop('threadIDsOpen'), 'hang-by-a-thread');
+    assert.include(opWrapper.find(ReviewsView).prop('highlightedThreadIDs'), 'hang-by-a-thread');
     assert.isTrue(opWrapper.find(ReviewsView).prop('commentSectionOpen'));
     assert.strictEqual(opWrapper.find(ReviewsView).prop('scrollToThreadID'), 'hang-by-a-thread');
 
     clock.tick(2000);
     opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
+    assert.notInclude(opWrapper.find(ReviewsView).prop('highlightedThreadIDs'), 'hang-by-a-thread');
     assert.isNull(opWrapper.find(ReviewsView).prop('scrollToThreadID'));
   });
 

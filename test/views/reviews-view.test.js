@@ -319,6 +319,13 @@ describe('ReviewsView', function() {
       assert.strictEqual(comment.find('em').text(), 'This comment was hidden');
     });
 
+    it('groups comments by their resolved status', function() {
+      const unresolvedThreads = wrapper.find('.github-Reviews-section.comments').find('.github-Review');
+      const resolvedThreads = wrapper.find('.github-Reviews-section.resolved-comments').find('.github-Review');
+      assert.lengthOf(resolvedThreads, 1);
+      assert.lengthOf(unresolvedThreads, 3);
+    });
+
     describe('indication that a comment has been edited', function() {
       it('indicates that a review summary comment has been edited', function() {
         const summary = wrapper.find('.github-ReviewSummary').at(0);
