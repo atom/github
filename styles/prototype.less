@@ -42,7 +42,7 @@
   }
 }
 
-.github-Clone , .github-Connect {
+.github-Clone , .github-Connect , .github-Create {
   &-header span {
     margin-right: @component-padding/2;
   }
@@ -58,13 +58,31 @@
     }
   }
 
-  &-protocol {
+  &-protocol , &-repo {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
+    align-items: center;
   }
 
-  &-protocolHeading , &-protocolOption {
+  &-owner {
+    margin-right: @component-padding/2;
+  }
+
+  &-repo {
+    margin-bottom: @component-padding*2;
+
+    .github-AtomTextEditor-container {
+      margin-left: @component-padding/2;
+      width: 12em;
+
+      atom-text-editor {
+        padding: 4px 0 3px 0;
+      }
+    }
+  }
+
+  &-protocolHeading , &-protocolOption , &-visibilityHeading , &-visibilityOption {
     margin-right: @component-padding;
   }
 
@@ -82,7 +100,7 @@
     }
   }
 
-  &-forkDestination {
+  &-forkDestination , &-owner {
     width: 20em;
 
     &-optionImage {
@@ -118,5 +136,37 @@
   &-actions {
     display: flex;
     justify-content: flex-end;
+  }
+}
+
+.github-Create {
+  &-visibilityHeading , &-protocolHeading {
+    display: inline-block;
+    width: 5em;
+  }
+
+  &-visibilityOption , &-protocolOption {
+    display: inline-block;
+    width: 7em;
+
+    span::before {
+      margin-left: @component-padding/4;
+    }
+  }
+
+  &-sourceRemote {
+    label {
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+
+    .github-AtomTextEditor-container {
+      width: 12em;
+    }
+  }
+
+  &-destination label {
+    width: 100%;
   }
 }
