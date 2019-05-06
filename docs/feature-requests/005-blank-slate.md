@@ -91,17 +91,17 @@ The clone repository dialog begins in search mode. As you type within the text i
 
 Clicking on an entry in the search result list or entering the full clone URL of a GitHub repository changes the dialog to "GitHub clone" mode:
 
-<img width="650" alt="clone dialog, GitHub mode" src="https://user-images.githubusercontent.com/17565/57096364-15c32f80-6ce3-11e9-978a-d79ea9ae5334.png">
+<img width="650" alt="clone dialog, GitHub mode" src="https://user-images.githubusercontent.com/17565/57244555-ac0a9480-7006-11e9-8048-950e58f038a3.png">
 
 If the authenticated user cannot push to the chosen GitHub repository, the "fork" checkbox is pre-checked.
 
 While the "fork" checkbox is checked, the "fork destination" dropdown is also shown, populated with organizations to which the user belongs. Organizations within which the user does not has permission to create repositories are disabled with an explanatory suffix. The user's account is selected by default in the "fork destination" dropdown. The "upstream remote name" input is shown and populated with the value of the Atom config setting `github.upstreamRemoteName`.
 
-<img width="650" alt="clone dialog, fork checked" src="https://user-images.githubusercontent.com/17565/57096389-283d6900-6ce3-11e9-8040-f5feb07394b5.png">
+<img width="650" alt="clone dialog, fork checked" src="https://user-images.githubusercontent.com/17565/57244575-b75dc000-7006-11e9-9d9b-a3b8aada82f8.png">
 
 If the user already has push rights to a fork of the chosen repository, they are prompted to clone an existing fork instead.
 
-<img width="650" alt="clone dialog, existing forks" src="https://user-images.githubusercontent.com/17565/57096421-35f2ee80-6ce3-11e9-8222-bb02390f7239.png">
+<img width="650" alt="clone dialog, existing forks" src="https://user-images.githubusercontent.com/17565/57244583-c04e9180-7006-11e9-8e3c-f5103214767d.png">
 
 Clicking on an existing fork modifies the search query to select the chosen fork.
 
