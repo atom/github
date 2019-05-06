@@ -111,7 +111,7 @@ Clicking on an existing fork modifies the search query to select the chosen fork
 
 Entering the full clone URL of a non-GitHub repository changes the dialog to "non-GitHub clone" mode:
 
-<img width="650" alt="clone-dialog-nongithub" src="https://user-images.githubusercontent.com/17565/57096447-4c00af00-6ce3-11e9-811b-02f472ccaa52.png">
+<img width="650" alt="clone dialog, non-GitHub" src="https://user-images.githubusercontent.com/17565/57096447-4c00af00-6ce3-11e9-811b-02f472ccaa52.png">
 
 ### Common behavior
 
@@ -139,31 +139,26 @@ The connect repository dialog is similar to the [clone repository dialog](#clone
 
 The connect repository dialog begins in search mode. As you type within the text input, once more than three characters have been entered, repositories on GitHub matching the entered text appear in the result list below. Repositories may be identified by full clone URL, `owner/name` pair, or a unique substring of `owner/name`.
 
-> TODO: connect repository, search results
+<img width="650" alt="connect dialog, search results" src="https://user-images.githubusercontent.com/17565/57249905-22fa5a00-7014-11e9-9dc9-e218116a0387.png">
 
 ### GitHub clone mode
 
 Clicking on an entry in the search result list or entering the full clone URL of a GitHub repository changes the dialog to "GitHub clone" mode:
 
-> TODO: connect repository, GitHub clone mode
+<img width="650" alt="connect dialog, GitHub mode" src="https://user-images.githubusercontent.com/17565/57249935-3e656500-7014-11e9-8c83-393d61868c9d.png">
 
 If the authenticated user cannot push to the chosen GitHub repository, the "fork" checkbox is pre-checked.
 
 While the "fork" checkbox is checked, the "fork destination" dropdown is also shown, populated with organizations to which the user belongs. Organizations within which the user does not has permission to create repositories are disabled with an explanatory suffix. The user's account is selected by default in the "fork destination" dropdown. The "upstream remote name" input is shown and populated with the value of the Atom config setting `github.upstreamRemoteName`.
 
-> TODO: connect repository, GitHub clone mode, fork destination selection: no existing forks
-
-If the user already has push rights to a fork of the chosen repository, they are prompted to clone an existing fork instead.
-
-> TODO: connect repository, GitHub clone mode, fork destination selection: existing forks
-
-Clicking on an existing fork modifies the search query to select the chosen fork.
+If the user already has push rights to a fork of the chosen repository, they are prompted to clone an existing fork instead. Clicking on an existing fork modifies the search query to select the chosen fork.
 
 ### Non-GitHub clone mode
 
 Entering the full clone URL of a non-GitHub repository changes the dialog to "non-GitHub clone" mode:
 
-> TODO: connect repository, non-GitHub clone mode
+<img width="650" alt="connect dialog, non-GitHub" src="https://user-images.githubusercontent.com/17565/57249963-53da8f00-7014-11e9-849c-89628b76370a.png">
+
 
 ### Common behavior
 
@@ -189,7 +184,7 @@ The create repository dialog may be opened in either "no local repository" mode 
 
 ### "No local repository" mode
 
-> TODO: create repository, "no local repository" mode
+<img width="650" alt="create" src="https://user-images.githubusercontent.com/17565/57249991-62c14180-7014-11e9-808a-5d7cdca7d91e.png">
 
 The "owner" drop-down is populated with the user's account name and the list of organizations to which the authenticated user belongs. Organizations to which the user has insufficient permissions to create repositories are disabled with an explanatory suffix.
 
@@ -258,7 +253,7 @@ We could open dotcom for repository creation, but then we would have no way to s
 
 This effort should not include:
 
-* GitHub enterprise support. (:sad:) We have separate issues ([#270](https://github.com/atom/github/issues/270), [#919](https://github.com/atom/github/issues/919)) to track that, although this does complicate its eventual implementation, because the clone and create dialogs need to be Enterprise-aware.
+* GitHub enterprise support. ( :sad: ) We have separate issues ([#270](https://github.com/atom/github/issues/270), [#919](https://github.com/atom/github/issues/919)) to track that, although this does complicate its eventual implementation, because the clone and create dialogs need to be Enterprise-aware.
 * General remote management ([#555](https://github.com/atom/github/issues/555)).
 
 ## :construction: Implementation phases
