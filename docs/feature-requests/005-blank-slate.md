@@ -93,6 +93,8 @@ Clicking on an entry in the search result list or entering the full clone URL of
 
 <img width="650" alt="clone dialog, GitHub mode" src="https://user-images.githubusercontent.com/17565/57244555-ac0a9480-7006-11e9-8048-950e58f038a3.png">
 
+The "protocol" toggle is initialized to match the value of the `github.preferredRemoteProtocol` config setting. If the protocol is changed, the setting is changed to match.
+
 If the authenticated user cannot push to the chosen GitHub repository, the "fork" checkbox is pre-checked.
 
 While the "fork" checkbox is checked, the "fork destination" dropdown is also shown, populated with organizations to which the user belongs. Organizations within which the user does not has permission to create repositories are disabled with an explanatory suffix. The user's account is selected by default in the "fork destination" dropdown. The "upstream remote name" input is shown and populated with the value of the Atom config setting `github.upstreamRemoteName`.
