@@ -1,6 +1,6 @@
 workflow "GraphQL schema update" {
-  // Every Monday at 1am.
-  on = "schedule(0 1 * * 1)"
+  // Every Tuesday at 1am.
+  on = "schedule(0 1 * * 2)"
   resolves = "Update schema"
 }
 
