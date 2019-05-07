@@ -10,6 +10,7 @@ import {nullBranch} from '../../../lib/models/branch';
 export function gitHubTabItemProps(atomEnv, repository, overrides = {}) {
   return {
     workspace: atomEnv.workspace,
+    openDevTools: () => {},
     repository,
     loginModel: new GithubLoginModel(InMemoryStrategy),
     ...overrides,
@@ -33,6 +34,7 @@ export function gitHubTabControllerProps(atomEnv, repository, overrides = {}) {
     branches: new BranchSet(),
     aheadCount: 0,
     pushInProgress: false,
+    isLoading: false,
     ...overrides,
   };
 }
@@ -40,6 +42,7 @@ export function gitHubTabControllerProps(atomEnv, repository, overrides = {}) {
 export function gitHubTabViewProps(atomEnv, repository, overrides = {}) {
   return {
     workspace: atomEnv.workspace,
+    openDevTools: () => {},
     remoteOperationObserver: new OperationStateObserver(repository, PUSH, PULL, FETCH),
     loginModel: new GithubLoginModel(InMemoryStrategy),
     rootHolder: new RefHolder(),

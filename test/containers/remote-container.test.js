@@ -43,6 +43,7 @@ describe('RemoteContainer', function() {
         workingDirectory={__dirname}
         notifications={atomEnv.notifications}
         workspace={atomEnv.workspace}
+        openDevTools={() => {}}
         remote={origin}
         remotes={remotes}
         branches={branches}

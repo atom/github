@@ -35,6 +35,7 @@ describe('IssueishDetailItem', function() {
       keymaps: atomEnv.keymaps,
       tooltips: atomEnv.tooltips,
       config: atomEnv.config,
+      openDevTools: () => {},
 
       reportMutationErrors: () => {},
       ...override,

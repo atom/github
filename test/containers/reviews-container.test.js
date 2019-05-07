@@ -65,6 +65,7 @@ describe('ReviewsContainer', function() {
       config: atomEnv.config,
       commands: atomEnv.commands,
       tooltips: atomEnv.tooltips,
+      openDevTools: () => {},
       reportMutationErrors: () => {},
 
       ...override,
