@@ -66,4 +66,16 @@ describe('ErrorView', function() {
     const logoutButton = wrapper.find('.btn-logout');
     assert.lengthOf(logoutButton, 0);
   });
+
+  it('renders the devtools button if the devtools function prop is passed', function() {
+    const openDevTools = sinon.spy();
+    const wrapper = shallow(buildApp({openDevTools}));
+    wrapper.find('.btn-devtools').simulate('click');
+    assert.isTrue(openDevTools.called);
+  });
+
+  it('does not render the devtools button if the devtools prop is not passed', function() {
+    const wrapper = shallow(buildApp());
+    assert.isFalse(wrapper.exists('.btn-devtools'));
+  });
 });
