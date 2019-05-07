@@ -9,6 +9,7 @@ describe('QueryErrorView', function() {
       <QueryErrorView
         error={new Error('wat')}
         login={() => {}}
+        openDevTools={() => {}}
         {...overrideProps}
       />
     );
@@ -39,6 +40,20 @@ describe('QueryErrorView', function() {
       const ds = n.prop('descriptions');
       return ds.includes('first error') && ds.includes('second error');
     }));
+  });
+
+  it('recognizes network errors', function() {
+    const error = new Error('network error');
+    error.network = true;
+    error.rawStack = error.stack;
+    const openDevTools = sinon.spy();
+
+    const wrapper = shallow(buildApp({error, openDevTools}));
+    const ev = wrapper.find('ErrorView');
+    assert.strictEqual(ev.prop('title'), 'Network problem');
+
+    ev.prop('openDevTools')();
+    assert.isTrue(openDevTools.called);
   });
 
   it('renders the error response directly for an unrecognized error status', function() {
