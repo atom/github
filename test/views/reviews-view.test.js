@@ -36,6 +36,7 @@ describe('ReviewsView', function() {
       summarySectionOpen: true,
       commentSectionOpen: true,
       threadIDsOpen: new Set(),
+      highlightedThreadIDs: new Set(),
 
       number: 100,
       repo: 'github',
@@ -316,6 +317,13 @@ describe('ReviewsView', function() {
       const thread = wrapper.find('details.github-Review').at(0);
       const comment = thread.find('.github-Review-comment--hidden');
       assert.strictEqual(comment.find('em').text(), 'This comment was hidden');
+    });
+
+    it('groups comments by their resolved status', function() {
+      const unresolvedThreads = wrapper.find('.github-Reviews-section.comments').find('.github-Review');
+      const resolvedThreads = wrapper.find('.github-Reviews-section.resolved-comments').find('.github-Review');
+      assert.lengthOf(resolvedThreads, 1);
+      assert.lengthOf(unresolvedThreads, 3);
     });
 
     describe('indication that a comment has been edited', function() {
