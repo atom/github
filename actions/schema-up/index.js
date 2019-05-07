@@ -42,7 +42,7 @@ Toolkit.run(async tools => {
 
   if (hasRelayChanges === 0 && !relayFailed) {
     tools.log.info('Generated relay files are unchanged.');
-    const upstream = tools.context.ref || 'master';
+    const upstream = tools.context.ref || 'HEAD:refs/heads/master';
     await tools.runInWorkspace('git', ['push', 'origin', upstream]);
     tools.exit.success('Schema is up to date on master.');
   }
