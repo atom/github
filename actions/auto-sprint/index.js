@@ -73,6 +73,12 @@ Toolkit.run(async tools => {
   });
   tools.exit.success('Added as a project card.');
 }, {
-  event: ['issues.assigned', 'pull_request.opened', 'pull_request.merged', 'pull_request.assigned'],
+  event: [
+    'issues.assigned',
+    'pull_request.opened',
+    'pull_request.merged',
+    'pull_request.assigned',
+    'pull_request.reopened',
+  ],
   secrets: ['GRAPHQL_TOKEN'],
 });

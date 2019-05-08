@@ -19,24 +19,24 @@ action "Update schema" {
   secrets = ["GITHUB_TOKEN"]
 }
 
-action "Issue assigned" {
+action "Consider issue for release board" {
   uses = "actions/bin/filter@master"
   args = "action assigned"
 }
 
 action "Add issue to release board" {
-  needs = "Issue assigned"
+  needs = "Consider issue for release board"
   uses = "./actions/auto-sprint"
   secrets = ["GITHUB_TOKEN"]
 }
 
-action "Pull request opened, merged, or assigned" {
+action "Consider pull request for release board" {
   uses = "actions/bin/filter@master"
-  args = "action 'opened|merged|assigned'"
+  args = "action 'opened|merged|assigned|reopened'"
 }
 
 action "Add pull request to release board" {
-  needs = "Pull request opened, merged, or assigned"
+  needs = "Consider pull request for release board"
   uses = "./actions/auto-sprint"
   secrets = ["GITHUB_TOKEN"]
 }
