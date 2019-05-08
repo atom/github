@@ -12,7 +12,7 @@ import BranchSet from '../../lib/models/branch-set';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import {nullOperationStateObserver} from '../../lib/models/operation-state-observer';
 import {getEndpoint} from '../../lib/models/endpoint';
-import {InMemoryStrategy, INSUFFICIENT, UNAUTHENTICATED, OFFLINE} from '../../lib/shared/keytar-strategy';
+import {InMemoryStrategy, INSUFFICIENT, UNAUTHENTICATED} from '../../lib/shared/keytar-strategy';
 
 import remoteQuery from '../../lib/containers/__generated__/remoteContainerQuery.graphql';
 
@@ -100,10 +100,11 @@ describe('RemoteContainer', function() {
     sinon.spy(model, 'didUpdate');
 
     const wrapper = shallow(buildApp());
-    const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')(OFFLINE);
-    assert.isTrue(tokenWrapper.exists('OfflineView'));
+    const e = new Error('oh no');
+    const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')(e);
+    assert.isTrue(tokenWrapper.exists('QueryErrorView'));
 
-    tokenWrapper.find('OfflineView').prop('retry')();
+    tokenWrapper.find('QueryErrorView').prop('retry')();
     assert.isTrue(model.didUpdate.called);
   });
 

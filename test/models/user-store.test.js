@@ -3,7 +3,7 @@ import dedent from 'dedent-js';
 import UserStore, {source} from '../../lib/models/user-store';
 import Author, {nullAuthor} from '../../lib/models/author';
 import GithubLoginModel from '../../lib/models/github-login-model';
-import {InMemoryStrategy, UNAUTHENTICATED, OFFLINE} from '../../lib/shared/keytar-strategy';
+import {InMemoryStrategy, UNAUTHENTICATED} from '../../lib/shared/keytar-strategy';
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import {cloneRepository, buildRepository, FAKE_USER} from '../helpers';
 
@@ -433,9 +433,10 @@ describe('UserStore', function() {
       assert.isNull(getToken);
     });
 
-    it('returns null if token is OFFLINE', async function() {
+    it('returns null if network is offline', async function() {
       const loginModel = new GithubLoginModel(InMemoryStrategy);
-      sinon.stub(loginModel, 'getToken').returns(Promise.resolve(OFFLINE));
+      const e = new Error('eh');
+      sinon.stub(loginModel, 'getToken').returns(Promise.resolve(e));
 
       store = new UserStore({repository, loginModel, config});
       const getToken = await store.getToken(loginModel, 'https://api.github.com');

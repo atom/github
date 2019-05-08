@@ -6,7 +6,7 @@ import ReviewsContainer from '../../lib/containers/reviews-container';
 import AggregatedReviewsContainer from '../../lib/containers/aggregated-reviews-container';
 import CommentPositioningContainer from '../../lib/containers/comment-positioning-container';
 import ReviewsController from '../../lib/controllers/reviews-controller';
-import {InMemoryStrategy, UNAUTHENTICATED, INSUFFICIENT, OFFLINE} from '../../lib/shared/keytar-strategy';
+import {InMemoryStrategy, UNAUTHENTICATED, INSUFFICIENT} from '../../lib/shared/keytar-strategy';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
 import {getEndpoint} from '../../lib/models/endpoint';
@@ -97,10 +97,11 @@ describe('ReviewsContainer', function() {
     sinon.spy(loginModel, 'didUpdate');
 
     const wrapper = shallow(buildApp());
-    const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')(OFFLINE);
+    const e = new Error('er');
+    const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')(e);
 
-    assert.isTrue(tokenWrapper.exists('OfflineView'));
-    tokenWrapper.find('OfflineView').prop('retry')();
+    assert.isTrue(tokenWrapper.exists('QueryErrorView'));
+    tokenWrapper.find('QueryErrorView').prop('retry')();
     assert.isTrue(loginModel.didUpdate.called);
   });
 

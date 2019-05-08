@@ -9,7 +9,7 @@ import {aggregatedReviewsBuilder} from '../builder/graphql/aggregated-reviews-bu
 import GithubLoginModel from '../../lib/models/github-login-model';
 import RefHolder from '../../lib/models/ref-holder';
 import {getEndpoint} from '../../lib/models/endpoint';
-import {InMemoryStrategy, UNAUTHENTICATED, INSUFFICIENT, OFFLINE} from '../../lib/shared/keytar-strategy';
+import {InMemoryStrategy, UNAUTHENTICATED, INSUFFICIENT} from '../../lib/shared/keytar-strategy';
 import ObserveModel from '../../lib/views/observe-model';
 import IssueishDetailItem from '../../lib/items/issueish-detail-item';
 import IssueishDetailController from '../../lib/controllers/issueish-detail-controller';
@@ -96,11 +96,12 @@ describe('IssueishDetailContainer', function() {
     sinon.spy(loginModel, 'didUpdate');
 
     const wrapper = shallow(buildApp());
-    const tokenWrapper = wrapper.find(ObserveModel).renderProp('children')({token: OFFLINE});
+    const e = new Error('wat');
+    const tokenWrapper = wrapper.find(ObserveModel).renderProp('children')({token: e});
 
-    assert.isTrue(tokenWrapper.exists('OfflineView'));
+    assert.isTrue(tokenWrapper.exists('QueryErrorView'));
 
-    tokenWrapper.find('OfflineView').prop('retry')();
+    tokenWrapper.find('QueryErrorView').prop('retry')();
     assert.isTrue(loginModel.didUpdate.called);
   });
 
