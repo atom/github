@@ -6,6 +6,7 @@ import {
   UNAUTHENTICATED,
   INSUFFICIENT,
   UNAUTHORIZED,
+  OFFLINE,
 } from '../../lib/shared/keytar-strategy';
 
 describe('GithubLoginModel', function() {
@@ -89,13 +90,18 @@ describe('GithubLoginModel', function() {
       assert.strictEqual(loginModel.getScopes.callCount, 1);
     });
 
+    it('detects and reports network errors', async function() {
+      sinon.stub(loginModel, 'getScopes').rejects(new Error('You unplugged your ethernet cable'));
+      assert.strictEqual(await loginModel.getToken('https://api.github.com'), OFFLINE);
+    });
+
     it('does not cache network errors', async function() {
       sinon.stub(loginModel, 'getScopes').rejects(new Error('You unplugged your ethernet cable'));
 
-      assert.strictEqual(await loginModel.getToken('https://api.github.com'), UNAUTHENTICATED);
+      assert.strictEqual(await loginModel.getToken('https://api.github.com'), OFFLINE);
       assert.strictEqual(loginModel.getScopes.callCount, 1);
 
-      assert.strictEqual(await loginModel.getToken('https://api.github.com'), UNAUTHENTICATED);
+      assert.strictEqual(await loginModel.getToken('https://api.github.com'), OFFLINE);
       assert.strictEqual(loginModel.getScopes.callCount, 2);
     });
   });
