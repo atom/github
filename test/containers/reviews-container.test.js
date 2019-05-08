@@ -95,13 +95,14 @@ describe('ReviewsContainer', function() {
   });
 
   it('shows a message if the network is unavailable', function() {
+    sinon.spy(loginModel, 'didUpdate');
+
     const wrapper = shallow(buildApp());
-    sinon.spy(wrapper.instance(), 'forceUpdate');
     const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')(OFFLINE);
 
     assert.isTrue(tokenWrapper.exists('OfflineView'));
     tokenWrapper.find('OfflineView').prop('retry')();
-    assert.isTrue(wrapper.instance().forceUpdate.called);
+    assert.isTrue(loginModel.didUpdate.called);
   });
 
   it('gets the token from the login model', async function() {

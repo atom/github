@@ -98,14 +98,14 @@ describe('RemoteContainer', function() {
   });
 
   it('renders an offline view if the user is offline', function() {
-    const wrapper = shallow(buildApp());
-    sinon.spy(wrapper.instance(), 'forceUpdate');
+    sinon.spy(model, 'didUpdate');
 
+    const wrapper = shallow(buildApp());
     const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')(OFFLINE);
     assert.isTrue(tokenWrapper.exists('OfflineView'));
 
     tokenWrapper.find('OfflineView').prop('retry')();
-    assert.isTrue(wrapper.instance().forceUpdate.called);
+    assert.isTrue(model.didUpdate.called);
   });
 
   it('renders an error message if the GraphQL query fails', function() {
