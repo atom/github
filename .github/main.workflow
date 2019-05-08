@@ -4,12 +4,12 @@ workflow "GraphQL schema update" {
   resolves = "Update schema"
 }
 
-workflow "Add issue to release board" {
+workflow "Core team issues" {
   on = "issues"
   resolves = "Add issue to release board"
 }
 
-workflow "Add PR to release board" {
+workflow "Core team pull requests" {
   on = "pull_request"
   resolves = "Add pull request to release board"
 }
