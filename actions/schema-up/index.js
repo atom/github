@@ -71,15 +71,20 @@ Toolkit.run(async tools => {
 
   let body = `:robot: _This automated pull request brought to you by [a GitHub action](https://github.com/atom/github/tree/master/actions/schema-up)_ :robot:
 
-The GraphQL schema has been automatically updated and \`relay-compiler\` has been re-run on the package source.`;
+The GraphQL schema has been updated and \`relay-compiler\` has been re-run on the package source. `;
 
   if (!relayFailed) {
-    body += ' The modified files have been committed to this branch and pushed. ';
-    body += 'If all of the tests pass in CI, merge with confidence :zap:';
+    if (hasRelayChanges !== 0) {
+      body += 'The modified files have been committed to this branch and pushed. ';
+      body += 'If all of the tests pass in CI, merge with confidence :zap:';
+    } else {
+      body += 'The new schema has been committed to this branch and pushed. None of the ';
+      body += 'generated Relay source has changed as a result, so this should be a trivial merge :shipit: :rocket:';
+    }
   } else {
     body += ' `relay-compiler` failed with the following output:\n\n```\n';
     body += relayOutput;
-    body += '\n```\n\nCheck out this branch to fix things so we don\'t break.';
+    body += '\n```\n\n:rotating_light: Check out this branch to fix things so we don\'t break. :rotating_light:';
   }
 
   const createPullRequestMutation = await tools.github.graphql(`
