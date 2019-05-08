@@ -12,7 +12,7 @@ import BranchSet from '../../lib/models/branch-set';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import {nullOperationStateObserver} from '../../lib/models/operation-state-observer';
 import {getEndpoint} from '../../lib/models/endpoint';
-import {InMemoryStrategy, INSUFFICIENT, UNAUTHENTICATED} from '../../lib/shared/keytar-strategy';
+import {InMemoryStrategy, INSUFFICIENT, UNAUTHENTICATED, OFFLINE} from '../../lib/shared/keytar-strategy';
 
 import remoteQuery from '../../lib/containers/__generated__/remoteContainerQuery.graphql';
 
@@ -95,6 +95,17 @@ describe('RemoteContainer', function() {
     const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')(INSUFFICIENT);
 
     assert.match(tokenWrapper.find('GithubLoginView').find('p').text(), /sufficient/);
+  });
+
+  it('renders an offline view if the user is offline', function() {
+    const wrapper = shallow(buildApp());
+    sinon.spy(wrapper.instance(), 'forceUpdate');
+
+    const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')(OFFLINE);
+    assert.isTrue(tokenWrapper.exists('OfflineView'));
+
+    tokenWrapper.find('OfflineView').prop('retry')();
+    assert.isTrue(wrapper.instance().forceUpdate.called);
   });
 
   it('renders an error message if the GraphQL query fails', function() {
