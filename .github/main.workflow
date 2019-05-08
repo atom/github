@@ -4,14 +4,14 @@ workflow "GraphQL schema update" {
   resolves = "Update schema"
 }
 
-workflow "Add assigned issue to release board" {
+workflow "Add issue to release board" {
   on = "issues"
-  resolves = "Add to release board"
+  resolves = "Add issue to release board"
 }
 
 workflow "Add PR to release board" {
   on = "pull_request"
-  resolves = "Add to release board"
+  resolves = "Add pull request to release board"
 }
 
 action "Update schema" {
@@ -19,7 +19,24 @@ action "Update schema" {
   secrets = ["GITHUB_TOKEN"]
 }
 
-action "Add to release board" {
+action "Issue assigned" {
+  uses = "actions/bin/filter@master"
+  args = "action assigned"
+}
+
+action "Add issue to release board" {
+  needs = "Issue assigned"
+  uses = "./actions/auto-sprint"
+  secrets = ["GITHUB_TOKEN"]
+}
+
+action "Pull request opened, merged, or assigned" {
+  uses = "actions/bin/filter@master"
+  args = "action 'opened|merged|assigned'"
+}
+
+action "Add pull request to release board" {
+  needs = "Pull request opened, merged, or assigned"
   uses = "./actions/auto-sprint"
   secrets = ["GITHUB_TOKEN"]
 }
