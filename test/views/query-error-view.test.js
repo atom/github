@@ -46,14 +46,12 @@ describe('QueryErrorView', function() {
     const error = new Error('network error');
     error.network = true;
     error.rawStack = error.stack;
-    const openDevTools = sinon.spy();
+    const retry = sinon.spy();
 
-    const wrapper = shallow(buildApp({error, openDevTools}));
-    const ev = wrapper.find('ErrorView');
-    assert.strictEqual(ev.prop('title'), 'Network problem');
-
-    ev.prop('openDevTools')();
-    assert.isTrue(openDevTools.called);
+    const wrapper = shallow(buildApp({error, retry}));
+    const ev = wrapper.find('OfflineView');
+    ev.prop('retry')();
+    assert.isTrue(retry.called);
   });
 
   it('renders the error response directly for an unrecognized error status', function() {
