@@ -69,7 +69,7 @@ Toolkit.run(async tools => {
 
   tools.log.info('Creating a pull request.');
 
-  let body = `:robot: _This automated pull request brought to you by [a GitHub action](/actions/schema-up)_ :robot:
+  let body = `:robot: _This automated pull request brought to you by [a GitHub action](https://github.com/atom/github/tree/master/actions/schema-up)_ :robot:
 
 The GraphQL schema has been automatically updated and \`relay-compiler\` has been re-run on the package source.`;
 
