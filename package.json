@@ -57,6 +57,7 @@
     "graphql": "14.2.1",
     "keytar": "4.4.1",
     "lodash.memoize": "4.1.2",
+    "marked": "^0.6.2",
     "moment": "2.24.0",
     "node-emoji": "1.10.0",
     "prop-types": "15.7.2",
