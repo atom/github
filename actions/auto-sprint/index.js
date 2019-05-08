@@ -1,5 +1,5 @@
 const {Toolkit} = require('actions-toolkit');
-const {withDefaults} = require('actions-toolkit/graphql');
+const {withDefaults} = require('actions-toolkit/lib/graphql');
 
 Toolkit.run(async tools => {
   // Re-authenticate with the correct secret.
