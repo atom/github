@@ -69,6 +69,6 @@ Toolkit.run(async tools => {
   });
   tools.exit.success('Added as a project card.');
 }, {
-  event: ['issues.assigned', 'pull_request.opened'],
+  event: ['issues.assigned', 'pull_request.opened', 'pull_request.merged', 'pull_request.assigned'],
   secrets: ['GITHUB_TOKEN'],
 });
