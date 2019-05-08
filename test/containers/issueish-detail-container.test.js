@@ -9,7 +9,7 @@ import {aggregatedReviewsBuilder} from '../builder/graphql/aggregated-reviews-bu
 import GithubLoginModel from '../../lib/models/github-login-model';
 import RefHolder from '../../lib/models/ref-holder';
 import {getEndpoint} from '../../lib/models/endpoint';
-import {InMemoryStrategy, UNAUTHENTICATED, INSUFFICIENT} from '../../lib/shared/keytar-strategy';
+import {InMemoryStrategy, UNAUTHENTICATED, INSUFFICIENT, OFFLINE} from '../../lib/shared/keytar-strategy';
 import ObserveModel from '../../lib/views/observe-model';
 import IssueishDetailItem from '../../lib/items/issueish-detail-item';
 import IssueishDetailController from '../../lib/controllers/issueish-detail-controller';
@@ -93,6 +93,17 @@ describe('IssueishDetailContainer', function() {
     assert.match(tokenWrapper.find('p').text(), /re-authenticate/);
   });
 
+  it('renders an offline message if the user cannot connect to the Internet', function() {
+    const wrapper = shallow(buildApp());
+    sinon.spy(wrapper.instance(), 'forceUpdate');
+    const tokenWrapper = wrapper.find(ObserveModel).renderProp('children')({token: OFFLINE});
+
+    assert.isTrue(tokenWrapper.exists('OfflineView'));
+
+    tokenWrapper.find('OfflineView').prop('retry')();
+    assert.isTrue(wrapper.instance().forceUpdate.called);
+  });
+
   it('passes the token to the login model on login', async function() {
     sinon.stub(loginModel, 'setToken').resolves();
 
@@ -103,6 +114,15 @@ describe('IssueishDetailContainer', function() {
 
     await tokenWrapper.find('GithubLoginView').prop('onLogin')('4321');
     assert.isTrue(loginModel.setToken.calledWith('https://github.enterprise.horse', '4321'));
+  });
+
+  it('passes an existing token from the login model', async function() {
+    sinon.stub(loginModel, 'getToken').resolves('1234');
+
+    const wrapper = shallow(buildApp({
+      endpoint: getEndpoint('github.enterprise.horse'),
+    }));
+    assert.deepEqual(await wrapper.find(ObserveModel).prop('fetchData')(loginModel), {token: '1234'});
   });
 
   it('renders a spinner while repository data is being fetched', function() {
