@@ -32,7 +32,7 @@ Toolkit.run(async tools => {
           search: "Release"
           states: [OPEN]
           first: 1
-          orderBy: {field: CREATD_AT, direction: DESC}
+          orderBy: {field: CREATED_AT, direction: DESC}
         ) {
           nodes {
             id
