@@ -38,5 +38,5 @@ action "Consider pull request for release board" {
 action "Add pull request to release board" {
   needs = "Consider pull request for release board"
   uses = "./actions/auto-sprint"
-  secrets = ["GITHUB_TOKEN"]
+  secrets = ["GRAPHQL_TOKEN"]
 }
