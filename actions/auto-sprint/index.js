@@ -1,6 +1,10 @@
 const {Toolkit} = require('actions-toolkit');
+const {withDefaults} = require('actions-toolkit/graphql');
 
 Toolkit.run(async tools => {
+  // Re-authenticate with the correct secret.
+  tools.github.graphql = withDefaults(process.env.GRAPHQL_TOKEN);
+
   // Ensure that the actor of the triggering action belongs to the core team
   const actorLogin = tools.context.actor;
   const teamResponse = await tools.github.graphql(`
@@ -70,5 +74,5 @@ Toolkit.run(async tools => {
   tools.exit.success('Added as a project card.');
 }, {
   event: ['issues.assigned', 'pull_request.opened', 'pull_request.merged', 'pull_request.assigned'],
-  secrets: ['GITHUB_TOKEN'],
+  secrets: ['GRAPHQL_TOKEN'],
 });
