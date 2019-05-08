@@ -50,7 +50,6 @@ describe('IssueishDetailContainer', function() {
       keymaps: atomEnv.keymaps,
       tooltips: atomEnv.tooltips,
       config: atomEnv.config,
-      openDevTools: () => {},
 
       switchToIssueish: () => {},
       onTitleChange: () => {},
@@ -156,10 +155,8 @@ describe('IssueishDetailContainer', function() {
   });
 
   it('renders an error view if the GraphQL query fails', async function() {
-    const openDevTools = sinon.spy();
     const wrapper = shallow(buildApp({
       endpoint: getEndpoint('github.enterprise.horse'),
-      openDevTools,
     }));
     const tokenWrapper = wrapper.find(ObserveModel).renderProp('children')({token: '1234'});
 
@@ -188,9 +185,6 @@ describe('IssueishDetailContainer', function() {
     sinon.stub(loginModel, 'setToken').resolves();
     await errorView.prop('login')('1234');
     assert.isTrue(loginModel.setToken.calledWith('https://github.enterprise.horse', '1234'));
-
-    errorView.prop('openDevTools')();
-    assert.isTrue(openDevTools.called);
   });
 
   it('renders an IssueishDetailContainer with GraphQL results for an issue', async function() {

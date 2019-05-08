@@ -57,7 +57,6 @@ describe('RootController', function() {
         config={config}
         confirm={confirm}
         project={project}
-        openDevTools={() => {}}
         keymaps={atomEnv.keymaps}
         loginModel={loginModel}
         repository={absentRepository}
