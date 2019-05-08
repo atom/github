@@ -6,7 +6,7 @@ import ReviewsContainer from '../../lib/containers/reviews-container';
 import AggregatedReviewsContainer from '../../lib/containers/aggregated-reviews-container';
 import CommentPositioningContainer from '../../lib/containers/comment-positioning-container';
 import ReviewsController from '../../lib/controllers/reviews-controller';
-import {InMemoryStrategy, UNAUTHENTICATED, INSUFFICIENT} from '../../lib/shared/keytar-strategy';
+import {InMemoryStrategy, UNAUTHENTICATED, INSUFFICIENT, OFFLINE} from '../../lib/shared/keytar-strategy';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
 import {getEndpoint} from '../../lib/models/endpoint';
@@ -94,6 +94,16 @@ describe('ReviewsContainer', function() {
     assert.match(tokenWrapper.find('GithubLoginView > p').text(), /re-authenticate/);
   });
 
+  it('shows a message if the network is unavailable', function() {
+    const wrapper = shallow(buildApp());
+    sinon.spy(wrapper.instance(), 'forceUpdate');
+    const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')(OFFLINE);
+
+    assert.isTrue(tokenWrapper.exists('OfflineView'));
+    tokenWrapper.find('OfflineView').prop('retry')();
+    assert.isTrue(wrapper.instance().forceUpdate.called);
+  });
+
   it('gets the token from the login model', async function() {
     await loginModel.setToken('https://github.enterprise.horse', 'neigh');
 
@@ -134,6 +144,32 @@ describe('ReviewsContainer', function() {
     const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: null, retry: () => {}});
 
     assert.isTrue(resultWrapper.exists('LoadingView'));
+  });
+
+  it('shows an error view if the review comment aggregation fails', function() {
+    const {multiFilePatch} = multiFilePatchBuilder().build();
+
+    const wrapper = shallow(buildApp());
+    const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')('shhh');
+    const patchWrapper = tokenWrapper.find('PullRequestPatchContainer').renderProp('children')(null, multiFilePatch);
+
+    const repoWrapper = patchWrapper.find('ObserveModel').renderProp('children')(repoData);
+    const relayWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({
+      error: null,
+      props: queryData,
+      retry: () => {},
+    });
+
+    const e0 = new Error('oh shit');
+    const e1 = new Error('not again');
+    const reviewsWrapper = relayWrapper.find(AggregatedReviewsContainer).renderProp('children')({
+      errors: [e0, e1],
+      summaries: [],
+      commentThreads: [],
+      refetch: () => {},
+    });
+
+    assert.deepEqual(reviewsWrapper.find('ErrorView').map(w => w.prop('descriptions')), [[e0.stack], [e1.stack]]);
   });
 
   it('passes the patch to the controller', function() {
