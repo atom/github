@@ -60,14 +60,14 @@ Toolkit.run(async tools => {
 
   // Add the issue/pull request to the sprint board
   await tools.github.graphql(`
-    mutation ProjectCardAddition($columnID: ID!, contentID: ID!) {
-      addProjectCard(input: {projectColumnId: $columnID, contentID: $issueishID}) {
+    mutation ProjectCardAddition($columnID: ID!, $issueishID: ID!) {
+      addProjectCard(input: {projectColumnId: $columnID, contentId: $issueishID}) {
         clientMutationId
       }
     }
   `, {
     columnID: column.id,
-    contentID: tools.context.event === 'issues'
+    issueishID: tools.context.event === 'issues'
       ? tools.context.payload.issue.node_id
       : tools.context.payload.pull_request.node_id,
   });
