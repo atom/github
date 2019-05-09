@@ -1,11 +1,9 @@
-#!/usr/bin/env node
 const fs = require('fs');
 const path = require('path');
-
 const fetch = require('node-fetch');
-const {buildClientSchema, printSchema} = require('graphql/utilities');
-const schemaPath = path.resolve(__dirname, '..', 'graphql', 'schema');
 
+const {buildClientSchema, printSchema} = require('graphql/utilities');
+const SERVER = 'https://api.github.com/graphql';
 const introspectionQuery = `
   query IntrospectionQuery {
     __schema {
@@ -97,22 +95,28 @@ const introspectionQuery = `
   }
 `;
 
-const token = process.env.GITHUB_TOKEN;
-if (!token) {
-  throw new Error('You must specify a GitHub auth token in GITHUB_TOKEN');
-}
-const SERVER = 'https://api.github.com/graphql';
+module.exports = async function() {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) {
+    throw new Error('You must specify a GitHub auth token in GITHUB_TOKEN');
+  }
 
-// Save JSON of full schema introspection for Babel Relay Plugin to use
-fetch(`${SERVER}`, {
-  method: 'POST',
-  headers: {
-    'Accept': 'application/vnd.github.antiope-preview+json',
-    'Content-Type': 'application/json',
-    'Authorization': 'bearer ' + token,
-  },
-  body: JSON.stringify({query: introspectionQuery}),
-}).then(res => res.json()).then(schemaJSON => {
+  const schemaPath = path.resolve(process.env.GITHUB_WORKSPACE, 'graphql', 'schema.graphql');
+
+  const res = await fetch(SERVER, {
+    method: 'POST',
+    headers: {
+      'Accept': 'application/vnd.github.antiope-preview+json',
+      'Content-Type': 'application/json',
+      'Authorization': 'bearer ' + token,
+    },
+    body: JSON.stringify({query: introspectionQuery}),
+  });
+  const schemaJSON = await res.json();
   const graphQLSchema = buildClientSchema(schemaJSON.data);
-  fs.writeFileSync(`${schemaPath}.graphql`, printSchema(graphQLSchema));
-}).catch(err => console.error(err)); // eslint-disable-line no-console
+  await new Promise((resolve, reject) => {
+    fs.writeFile(schemaPath, printSchema(graphQLSchema), {encoding: 'utf8'}, err => {
+      if (err) { reject(err); } else { resolve(); }
+    });
+  });
+};
