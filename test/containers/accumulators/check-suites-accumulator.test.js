@@ -17,7 +17,6 @@ describe('CheckSuitesAccumulator', function() {
       },
       commit: commitBuilder(commitQuery).build(),
       children: () => <div />,
-      onDidRefetch: () => {},
       ...override,
     };
 
