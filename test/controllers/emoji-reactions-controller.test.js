@@ -32,7 +32,7 @@ describe('EmojiReactionsController', function() {
       },
       reactable: issueBuilder(reactableQuery).build(),
       tooltips: atomEnv.tooltips,
-      reportMutationErrors: () => {},
+      reportRelayError: () => {},
       ...override,
     };
 
@@ -48,7 +48,7 @@ describe('EmojiReactionsController', function() {
 
   describe('adding a reaction', function() {
     it('fires the add reaction mutation', async function() {
-      const reportMutationErrors = sinon.spy();
+      const reportRelayError = sinon.spy();
 
       expectRelayQuery({
         name: addReactionQuery.operation.name,
@@ -64,15 +64,15 @@ describe('EmojiReactionsController', function() {
       const reactable = issueBuilder(reactableQuery).id('issue0').build();
       relayEnv.getStore().getSource().set('issue0', {...createRecord('issue0', 'Issue'), ...reactable});
 
-      const wrapper = shallow(buildApp({reactable, reportMutationErrors}));
+      const wrapper = shallow(buildApp({reactable, reportRelayError}));
 
       await wrapper.find(EmojiReactionsView).prop('addReaction')('ROCKET');
 
-      assert.isFalse(reportMutationErrors.called);
+      assert.isFalse(reportRelayError.called);
     });
 
     it('reports errors encountered', async function() {
-      const reportMutationErrors = sinon.spy();
+      const reportRelayError = sinon.spy();
 
       expectRelayQuery({
         name: addReactionQuery.operation.name,
@@ -86,11 +86,11 @@ describe('EmojiReactionsController', function() {
       const reactable = issueBuilder(reactableQuery).id('issue1').build();
       relayEnv.getStore().getSource().set('issue1', {...createRecord('issue1', 'Issue'), ...reactable});
 
-      const wrapper = shallow(buildApp({reactable, reportMutationErrors}));
+      const wrapper = shallow(buildApp({reactable, reportRelayError}));
 
       await wrapper.find(EmojiReactionsView).prop('addReaction')('EYES');
 
-      assert.isTrue(reportMutationErrors.calledWith(
+      assert.isTrue(reportRelayError.calledWith(
         'Unable to add reaction emoji',
         sinon.match({errors: [{message: 'oh no'}]})),
       );
@@ -99,7 +99,7 @@ describe('EmojiReactionsController', function() {
 
   describe('removing a reaction', function() {
     it('fires the remove reaction mutation', async function() {
-      const reportMutationErrors = sinon.spy();
+      const reportRelayError = sinon.spy();
 
       expectRelayQuery({
         name: removeReactionQuery.operation.name,
@@ -115,15 +115,15 @@ describe('EmojiReactionsController', function() {
       const reactable = issueBuilder(reactableQuery).id('issue0').build();
       relayEnv.getStore().getSource().set('issue0', {...createRecord('issue0', 'Issue'), ...reactable});
 
-      const wrapper = shallow(buildApp({reactable, reportMutationErrors}));
+      const wrapper = shallow(buildApp({reactable, reportRelayError}));
 
       await wrapper.find(EmojiReactionsView).prop('removeReaction')('THUMBS_DOWN');
 
-      assert.isFalse(reportMutationErrors.called);
+      assert.isFalse(reportRelayError.called);
     });
 
     it('reports errors encountered', async function() {
-      const reportMutationErrors = sinon.spy();
+      const reportRelayError = sinon.spy();
 
       expectRelayQuery({
         name: removeReactionQuery.operation.name,
@@ -137,11 +137,11 @@ describe('EmojiReactionsController', function() {
       const reactable = issueBuilder(reactableQuery).id('issue1').build();
       relayEnv.getStore().getSource().set('issue1', {...createRecord('issue1', 'Issue'), ...reactable});
 
-      const wrapper = shallow(buildApp({reactable, reportMutationErrors}));
+      const wrapper = shallow(buildApp({reactable, reportRelayError}));
 
       await wrapper.find(EmojiReactionsView).prop('removeReaction')('CONFUSED');
 
-      assert.isTrue(reportMutationErrors.calledWith(
+      assert.isTrue(reportRelayError.calledWith(
         'Unable to remove reaction emoji',
         sinon.match({errors: [{message: 'wtf'}]})),
       );
