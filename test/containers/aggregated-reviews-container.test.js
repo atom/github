@@ -18,6 +18,7 @@ describe('AggregatedReviewsContainer', function() {
       relay: {
         refetch: () => {},
       },
+      reportRelayError: () => {},
       ...override,
     };
 
@@ -223,5 +224,56 @@ describe('AggregatedReviewsContainer', function() {
     assert.isTrue(refetchStub.called);
     assert.isTrue(cb0.called);
     assert.isTrue(cb1.called);
+  });
+
+  it('reports an error encountered during refetch', function() {
+    const e = new Error('kerpow');
+    const refetchStub = sinon.stub().callsFake((...args) => args[2](e));
+    const reportRelayError = sinon.spy();
+
+    let refetchFn = null;
+    const children = ({refetch}) => {
+      refetchFn = refetch;
+      return <div className="done" />;
+    };
+
+    const wrapper = shallow(buildApp({
+      children,
+      relay: {refetch: refetchStub},
+      reportRelayError,
+    }));
+
+    const summariesAccumulator = wrapper.find(ReviewSummariesAccumulator);
+
+    const cb0 = sinon.spy();
+    summariesAccumulator.prop('onDidRefetch')(cb0);
+
+    const summariesWrapper = summariesAccumulator.renderProp('children')({
+      error: null,
+      summaries: [],
+      loading: false,
+    });
+
+    const threadAccumulator = summariesWrapper.find(ReviewThreadsAccumulator);
+
+    const cb1 = sinon.spy();
+    threadAccumulator.prop('onDidRefetch')(cb1);
+
+    const threadWrapper = threadAccumulator.renderProp('children')({
+      errors: [],
+      commentThreads: [],
+      loading: false,
+    });
+
+    assert.isTrue(threadWrapper.exists('.done'));
+    assert.isNotNull(refetchFn);
+
+    const done = sinon.spy();
+    refetchFn(done);
+
+    assert.isTrue(refetchStub.called);
+    assert.isTrue(reportRelayError.calledWith(sinon.match.string, e));
+    assert.isFalse(cb0.called);
+    assert.isFalse(cb1.called);
   });
 });

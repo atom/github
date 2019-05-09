@@ -83,6 +83,24 @@ describe('IssueDetailView', function() {
     assert.isFalse(wrapper.find('Octicon[icon="repo-sync"]').hasClass('refreshing'));
   });
 
+  it('reports errors encountered during refresh', function() {
+    let callback = null;
+    const relayRefetch = sinon.stub().callsFake((_0, _1, cb) => {
+      callback = cb;
+    });
+    const reportRelayError = sinon.spy();
+    const wrapper = shallow(buildApp({relayRefetch}, {reportRelayError}));
+
+    wrapper.find('Octicon[icon="repo-sync"]').simulate('click', {preventDefault: () => {}});
+
+    const e = new Error('ouch');
+    callback(e);
+    assert.isTrue(reportRelayError.calledWith(sinon.match.string, e));
+
+    wrapper.update();
+    assert.isFalse(wrapper.find('Octicon[icon="repo-sync"]').hasClass('refreshing'));
+  });
+
   it('disregardes a double refresh', function() {
     let callback = null;
     const relayRefetch = sinon.stub().callsFake((_0, _1, cb) => {

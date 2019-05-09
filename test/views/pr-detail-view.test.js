@@ -288,6 +288,25 @@ describe('PullRequestDetailView', function() {
     assert.isFalse(wrapper.find('Octicon[icon="repo-sync"]').hasClass('refreshing'));
   });
 
+  it('reports errors encountered during refetch', function() {
+    let callback = null;
+    const refetch = sinon.stub().callsFake((_0, _1, cb) => {
+      callback = cb;
+    });
+    const reportRelayError = sinon.spy();
+    const wrapper = shallow(buildApp({relay: {refetch}, reportRelayError}));
+
+    wrapper.find('Octicon[icon="repo-sync"]').simulate('click', {preventDefault: () => {}});
+    assert.isTrue(wrapper.find('Octicon[icon="repo-sync"]').hasClass('refreshing'));
+
+    const e = new Error('nope');
+    callback(e);
+    assert.isTrue(reportRelayError.calledWith(sinon.match.string, e));
+
+    wrapper.update();
+    assert.isFalse(wrapper.find('Octicon[icon="repo-sync"]').hasClass('refreshing'));
+  });
+
   it('disregards a double refresh', function() {
     let callback = null;
     const refetch = sinon.stub().callsFake((_0, _1, cb) => {
