@@ -15,6 +15,13 @@
   overflow-y: hidden;
   height: 100%;
 
+  atom-text-editor {
+    padding: @component-padding/2;
+    border-top: 1px solid @base-border-color;
+    border-bottom: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+  }
+
   // Top Header ------------------------------------------
 
   &-topHeader {
@@ -333,12 +340,6 @@
 
   // Diff ------------------
 
-  atom-text-editor {
-    padding: @component-padding/2;
-    border-top: 1px solid @base-border-color;
-    border-bottom: 1px solid @base-border-color;
-  }
-
   &-diffLine {
     padding: 0 @component-padding/2;
     line-height: 1.75;
@@ -418,6 +419,7 @@
 
   &-actionsMenu::before {
     margin-right: 0;
+    margin-left: @component-padding/2;
   }
 
   &-pendingBadge {
@@ -436,7 +438,7 @@
     }
   }
 
-  &-reply, &-editComment {
+  &-reply, &-editable {
     margin-top: @component-padding;
 
     atom-text-editor {
@@ -462,7 +464,7 @@
     padding: 0 2*@component-padding;
   }
 
-  &-editComment-footer {
+  &-editable-footer {
     margin: @component-padding/2 0 @component-padding 0;
     display: flex;
     justify-content: flex-end;
