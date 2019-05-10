@@ -133,6 +133,50 @@ describe('ReviewsController', function() {
     assert.isNull(opWrapper.find(ReviewsView).prop('scrollToThreadID'));
   });
 
+  it('does not unset a different scrollToThreadID if two highlight actions collide', function() {
+    clock = sinon.useFakeTimers();
+    const wrapper = shallow(buildApp());
+    let opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
+
+    assert.deepEqual(opWrapper.find(ReviewsView).prop('threadIDsOpen'), new Set([]));
+    wrapper.setProps({initThreadID: 'hang-by-a-thread'});
+    opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
+
+    assert.deepEqual(
+      Array.from(opWrapper.find(ReviewsView).prop('threadIDsOpen')),
+      ['hang-by-a-thread'],
+    );
+    assert.deepEqual(
+      Array.from(opWrapper.find(ReviewsView).prop('highlightedThreadIDs')),
+      ['hang-by-a-thread'],
+    );
+    assert.isTrue(opWrapper.find(ReviewsView).prop('commentSectionOpen'));
+    assert.strictEqual(opWrapper.find(ReviewsView).prop('scrollToThreadID'), 'hang-by-a-thread');
+
+    clock.tick(1000);
+    wrapper.setProps({initThreadID: 'caught-in-a-web'});
+    opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
+
+    assert.deepEqual(
+      Array.from(opWrapper.find(ReviewsView).prop('threadIDsOpen')),
+      ['hang-by-a-thread', 'caught-in-a-web'],
+    );
+    assert.deepEqual(
+      Array.from(opWrapper.find(ReviewsView).prop('highlightedThreadIDs')),
+      ['hang-by-a-thread', 'caught-in-a-web'],
+    );
+    assert.isTrue(opWrapper.find(ReviewsView).prop('commentSectionOpen'));
+    assert.strictEqual(opWrapper.find(ReviewsView).prop('scrollToThreadID'), 'caught-in-a-web');
+
+    clock.tick(1000);
+    opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
+    assert.deepEqual(
+      Array.from(opWrapper.find(ReviewsView).prop('highlightedThreadIDs')),
+      ['caught-in-a-web'],
+    );
+    assert.strictEqual(opWrapper.find(ReviewsView).prop('scrollToThreadID'), 'caught-in-a-web');
+  });
+
   describe('openIssueish', function() {
     it('opens an IssueishDetailItem for a different issueish', async function() {
       const wrapper = shallow(buildApp({
