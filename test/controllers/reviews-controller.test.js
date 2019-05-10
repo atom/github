@@ -27,6 +27,8 @@ import deletePrReviewMutation from '../../lib/mutations/__generated__/deletePrRe
 import submitPrReviewMutation from '../../lib/mutations/__generated__/submitPrReviewMutation.graphql';
 import resolveThreadMutation from '../../lib/mutations/__generated__/resolveReviewThreadMutation.graphql';
 import unresolveThreadMutation from '../../lib/mutations/__generated__/unresolveReviewThreadMutation.graphql';
+import updateReviewCommentMutation from '../../lib/mutations/__generated__/updatePrReviewCommentMutation.graphql';
+import updatePrReviewMutation from '../../lib/mutations/__generated__/updatePrReviewSummaryMutation.graphql';
 
 describe('ReviewsController', function() {
   let atomEnv, relayEnv, localRepository, noop, clock;
@@ -601,6 +603,98 @@ describe('ReviewsController', function() {
       await wrapper.find(ReviewsView).prop('unresolveThread')({id: 'thread1', viewerCanUnresolve: true});
 
       assert.isTrue(reportMutationErrors.calledWith('Unable to unresolve the comment thread'));
+    });
+  });
+
+  describe('editing review comments', function() {
+    it('calls the review comment update mutation and increments a metric', async function() {
+      const reportMutationErrors = sinon.spy();
+      sinon.stub(reporterProxy, 'addEvent');
+
+      expectRelayQuery({
+        name: updateReviewCommentMutation.operation.name,
+        variables: {
+          input: {pullRequestReviewCommentId: 'comment-0', body: 'new text'},
+        },
+      }, op => relayResponseBuilder(op).build()).resolve();
+
+      const wrapper = shallow(buildApp({reportMutationErrors}))
+        .find(PullRequestCheckoutController)
+        .renderProp('children')(noop);
+
+      await wrapper.find(ReviewsView).prop('updateComment')('comment-0', 'new text');
+
+      assert.isFalse(reportMutationErrors.called);
+      assert.isTrue(reporterProxy.addEvent.calledWith('update-review-comment', {package: 'github'}));
+    });
+
+    it('creates a notification and and re-throws the error if the comment cannot be updated', async function() {
+      const reportMutationErrors = sinon.spy();
+      sinon.stub(reporterProxy, 'addEvent');
+
+      expectRelayQuery({
+        name: updateReviewCommentMutation.operation.name,
+        variables: {
+          input: {pullRequestReviewCommentId: 'comment-0', body: 'new text'},
+        },
+      }, op => relayResponseBuilder(op).addError('not right now').build()).resolve();
+
+      const wrapper = shallow(buildApp({reportMutationErrors}))
+        .find(PullRequestCheckoutController)
+        .renderProp('children')(noop);
+
+      await assert.isRejected(
+        wrapper.find(ReviewsView).prop('updateComment')('comment-0', 'new text'),
+      );
+
+      assert.isTrue(reportMutationErrors.calledWith('Unable to update comment'));
+      assert.isFalse(reporterProxy.addEvent.called);
+    });
+  });
+
+  describe('editing review summaries', function() {
+    it('calls the review summary update mutation and increments a metric', async function() {
+      const reportMutationErrors = sinon.spy();
+      sinon.stub(reporterProxy, 'addEvent');
+
+      expectRelayQuery({
+        name: updatePrReviewMutation.operation.name,
+        variables: {
+          input: {pullRequestReviewId: 'review-0', body: 'stuff'},
+        },
+      }, op => relayResponseBuilder(op).build()).resolve();
+
+      const wrapper = shallow(buildApp({reportMutationErrors}))
+        .find(PullRequestCheckoutController)
+        .renderProp('children')(noop);
+
+      await wrapper.find(ReviewsView).prop('updateSummary')('review-0', 'stuff');
+
+      assert.isFalse(reportMutationErrors.called);
+      assert.isTrue(reporterProxy.addEvent.calledWith('update-review-summary', {package: 'github'}));
+    });
+
+    it('creates a notification and and re-throws the error if the summary cannot be updated', async function() {
+      const reportMutationErrors = sinon.spy();
+      sinon.stub(reporterProxy, 'addEvent');
+
+      expectRelayQuery({
+        name: updatePrReviewMutation.operation.name,
+        variables: {
+          input: {pullRequestReviewId: 'review-0', body: 'stuff'},
+        },
+      }, op => relayResponseBuilder(op).addError('not right now').build()).resolve();
+
+      const wrapper = shallow(buildApp({reportMutationErrors}))
+        .find(PullRequestCheckoutController)
+        .renderProp('children')(noop);
+
+      await assert.isRejected(
+        wrapper.find(ReviewsView).prop('updateSummary')('review-0', 'stuff'),
+      );
+
+      assert.isTrue(reportMutationErrors.calledWith('Unable to update review summary'));
+      assert.isFalse(reporterProxy.addEvent.called);
     });
   });
 
