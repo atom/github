@@ -79,6 +79,7 @@ describe('ReviewsController', function() {
       config: atomEnv.config,
       commands: atomEnv.commands,
       tooltips: atomEnv.tooltips,
+      confirm: () => {},
       reportMutationErrors: () => {},
 
       ...override,
