@@ -5,7 +5,7 @@ import {shell} from 'electron';
 import ActionableReviewView from '../../lib/views/actionable-review-view';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
-describe.only('ActionableReviewView', function() {
+describe('ActionableReviewView', function() {
   let atomEnv, mockEvent, mockMenu;
 
   beforeEach(function() {
