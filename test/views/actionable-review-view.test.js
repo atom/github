@@ -5,7 +5,7 @@ import {shell} from 'electron';
 import ActionableReviewView from '../../lib/views/actionable-review-view';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
-describe('ActionableReviewView', function() {
+describe.only('ActionableReviewView', function() {
   let atomEnv, mockEvent, mockMenu;
 
   beforeEach(function() {
@@ -266,14 +266,55 @@ describe('ActionableReviewView', function() {
     });
 
     describe('when the cancel button is clicked', function() {
-      it('reverts to non-editing mode when the text is unchanged');
+      it('reverts to non-editing mode when the text is unchanged', async function() {
+        const confirm = sinon.stub().returns(0);
 
-      it('reverts to non-editing mode when the text is empty');
+        const wrapper = shallowEditMode({
+          originalContent: {id: 'id-0', body: 'original'},
+          confirm,
+          render: () => <div className="original" />,
+        });
+
+        await wrapper.find('.github-Review-editableCancelButton').prop('onClick')();
+        assert.isFalse(confirm.called);
+        assert.isTrue(wrapper.exists('.original'));
+      });
 
       describe('when the text has changed', function() {
-        it('reverts to non-editing mode when the user confirms');
+        it('reverts to non-editing mode when the user confirms', async function() {
+          const confirm = sinon.stub().returns(0);
+          const contentUpdater = sinon.stub().resolves();
 
-        it('remains in editing mode when the user cancels');
+          const wrapper = shallowEditMode({
+            originalContent: {id: 'id-0', body: 'original'},
+            confirm,
+            contentUpdater,
+            render: () => <div className="original" />,
+          });
+
+          wrapper.find('AtomTextEditor').prop('buffer').setText('new text');
+          await wrapper.find('.github-Review-editableCancelButton').prop('onClick')();
+          assert.isTrue(confirm.called);
+          assert.isFalse(contentUpdater.called);
+          assert.isFalse(wrapper.exists('.github-Review-editable'));
+          assert.isTrue(wrapper.exists('.original'));
+        });
+
+        it('remains in editing mode when the user cancels', async function() {
+          const confirm = sinon.stub().returns(1);
+
+          const wrapper = shallowEditMode({
+            originalContent: {id: 'id-0', body: 'original'},
+            confirm,
+            render: () => <div className="original" />,
+          });
+
+          wrapper.find('AtomTextEditor').prop('buffer').setText('new text');
+          await wrapper.find('.github-Review-editableCancelButton').prop('onClick')();
+          assert.isTrue(confirm.called);
+          assert.isTrue(wrapper.exists('.github-Review-editable'));
+          assert.isFalse(wrapper.exists('.original'));
+        });
       });
     });
   });
