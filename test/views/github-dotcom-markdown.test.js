@@ -2,10 +2,11 @@ import React from 'react';
 import {mount} from 'enzyme';
 import {shell} from 'electron';
 
-import {BareGithubDotcomMarkdown} from '../../lib/views/github-dotcom-markdown';
+import GithubDotcomMarkdown, {BareGithubDotcomMarkdown} from '../../lib/views/github-dotcom-markdown';
 import {handleClickEvent, openIssueishLinkInNewTab, openLinkInBrowser} from '../../lib/views/issueish-link';
 import {getEndpoint} from '../../lib/models/endpoint';
 import RelayNetworkLayerManager from '../../lib/relay-network-layer-manager';
+import RelayEnvironment from '../../lib/views/relay-environment';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('GithubDotcomMarkdown', function() {
@@ -248,6 +249,57 @@ describe('GithubDotcomMarkdown', function() {
 
       assert.isTrue(shell.openExternal.called);
       assert.isFalse(reporterProxy.addEvent.called);
+    });
+  });
+
+  describe('the Relay context wrapper', function() {
+    function Wrapper(props) {
+      return (
+        <RelayEnvironment.Provider value={relayEnvironment}>
+          <GithubDotcomMarkdown
+            switchToIssueish={() => {}}
+            {...props}
+          />
+        </RelayEnvironment.Provider>
+      );
+    }
+
+    it('renders markdown', function() {
+      const wrapper = mount(
+        <Wrapper markdown="[link text](https://github.com)" />,
+      );
+      assert.include(wrapper.find('.github-DotComMarkdownHtml').html(), '<a href="https://github.com">link text</a>');
+    });
+
+    it('only re-renders when the markdown source changes', function() {
+      const wrapper = mount(
+        <Wrapper markdown="# Zero" />,
+      );
+      assert.include(wrapper.find('.github-DotComMarkdownHtml').html(), '<h1 id="zero">Zero</h1>');
+
+      wrapper.setProps({markdown: '# Zero'});
+      assert.include(wrapper.find('.github-DotComMarkdownHtml').html(), '<h1 id="zero">Zero</h1>');
+
+      wrapper.setProps({markdown: '# One'});
+      assert.include(wrapper.find('.github-DotComMarkdownHtml').html(), '<h1 id="one">One</h1>');
+    });
+
+    it('sanitizes malicious markup', function() {
+      const wrapper = mount(
+        <Wrapper markdown="<img src=x onerror=alert(1)>" />,
+      );
+      assert.include(wrapper.find('.github-DotComMarkdownHtml').html(), '<img src="x">');
+    });
+
+    it('prefers directly provided HTML', function() {
+      const wrapper = mount(
+        <Wrapper
+          markdown="# From markdown"
+          html="<h1>As HTML</h1>"
+        />,
+      );
+
+      assert.include(wrapper.find('.github-DotComMarkdownHtml').html(), '<h1>As HTML</h1>');
     });
   });
 });

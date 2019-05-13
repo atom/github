@@ -83,6 +83,7 @@ class RelayResponseBuilder extends QueryBuilder {
   build() {
     if (this._errors.length > 0) {
       const error = new Error('Pre-recorded GraphQL failure');
+      error.rawStack = error.stack;
       error.errors = this._errors;
       throw error;
     }
