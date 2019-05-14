@@ -24,11 +24,22 @@ describe('ErrorView', function() {
 
   it('renders descriptions', function() {
     const wrapper = shallow(buildApp());
-    const descriptions = wrapper.find('.github-Message-description');
+    const descriptions = wrapper.find('p.github-Message-description');
     assert.lengthOf(descriptions, 3);
     assert.strictEqual(descriptions.at(0).text(), 'something');
     assert.strictEqual(descriptions.at(1).text(), 'went');
     assert.strictEqual(descriptions.at(2).text(), 'wrong');
+  });
+
+  it('renders preformatted descriptions', function() {
+    const wrapper = shallow(buildApp({
+      preformatted: true,
+      descriptions: ['abc\ndef', 'ghi\njkl'],
+    }));
+    const descriptions = wrapper.find('pre.github-Message-description');
+    assert.lengthOf(descriptions, 2);
+    assert.strictEqual(descriptions.at(0).text(), 'abc\ndef');
+    assert.strictEqual(descriptions.at(1).text(), 'ghi\njkl');
   });
 
   it('renders retry button that  if retry prop is passed', function() {
