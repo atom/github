@@ -64,7 +64,7 @@ describe('IssueishDetailController', function() {
       onTitleChange: () => {},
       switchToIssueish: () => {},
       destroy: () => {},
-      reportMutationErrors: () => {},
+      reportRelayError: () => {},
 
       itemType: IssueishDetailItem,
       refEditor: new RefHolder(),

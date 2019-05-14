@@ -433,6 +433,16 @@ describe('UserStore', function() {
       assert.isNull(getToken);
     });
 
+    it('returns null if network is offline', async function() {
+      const loginModel = new GithubLoginModel(InMemoryStrategy);
+      const e = new Error('eh');
+      sinon.stub(loginModel, 'getToken').returns(Promise.resolve(e));
+
+      store = new UserStore({repository, loginModel, config});
+      const getToken = await store.getToken(loginModel, 'https://api.github.com');
+      assert.isNull(getToken);
+    });
+
     it('return token if token is sufficient and model is truthy', async function() {
       const loginModel = new GithubLoginModel(InMemoryStrategy);
       sinon.stub(loginModel, 'getScopes').returns(Promise.resolve(['repo', 'read:org', 'user:email']));

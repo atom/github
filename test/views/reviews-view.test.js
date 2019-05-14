@@ -63,7 +63,7 @@ describe('ReviewsView', function() {
       resolveThread: () => {},
       unresolveThread: () => {},
       addSingleComment: () => {},
-      reportMutationErrors: () => {},
+      reportRelayError: () => {},
       refetch: () => {},
       ...override,
     };
