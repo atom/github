@@ -96,6 +96,18 @@ describe('RemoteContainer', function() {
     assert.match(tokenWrapper.find('GithubLoginView').find('p').text(), /sufficient/);
   });
 
+  it('renders an offline view if the user is offline', function() {
+    sinon.spy(model, 'didUpdate');
+
+    const wrapper = shallow(buildApp());
+    const e = new Error('oh no');
+    const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')(e);
+    assert.isTrue(tokenWrapper.exists('QueryErrorView'));
+
+    tokenWrapper.find('QueryErrorView').prop('retry')();
+    assert.isTrue(model.didUpdate.called);
+  });
+
   it('renders an error message if the GraphQL query fails', function() {
     const wrapper = shallow(buildApp());
     const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')('1234');

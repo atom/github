@@ -9,6 +9,7 @@ describe('QueryErrorView', function() {
       <QueryErrorView
         error={new Error('wat')}
         login={() => {}}
+        openDevTools={() => {}}
         {...overrideProps}
       />
     );
@@ -41,6 +42,18 @@ describe('QueryErrorView', function() {
     }));
   });
 
+  it('recognizes network errors', function() {
+    const error = new Error('network error');
+    error.network = true;
+    error.rawStack = error.stack;
+    const retry = sinon.spy();
+
+    const wrapper = shallow(buildApp({error, retry}));
+    const ev = wrapper.find('OfflineView');
+    ev.prop('retry')();
+    assert.isTrue(retry.called);
+  });
+
   it('renders the error response directly for an unrecognized error status', function() {
     const error = new Error('GraphQL error');
     error.response = {
@@ -54,5 +67,16 @@ describe('QueryErrorView', function() {
     assert.isTrue(wrapper.find('ErrorView').someWhere(n => {
       return n.prop('descriptions').includes('response text') && n.prop('preformatted');
     }));
+  });
+
+  it('falls back to rendering the message and stack', function() {
+    const error = new Error('the message');
+    error.rawStack = error.stack;
+
+    const wrapper = shallow(buildApp({error}));
+    const ev = wrapper.find('ErrorView');
+    assert.strictEqual(ev.prop('title'), 'the message');
+    assert.deepEqual(ev.prop('descriptions'), [error.stack]);
+    assert.isTrue(ev.prop('preformatted'));
   });
 });

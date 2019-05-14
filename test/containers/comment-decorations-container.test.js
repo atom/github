@@ -40,6 +40,7 @@ describe('CommentDecorationsContainer', function() {
         workspace={workspace}
         localRepository={localRepository}
         loginModel={loginModel}
+        reportRelayError={() => {}}
         {...overrideProps}
       />
     );

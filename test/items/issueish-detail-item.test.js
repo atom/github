@@ -36,7 +36,7 @@ describe('IssueishDetailItem', function() {
       tooltips: atomEnv.tooltips,
       config: atomEnv.config,
 
-      reportMutationErrors: () => {},
+      reportRelayError: () => {},
       ...override,
     };
     return (

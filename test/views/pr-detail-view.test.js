@@ -60,7 +60,7 @@ describe('PullRequestDetailView', function() {
       openReviews: () => {},
       switchToIssueish: () => {},
       destroy: () => {},
-      reportMutationErrors: () => {},
+      reportRelayError: () => {},
 
       itemType: IssueishDetailItem,
       refEditor: new RefHolder(),
@@ -182,22 +182,22 @@ describe('PullRequestDetailView', function() {
     assert.lengthOf(tabs, 4);
 
     const tab0Children = tabs[0].props.children;
-    assert.deepEqual(tab0Children[0].props, {icon: 'info', className: 'github-IssueishDetailView-tab-icon'});
+    assert.deepEqual(tab0Children[0].props, {icon: 'info', className: 'github-tab-icon'});
     assert.deepEqual(tab0Children[1], 'Overview');
 
     const tab1Children = tabs[1].props.children;
-    assert.deepEqual(tab1Children[0].props, {icon: 'checklist', className: 'github-IssueishDetailView-tab-icon'});
+    assert.deepEqual(tab1Children[0].props, {icon: 'checklist', className: 'github-tab-icon'});
     assert.deepEqual(tab1Children[1], 'Build Status');
 
     const tab2Children = tabs[2].props.children;
-    assert.deepEqual(tab2Children[0].props, {icon: 'git-commit', className: 'github-IssueishDetailView-tab-icon'});
+    assert.deepEqual(tab2Children[0].props, {icon: 'git-commit', className: 'github-tab-icon'});
     assert.deepEqual(tab2Children[1], 'Commits');
 
     const tab3Children = tabs[3].props.children;
-    assert.deepEqual(tab3Children[0].props, {icon: 'diff', className: 'github-IssueishDetailView-tab-icon'});
+    assert.deepEqual(tab3Children[0].props, {icon: 'diff', className: 'github-tab-icon'});
     assert.deepEqual(tab3Children[1], 'Files');
 
-    const tabCounts = wrapper.find('.github-IssueishDetailView-tab-count');
+    const tabCounts = wrapper.find('.github-tab-count');
     assert.lengthOf(tabCounts, 2);
     assert.strictEqual(tabCounts.at(0).text(), '11');
     assert.strictEqual(tabCounts.at(1).text(), '22');
@@ -285,6 +285,25 @@ describe('PullRequestDetailView', function() {
     callback();
     wrapper.update();
 
+    assert.isFalse(wrapper.find('Octicon[icon="repo-sync"]').hasClass('refreshing'));
+  });
+
+  it('reports errors encountered during refetch', function() {
+    let callback = null;
+    const refetch = sinon.stub().callsFake((_0, _1, cb) => {
+      callback = cb;
+    });
+    const reportRelayError = sinon.spy();
+    const wrapper = shallow(buildApp({relay: {refetch}, reportRelayError}));
+
+    wrapper.find('Octicon[icon="repo-sync"]').simulate('click', {preventDefault: () => {}});
+    assert.isTrue(wrapper.find('Octicon[icon="repo-sync"]').hasClass('refreshing'));
+
+    const e = new Error('nope');
+    callback(e);
+    assert.isTrue(reportRelayError.calledWith(sinon.match.string, e));
+
+    wrapper.update();
     assert.isFalse(wrapper.find('Octicon[icon="repo-sync"]').hasClass('refreshing'));
   });
 
