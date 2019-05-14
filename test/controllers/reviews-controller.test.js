@@ -652,7 +652,7 @@ describe('ReviewsController', function() {
 
   describe('editing review comments', function() {
     it('calls the review comment update mutation and increments a metric', async function() {
-      const reportMutationErrors = sinon.spy();
+      const reportRelayError = sinon.spy();
       sinon.stub(reporterProxy, 'addEvent');
 
       expectRelayQuery({
@@ -662,18 +662,18 @@ describe('ReviewsController', function() {
         },
       }, op => relayResponseBuilder(op).build()).resolve();
 
-      const wrapper = shallow(buildApp({reportMutationErrors}))
+      const wrapper = shallow(buildApp({reportRelayError}))
         .find(PullRequestCheckoutController)
         .renderProp('children')(noop);
 
       await wrapper.find(ReviewsView).prop('updateComment')('comment-0', 'new text');
 
-      assert.isFalse(reportMutationErrors.called);
+      assert.isFalse(reportRelayError.called);
       assert.isTrue(reporterProxy.addEvent.calledWith('update-review-comment', {package: 'github'}));
     });
 
     it('creates a notification and and re-throws the error if the comment cannot be updated', async function() {
-      const reportMutationErrors = sinon.spy();
+      const reportRelayError = sinon.spy();
       sinon.stub(reporterProxy, 'addEvent');
 
       expectRelayQuery({
@@ -683,7 +683,7 @@ describe('ReviewsController', function() {
         },
       }, op => relayResponseBuilder(op).addError('not right now').build()).resolve();
 
-      const wrapper = shallow(buildApp({reportMutationErrors}))
+      const wrapper = shallow(buildApp({reportRelayError}))
         .find(PullRequestCheckoutController)
         .renderProp('children')(noop);
 
@@ -691,14 +691,14 @@ describe('ReviewsController', function() {
         wrapper.find(ReviewsView).prop('updateComment')('comment-0', 'new text'),
       );
 
-      assert.isTrue(reportMutationErrors.calledWith('Unable to update comment'));
+      assert.isTrue(reportRelayError.calledWith('Unable to update comment'));
       assert.isFalse(reporterProxy.addEvent.called);
     });
   });
 
   describe('editing review summaries', function() {
     it('calls the review summary update mutation and increments a metric', async function() {
-      const reportMutationErrors = sinon.spy();
+      const reportRelayError = sinon.spy();
       sinon.stub(reporterProxy, 'addEvent');
 
       expectRelayQuery({
@@ -708,18 +708,18 @@ describe('ReviewsController', function() {
         },
       }, op => relayResponseBuilder(op).build()).resolve();
 
-      const wrapper = shallow(buildApp({reportMutationErrors}))
+      const wrapper = shallow(buildApp({reportRelayError}))
         .find(PullRequestCheckoutController)
         .renderProp('children')(noop);
 
       await wrapper.find(ReviewsView).prop('updateSummary')('review-0', 'stuff');
 
-      assert.isFalse(reportMutationErrors.called);
+      assert.isFalse(reportRelayError.called);
       assert.isTrue(reporterProxy.addEvent.calledWith('update-review-summary', {package: 'github'}));
     });
 
     it('creates a notification and and re-throws the error if the summary cannot be updated', async function() {
-      const reportMutationErrors = sinon.spy();
+      const reportRelayError = sinon.spy();
       sinon.stub(reporterProxy, 'addEvent');
 
       expectRelayQuery({
@@ -729,7 +729,7 @@ describe('ReviewsController', function() {
         },
       }, op => relayResponseBuilder(op).addError('not right now').build()).resolve();
 
-      const wrapper = shallow(buildApp({reportMutationErrors}))
+      const wrapper = shallow(buildApp({reportRelayError}))
         .find(PullRequestCheckoutController)
         .renderProp('children')(noop);
 
@@ -737,7 +737,7 @@ describe('ReviewsController', function() {
         wrapper.find(ReviewsView).prop('updateSummary')('review-0', 'stuff'),
       );
 
-      assert.isTrue(reportMutationErrors.calledWith('Unable to update review summary'));
+      assert.isTrue(reportRelayError.calledWith('Unable to update review summary'));
       assert.isFalse(reporterProxy.addEvent.called);
     });
   });

@@ -29,7 +29,7 @@ describe('ReviewCommentView', function() {
       openIssueish: () => {},
       openIssueishLinkInNewTab: () => {},
       updateComment: () => {},
-      reportMutationErrors: () => {},
+      reportRelayError: () => {},
       ...override,
     };
 
