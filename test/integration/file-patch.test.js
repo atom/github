@@ -612,13 +612,7 @@ describe('integration: file patches', function() {
       triggerChange();
     });
 
-    describe('unstaged', function() {
-      before(function() {
-        if (process.platform === 'win32') {
-          this.skip();
-        }
-      });
-
+    describe.skip('unstaged', function() {
       beforeEach(async function() {
         await clickFileInGitTab('unstaged', 'symlink.txt');
       });
