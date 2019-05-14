@@ -1372,4 +1372,64 @@ describe('RootController', function() {
     });
   });
 
+  describe('reportRelayError', function() {
+    let instance;
+
+    beforeEach(function() {
+      instance = shallow(app).instance();
+      sinon.stub(notificationManager, 'addError');
+    });
+
+    it('creates a notification for a network error', function() {
+      const error = new Error('cat tripped over the ethernet cable');
+      error.network = true;
+
+      instance.reportRelayError('friendly message', error);
+
+      assert.isTrue(notificationManager.addError.calledWith('friendly message', {
+        dismissable: true,
+        icon: 'alignment-unalign',
+        description: "It looks like you're offline right now.",
+      }));
+    });
+
+    it('creates a notification for an API HTTP error', function() {
+      const error = new Error('GitHub is down');
+      error.responseText = "I just don't feel like it";
+
+      instance.reportRelayError('friendly message', error);
+
+      assert.isTrue(notificationManager.addError.calledWith('friendly message', {
+        dismissable: true,
+        description: 'The GitHub API reported a problem.',
+        detail: "I just don't feel like it",
+      }));
+    });
+
+    it('creates a notification for GraphQL errors', function() {
+      const error = new Error("Your query wasn't good enough");
+      error.errors = [
+        {message: 'First of all'},
+        {message: 'and another thing'},
+      ];
+
+      instance.reportRelayError('friendly message', error);
+
+      assert.isTrue(notificationManager.addError.calledWith('friendly message', {
+        dismissable: true,
+        detail: 'First of all\nand another thing',
+      }));
+    });
+
+    it('falls back to a stack-trace error', function() {
+      const error = new Error('idk');
+
+      instance.reportRelayError('friendly message', error);
+
+      assert.isTrue(notificationManager.addError.calledWith('friendly message', {
+        dismissable: true,
+        detail: error.stack,
+      }));
+    });
+  });
 });
