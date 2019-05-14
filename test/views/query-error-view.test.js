@@ -68,4 +68,15 @@ describe('QueryErrorView', function() {
       return n.prop('descriptions').includes('response text') && n.prop('preformatted');
     }));
   });
+
+  it('falls back to rendering the message and stack', function() {
+    const error = new Error('the message');
+    error.rawStack = error.stack;
+
+    const wrapper = shallow(buildApp({error}));
+    const ev = wrapper.find('ErrorView');
+    assert.strictEqual(ev.prop('title'), 'the message');
+    assert.deepEqual(ev.prop('descriptions'), [error.stack]);
+    assert.isTrue(ev.prop('preformatted'));
+  });
 });
