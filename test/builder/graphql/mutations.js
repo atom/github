@@ -19,7 +19,15 @@ export const AddPullRequestReviewCommentPayloadBuilder = createSpecBuilderClass(
   commentEdge: {linked: CommentEdgeBuilder},
 });
 
+export const UpdatePullRequestReviewCommentPayloadBuilder = createSpecBuilderClass('UpdatePullRequestReviewCommentPayload', {
+  pullRequestReviewComment: {linked: CommentBuilder},
+});
+
 export const SubmitPullRequestReviewPayloadBuilder = createSpecBuilderClass('SubmitPullRequestReviewPayload', {
+  pullRequestReview: {linked: ReviewBuilder},
+});
+
+export const UpdatePullRequestReviewPayloadBuilder = createSpecBuilderClass('UpdatePullRequestReviewPayload', {
   pullRequestReview: {linked: ReviewBuilder},
 });
 
