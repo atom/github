@@ -489,11 +489,11 @@
 
   &-replyButtonRow {
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-start;
     margin-top: @component-padding/2;
 
     .btn {
-      margin-left: @component-padding/2;
+      margin-right: @component-padding/2;
     }
   }
 
@@ -508,7 +508,6 @@
   }
 
   &-resolveButton {
-    margin-left: @avatar-size + 5px; // match left position of the comment editor
     &.btn.icon {
       &:before {
         font-size: 14px;
