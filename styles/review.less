@@ -469,10 +469,6 @@
     }
   }
 
-  &-replyButton {
-    margin-left: @avatar-size + 5px; // match left position of the comment editor
-  }
-
   &-resolvedText {
     text-align: center;
     margin-bottom: @component-padding;
@@ -489,6 +485,17 @@
     }
   }
 
+  // reply buttons row ------------------
+
+  &-replyButtonRow {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: @component-padding/2;
+
+    .btn {
+      margin-left: @component-padding/2;
+    }
+  }
 
   // Footer ------------------
 
@@ -501,12 +508,11 @@
   }
 
   &-resolveButton {
-    margin-left: auto;
+    margin-left: @avatar-size + 5px; // match left position of the comment editor
     &.btn.icon {
       &:before {
         font-size: 14px;
       }
     }
   }
-
 }
