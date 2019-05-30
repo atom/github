@@ -10253,6 +10253,9 @@ type Repository implements Node & ProjectOwner & RegistryPackageOwner & Subscrib
     expression: String
   ): GitObject
 
+  """The image used to represent this repository in Open Graph data."""
+  openGraphImageUrl: URI!
+
   """The User owner of the repository."""
   owner: RepositoryOwner!
 
@@ -10465,6 +10468,11 @@ type Repository implements Node & ProjectOwner & RegistryPackageOwner & Subscrib
   """The HTTP URL for this repository"""
   url: URI!
 
+  """
+  Whether this repository has a custom image to use with Open Graph as opposed to being represented by the owner's avatar.
+  """
+  usesCustomOpenGraphImage: Boolean!
+
   """Indicates whether the viewer has admin permissions on this repository."""
   viewerCanAdminister: Boolean!
 
@@ -10664,6 +10672,9 @@ interface RepositoryInfo {
   """The repository's name with owner."""
   nameWithOwner: String!
 
+  """The image used to represent this repository in Open Graph data."""
+  openGraphImageUrl: URI!
+
   """The User owner of the repository."""
   owner: RepositoryOwner!
 
@@ -10686,6 +10697,11 @@ interface RepositoryInfo {
 
   """The HTTP URL for this repository"""
   url: URI!
+
+  """
+  Whether this repository has a custom image to use with Open Graph as opposed to being represented by the owner's avatar.
+  """
+  usesCustomOpenGraphImage: Boolean!
 }
 
 """An invitation for a user to be added to a repository."""
@@ -10836,13 +10852,30 @@ interface RepositoryOwner {
 
 """The access level to a repository"""
 enum RepositoryPermission {
-  """Can read, clone, push, and add collaborators"""
+  """
+  Can read, clone, and push to this repository. Can also manage issues, pull
+  requests, and repository settings, including adding collaborators
+  """
   ADMIN
 
-  """Can read, clone and push"""
+  """
+  Can read, clone, and push to this repository. They can also manage issues, pull requests, and some repository settings
+  """
+  MAINTAIN
+
+  """
+  Can read, clone, and push to this repository. Can also manage issues and pull requests
+  """
   WRITE
 
-  """Can read and clone"""
+  """
+  Can read and clone this repository. Can also manage issues and pull requests
+  """
+  TRIAGE
+
+  """
+  Can read and clone this repository. Can also open and comment on issues and pull requests
+  """
   READ
 }
 
