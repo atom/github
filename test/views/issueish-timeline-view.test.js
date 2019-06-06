@@ -29,7 +29,7 @@ describe('IssueishTimelineView', function() {
       ...overloadProps,
     };
 
-    const timeline = {
+    const timelineItems = {
       edges: o.timelineItemSpecs.map((spec, i) => ({
         cursor: `result${i}`,
         node: {
@@ -47,9 +47,9 @@ describe('IssueishTimelineView', function() {
     };
 
     if (o.issueMode) {
-      props.issue = {timeline};
+      props.issue = {timelineItems};
     } else {
-      props.pullRequest = {timeline};
+      props.pullRequest = {timelineItems};
     }
 
     return <IssueishTimelineView {...props} />;
