@@ -74,7 +74,7 @@ export const CommitCommentBuilder = createSpecBuilderClass('CommitComment', {
   position: {default: 0, nullable: true},
 }, 'Node & Comment & Deletable & Updatable & UpdatableComment & Reactable & RepositoryNode');
 
-export const CommitCommentThreadBuilder = createSpecBuilderClass('CommitCommentThread', {
+export const PullRequestCommitCommentThreadBuilder = createSpecBuilderClass('PullRequestCommitCommentThread', {
   commit: {linked: CommitBuilder},
   comments: {linked: createConnectionBuilderClass('CommitComment', CommitCommentBuilder)},
 }, 'Node & RepositoryNode');

@@ -3,10 +3,9 @@ import {createSpecBuilderClass, createUnionBuilderClass, createConnectionBuilder
 
 import {ReactionGroupBuilder} from './reaction-group';
 import {UserBuilder} from './user';
-import {CommitBuilder, CrossReferencedEventBuilder, IssueCommentBuilder} from './timeline';
+import {CrossReferencedEventBuilder, IssueCommentBuilder} from './timeline';
 
-export const IssueTimelineItemBuilder = createUnionBuilderClass('IssueTimelineItem', {
-  beCommit: CommitBuilder,
+export const IssueTimelineItemBuilder = createUnionBuilderClass('IssueTimelineItems', {
   beCrossReferencedEvent: CrossReferencedEventBuilder,
   beIssueComment: IssueCommentBuilder,
 });
@@ -21,7 +20,7 @@ export const IssueBuilder = createSpecBuilderClass('Issue', {
   author: {linked: UserBuilder, default: null, nullable: true},
   reactionGroups: {linked: ReactionGroupBuilder, plural: true, singularName: 'reactionGroup'},
   viewerCanReact: {default: true},
-  timeline: {linked: createConnectionBuilderClass('IssueTimeline', IssueTimelineItemBuilder)},
+  timelineItems: {linked: createConnectionBuilderClass('IssueTimelineItems', IssueTimelineItemBuilder)},
   url: {default: f => {
     const id = f.id || '1';
     return `https://github.com/atom/github/issue/${id}`;
