@@ -27,14 +27,28 @@ describe('PullRequestPatchContainer', function() {
       status: 200,
       statusText: 'OK',
       getResolver: cb => cb(),
+      etag: null,
+      callNum: 0,
       ...options,
     };
 
-    return sinon.stub(window, 'fetch').callsFake(() => {
+    let stub = window.fetch;
+    if (!stub.restore) {
+      stub = sinon.stub(window, 'fetch');
+    }
+
+    stub.onCall(opts.callNum).callsFake(() => {
+      const headers = {
+        'Content-type': 'text/plain',
+      };
+      if (opts.etag !== null) {
+        headers.ETag = opts.etag;
+      }
+
       const resp = new window.Response(body, {
         status: opts.status,
         statusText: opts.statusText,
-        headers: {'Content-type': 'text/plain'},
+        headers,
       });
 
       let resolveResponsePromise = null;
@@ -44,6 +58,7 @@ describe('PullRequestPatchContainer', function() {
       opts.getResolver(() => resolveResponsePromise(resp));
       return promise;
     });
+    return stub;
   }
 
   describe('while the patch is loading', function() {
@@ -255,6 +270,42 @@ describe('PullRequestPatchContainer', function() {
 
       assert.strictEqual(fetch.callCount, 1);
       assert.strictEqual(children.callCount, 3);
+    });
+
+    it('does not reparse data if the diff has not been modified', async function() {
+      const stub = setDiffResponse(rawDiff, {callNum: 0, etag: '12345'});
+      setDiffResponse('Not modified', {callNum: 1, status: 304});
+
+      const children = sinon.spy();
+      const wrapper = shallow(buildApp({
+        owner: 'smashwilson',
+        repo: 'pushbot',
+        number: 12,
+        endpoint: getEndpoint('github.com'),
+        token: 'swordfish',
+        children,
+      }));
+
+      await assert.async.strictEqual(children.callCount, 2);
+
+      const [error, mfp] = children.lastCall.args;
+      assert.isNull(error);
+
+      wrapper.setProps({refetch: true});
+      await assert.async.strictEqual(children.callCount, 3);
+
+      assert.isTrue(stub.calledWith(
+        'https://api.github.com/repos/smashwilson/pushbot/pulls/12',
+        {
+          headers: {
+            'Accept': 'application/vnd.github.v3.diff',
+            'Authorization': 'bearer swordfish',
+            'If-None-Match': '12345',
+          },
+        },
+      ));
+
+      assert.deepEqual(children.lastCall.args, [null, mfp]);
     });
   });
 });
