@@ -7,24 +7,8 @@ describe('patch filter', function() {
       .addSmallPatch('path-b.txt')
       .toString();
 
-    const {filtered, removed} = filter(original, new Set(['path-a.txt', 'path-b.txt']));
-    assert.lengthOf(Array.from(removed), 0);
+    const filtered = filter(original);
     assert.strictEqual(filtered, original);
-  });
-
-  it('retains only files matching requested paths', function() {
-    const original = new PatchBuilder()
-      .addSmallPatch('path-a.txt')
-      .addSmallPatch('path-b.txt')
-      .toString();
-
-    const expected = new PatchBuilder()
-      .addSmallPatch('path-b.txt')
-      .toString();
-
-    const {filtered, removed} = filter(original, new Set(['path-b.txt', 'path-c.txt']));
-    assert.deepEqual(Array.from(removed), ['path-a.txt']);
-    assert.strictEqual(filtered, expected);
   });
 
   it('removes files from the patch that exceed the size threshold', function() {
@@ -37,8 +21,7 @@ describe('patch filter', function() {
       .addSmallPatch('path-b.txt')
       .toString();
 
-    const {filtered, removed} = filter(original, new Set(['path-a.txt', 'path-b.txt']));
-    assert.deepEqual(Array.from(removed), ['path-a.txt']);
+    const filtered = filter(original);
     assert.strictEqual(filtered, expected);
   });
 });
