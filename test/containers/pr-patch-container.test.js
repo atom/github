@@ -28,7 +28,7 @@ describe('PullRequestPatchContainer', function() {
       statusText: 'OK',
       getResolver: cb => cb(),
       etag: null,
-      callNum: 0,
+      callNum: null,
       ...options,
     };
 
@@ -37,7 +37,12 @@ describe('PullRequestPatchContainer', function() {
       stub = sinon.stub(window, 'fetch');
     }
 
-    stub.onCall(opts.callNum).callsFake(() => {
+    let call = stub;
+    if (opts.callNum !== null) {
+      call = stub.onCall(opts.callNum);
+    }
+
+    call.callsFake(() => {
       const headers = {
         'Content-type': 'text/plain',
       };
@@ -61,20 +66,45 @@ describe('PullRequestPatchContainer', function() {
     return stub;
   }
 
+  function createChildrenCallback() {
+    const calls = [];
+    const waitingCallbacks = [];
+
+    const fn = function(error, mfp) {
+      if (waitingCallbacks.length > 0) {
+        waitingCallbacks.shift()({error, mfp});
+        return;
+      }
+
+      calls.push({error, mfp});
+      return null;
+    }
+
+    fn.nextCall = function() {
+      if (calls.length > 0) {
+        return Promise.resolve(calls.shift());
+      }
+
+      return new Promise(resolve => waitingCallbacks.push(resolve));
+    }
+
+    return fn;
+  }
+
   describe('while the patch is loading', function() {
-    it('renders its child prop with nulls', function() {
+    it('renders its child prop with nulls', async function() {
       setDiffResponse(rawDiff);
 
-      const children = sinon.spy();
+      const children = createChildrenCallback();
       shallow(buildApp({children}));
-      assert.isTrue(children.calledWith(null, null));
+      assert.deepEqual(await children.nextCall(), {error: null, mfp: null});
     });
   });
 
   describe('when the patch has been fetched successfully', function() {
     it('builds the correct request', async function() {
       const stub = setDiffResponse(rawDiff);
-      const children = sinon.spy();
+      const children = createChildrenCallback();
       shallow(buildApp({
         owner: 'smashwilson',
         repo: 'pushbot',
@@ -94,9 +124,9 @@ describe('PullRequestPatchContainer', function() {
         },
       ));
 
-      await assert.async.strictEqual(children.callCount, 2);
+      assert.deepEqual(await children.nextCall(), {error: null, mfp: null});
 
-      const [error, mfp] = children.lastCall.args;
+      const {error, mfp} = await children.nextCall();
       assert.isNull(error);
 
       assert.lengthOf(mfp.getFilePatches(), 1);
@@ -111,11 +141,11 @@ describe('PullRequestPatchContainer', function() {
     it('modifies the patch to exclude a/ and b/ prefixes on file paths', async function() {
       setDiffResponse(rawDiffWithPathPrefix);
 
-      const children = sinon.spy();
+      const children = createChildrenCallback();
       shallow(buildApp({children}));
 
-      await assert.async.strictEqual(children.callCount, 2);
-      const [error, mfp] = children.lastCall.args;
+      await children.nextCall();
+      const {error, mfp} = await children.nextCall();
 
       assert.isNull(error);
       assert.lengthOf(mfp.getFilePatches(), 1);
@@ -127,11 +157,11 @@ describe('PullRequestPatchContainer', function() {
     it('excludes a/ prefix on the old file of a deletion', async function() {
       setDiffResponse(rawDeletionDiff);
 
-      const children = sinon.spy();
+      const children = createChildrenCallback();
       shallow(buildApp({children}));
 
-      await assert.async.strictEqual(children.callCount, 2);
-      const [error, mfp] = children.lastCall.args;
+      await children.nextCall();
+      const {error, mfp} = await children.nextCall();
 
       assert.isNull(error);
       assert.lengthOf(mfp.getFilePatches(), 1);
@@ -143,11 +173,11 @@ describe('PullRequestPatchContainer', function() {
     it('excludes b/ prefix on the new file of an addition', async function() {
       setDiffResponse(rawAdditionDiff);
 
-      const children = sinon.spy();
+      const children = createChildrenCallback();
       shallow(buildApp({children}));
 
-      await assert.async.strictEqual(children.callCount, 2);
-      const [error, mfp] = children.lastCall.args;
+      await children.nextCall();
+      const {error, mfp} = await children.nextCall();
 
       assert.isNull(error);
       assert.lengthOf(mfp.getFilePatches(), 1);
@@ -158,12 +188,12 @@ describe('PullRequestPatchContainer', function() {
 
     it('converts file paths to use native path separators', async function() {
       setDiffResponse(rawDiffWithPathPrefix);
-      const children = sinon.spy();
+      const children = createChildrenCallback();
 
       shallow(buildApp({children}));
 
-      await assert.async.strictEqual(children.callCount, 2);
-      const [error, mfp] = children.lastCall.args;
+      await children.nextCall();
+      const {error, mfp} = await children.nextCall();
 
       assert.isNull(error);
       assert.lengthOf(mfp.getFilePatches(), 1);
@@ -177,12 +207,11 @@ describe('PullRequestPatchContainer', function() {
       setDiffResponse(rawDiff, {
         getResolver(cb) { resolve = cb; },
       });
-      const children = sinon.spy();
+      const children = createChildrenCallback();
       const wrapper = shallow(buildApp({children}));
       const fetchDiffSpy = sinon.spy(wrapper.instance(), 'fetchDiff');
       wrapper.setProps({refetch: true});
 
-      assert.isTrue(children.calledWith(null, null));
       const setStateSpy = sinon.spy(wrapper.instance(), 'setState');
       wrapper.unmount();
 
@@ -198,11 +227,11 @@ describe('PullRequestPatchContainer', function() {
       const output = sinon.stub(console, 'error');
       sinon.stub(window, 'fetch').rejects(new Error('kerPOW'));
 
-      const children = sinon.spy();
+      const children = createChildrenCallback();
       shallow(buildApp({children}));
 
-      await assert.async.strictEqual(children.callCount, 2);
-      const [error, mfp] = children.lastCall.args;
+      await children.nextCall();
+      const {error, mfp} = await children.nextCall();
 
       assert.strictEqual(error, 'Network error encountered fetching the patch: kerPOW.');
       assert.isNull(mfp);
@@ -215,11 +244,11 @@ describe('PullRequestPatchContainer', function() {
         statusText: 'Not found',
       });
 
-      const children = sinon.spy();
+      const children = createChildrenCallback();
       shallow(buildApp({children}));
 
-      await assert.async.strictEqual(children.callCount, 2);
-      const [error, mfp] = children.lastCall.args;
+      await children.nextCall();
+      const {error, mfp} = await children.nextCall();
 
       assert.strictEqual(error, 'Unable to fetch the diff for this pull request: Not found.');
       assert.isNull(mfp);
@@ -229,11 +258,11 @@ describe('PullRequestPatchContainer', function() {
       const output = sinon.stub(console, 'error');
       setDiffResponse('bad diff no treat for you');
 
-      const children = sinon.spy();
+      const children = createChildrenCallback();
       shallow(buildApp({children}));
 
-      await assert.async.strictEqual(children.callCount, 2);
-      const [error, mfp] = children.lastCall.args;
+      await children.nextCall();
+      const {error, mfp} = await children.nextCall();
 
       assert.strictEqual(error, 'Unable to parse the diff for this pull request.');
       assert.isNull(mfp);
@@ -242,15 +271,14 @@ describe('PullRequestPatchContainer', function() {
   });
 
   describe('when a refetch is requested', function() {
-    it('refetches patch data on the first render', async function() {
+    it('refetches patch data on the next render', async function() {
       const fetch = setDiffResponse(rawDiff);
 
-      const children = sinon.spy();
+      const children = createChildrenCallback();
       const wrapper = shallow(buildApp({children}));
       assert.strictEqual(fetch.callCount, 1);
-      assert.isTrue(children.calledWith(null, null));
-
-      await assert.async.strictEqual(children.callCount, 2);
+      assert.deepEqual(await children.nextCall(), {error: null, mfp: null});
+      await children.nextCall();
 
       wrapper.setProps({refetch: true});
       assert.strictEqual(fetch.callCount, 2);
@@ -259,24 +287,22 @@ describe('PullRequestPatchContainer', function() {
     it('does not refetch data on additional renders', async function() {
       const fetch = setDiffResponse(rawDiff);
 
-      const children = sinon.spy();
+      const children = createChildrenCallback();
       const wrapper = shallow(buildApp({children, refetch: true}));
       assert.strictEqual(fetch.callCount, 1);
-      assert.strictEqual(children.callCount, 1);
 
-      await assert.async.strictEqual(children.callCount, 2);
+      await children.nextCall();
+      await children.nextCall();
 
       wrapper.setProps({refetch: true});
-
       assert.strictEqual(fetch.callCount, 1);
-      assert.strictEqual(children.callCount, 3);
     });
 
     it('does not reparse data if the diff has not been modified', async function() {
       const stub = setDiffResponse(rawDiff, {callNum: 0, etag: '12345'});
-      setDiffResponse('Not modified', {callNum: 1, status: 304});
+      setDiffResponse(null, {callNum: 1, status: 304});
 
-      const children = sinon.spy();
+      const children = createChildrenCallback();
       const wrapper = shallow(buildApp({
         owner: 'smashwilson',
         repo: 'pushbot',
@@ -285,14 +311,14 @@ describe('PullRequestPatchContainer', function() {
         token: 'swordfish',
         children,
       }));
-
-      await assert.async.strictEqual(children.callCount, 2);
-
-      const [error, mfp] = children.lastCall.args;
-      assert.isNull(error);
+      await children.nextCall();
+      const {error: error0, mfp: mfp0} = await children.nextCall();
+      assert.isNull(error0);
 
       wrapper.setProps({refetch: true});
-      await assert.async.strictEqual(children.callCount, 3);
+      const {error: error1, mfp: mfp1} = await children.nextCall();
+      assert.isNull(error1);
+      assert.strictEqual(mfp1, mfp0);
 
       assert.isTrue(stub.calledWith(
         'https://api.github.com/repos/smashwilson/pushbot/pulls/12',
@@ -304,8 +330,6 @@ describe('PullRequestPatchContainer', function() {
           },
         },
       ));
-
-      assert.deepEqual(children.lastCall.args, [null, mfp]);
     });
   });
 });
