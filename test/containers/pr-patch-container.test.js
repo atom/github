@@ -73,12 +73,12 @@ describe('PullRequestPatchContainer', function() {
     const fn = function(error, mfp) {
       if (waitingCallbacks.length > 0) {
         waitingCallbacks.shift()({error, mfp});
-        return;
+        return null;
       }
 
       calls.push({error, mfp});
       return null;
-    }
+    };
 
     fn.nextCall = function() {
       if (calls.length > 0) {
@@ -86,7 +86,7 @@ describe('PullRequestPatchContainer', function() {
       }
 
       return new Promise(resolve => waitingCallbacks.push(resolve));
-    }
+    };
 
     return fn;
   }
@@ -311,11 +311,15 @@ describe('PullRequestPatchContainer', function() {
         token: 'swordfish',
         children,
       }));
-      await children.nextCall();
+
+      assert.deepEqual(await children.nextCall(), {error: null, mfp: null});
       const {error: error0, mfp: mfp0} = await children.nextCall();
       assert.isNull(error0);
 
       wrapper.setProps({refetch: true});
+
+      assert.deepEqual(await children.nextCall(), {error: null, mfp: mfp0});
+      assert.deepEqual(await children.nextCall(), {error: null, mfp: null});
       const {error: error1, mfp: mfp1} = await children.nextCall();
       assert.isNull(error1);
       assert.strictEqual(mfp1, mfp0);
