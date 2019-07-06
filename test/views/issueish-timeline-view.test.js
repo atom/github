@@ -29,7 +29,7 @@ describe('IssueishTimelineView', function() {
       ...overloadProps,
     };
 
-    const timeline = {
+    const timelineItems = {
       edges: o.timelineItemSpecs.map((spec, i) => ({
         cursor: `result${i}`,
         node: {
@@ -47,9 +47,9 @@ describe('IssueishTimelineView', function() {
     };
 
     if (o.issueMode) {
-      props.issue = {timeline};
+      props.issue = {timelineItems};
     } else {
-      props.pullRequest = {timeline};
+      props.pullRequest = {timelineItems};
     }
 
     return <IssueishTimelineView {...props} />;
@@ -58,14 +58,14 @@ describe('IssueishTimelineView', function() {
   it('separates timeline issues by typename and renders a grouped child component for each', function() {
     const wrapper = shallow(buildApp({
       timelineItemSpecs: [
-        {kind: 'Commit', id: 0},
-        {kind: 'Commit', id: 1},
+        {kind: 'PullRequestCommit', id: 0},
+        {kind: 'PullRequestCommit', id: 1},
         {kind: 'IssueComment', id: 2},
         {kind: 'MergedEvent', id: 3},
-        {kind: 'Commit', id: 4},
-        {kind: 'Commit', id: 5},
-        {kind: 'Commit', id: 6},
-        {kind: 'Commit', id: 7},
+        {kind: 'PullRequestCommit', id: 4},
+        {kind: 'PullRequestCommit', id: 5},
+        {kind: 'PullRequestCommit', id: 6},
+        {kind: 'PullRequestCommit', id: 7},
         {kind: 'IssueComment', id: 8},
         {kind: 'IssueComment', id: 9},
       ],
@@ -92,8 +92,8 @@ describe('IssueishTimelineView', function() {
 
     const wrapper = shallow(buildApp({
       timelineItemSpecs: [
-        {kind: 'Commit', id: 0},
-        {kind: 'Commit', id: 1},
+        {kind: 'PullRequestCommit', id: 0},
+        {kind: 'PullRequestCommit', id: 1},
         {kind: 'FancyNewDotcomFeature', id: 2},
         {kind: 'IssueComment', id: 3},
       ],

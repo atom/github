@@ -691,6 +691,9 @@ input ChangeUserStatusInput {
   """
   limitedAvailability: Boolean = false
 
+  """If set, the user status will not be shown after this date."""
+  expiresAt: DateTime
+
   """A unique identifier for the client performing the mutation."""
   clientMutationId: String
 }
@@ -4489,26 +4492,6 @@ type Issue implements Node & Assignable & Closable & Comment & Updatable & Updat
   state: IssueState!
 
   """A list of events, comments, commits, etc. associated with the issue."""
-  timeline(
-    """Allows filtering timeline events by a `since` timestamp."""
-    since: DateTime
-
-    """Returns the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-  ): IssueTimelineConnection!
-
-  """A list of events, comments, commits, etc. associated with the issue."""
   timelineItems(
     """Filter timeline items by a `since` timestamp."""
     since: DateTime
@@ -7403,7 +7386,9 @@ type PublicKey implements Node {
   """The last time this authorization was used to perform an action"""
   accessedAt: DateTime
 
-  """Identifies the date and time when the object was created."""
+  """
+  Identifies the date and time when the key was created. Keys created before March 5th, 2014 have inaccurate values.
+  """
   createdAt: DateTime!
 
   """The fingerprint for this PublicKey"""
@@ -7416,7 +7401,9 @@ type PublicKey implements Node {
   """The public key string"""
   key: String!
 
-  """Identifies the date and time when the object was last updated."""
+  """
+  Identifies the date and time when the key was updated. Keys created before March 5th, 2014 may have inaccurate values.
+  """
   updatedAt: DateTime!
 }
 
@@ -7811,28 +7798,6 @@ type PullRequest implements Node & Assignable & Closable & Comment & Updatable &
   A list of reviewer suggestions based on commit history and past review comments.
   """
   suggestedReviewers: [SuggestedReviewer]!
-
-  """
-  A list of events, comments, commits, etc. associated with the pull request.
-  """
-  timeline(
-    """Allows filtering timeline events by a `since` timestamp."""
-    since: DateTime
-
-    """Returns the elements in the list that come after the specified cursor."""
-    after: String
-
-    """
-    Returns the elements in the list that come before the specified cursor.
-    """
-    before: String
-
-    """Returns the first _n_ elements from the list."""
-    first: Int
-
-    """Returns the last _n_ elements from the list."""
-    last: Int
-  ): PullRequestTimelineConnection!
 
   """
   A list of events, comments, commits, etc. associated with the pull request.
@@ -11648,6 +11613,14 @@ type Status implements Node {
 
 """Represents an individual commit status context"""
 type StatusContext implements Node {
+  """
+  The avatar of the OAuth application or the user that created the status
+  """
+  avatarUrl(
+    """The size of the resulting square image."""
+    size: Int = 40
+  ): URI
+
   """This commit this status context is attached to."""
   commit: Commit
 
@@ -13663,6 +13636,9 @@ type UserStatus implements Node {
 
   """An emoji summarizing the user's status."""
   emoji: String
+
+  """If set, the status will not be shown after this date."""
+  expiresAt: DateTime
 
   """ID of the object."""
   id: ID!

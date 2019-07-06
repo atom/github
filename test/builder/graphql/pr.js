@@ -6,16 +6,21 @@ import {UserBuilder} from './user';
 import {ReactionGroupBuilder} from './reaction-group';
 import {
   CommitBuilder,
-  CommitCommentThreadBuilder,
+  PullRequestCommitCommentThreadBuilder,
   CrossReferencedEventBuilder,
   HeadRefForcePushedEventBuilder,
   IssueCommentBuilder,
   MergedEventBuilder,
 } from './timeline';
 
-const PullRequestTimelineItemBuilder = createUnionBuilderClass('PullRequestTimelineItem', {
-  beCommit: CommitBuilder,
-  beCommitCommentThread: CommitCommentThreadBuilder,
+export const PullRequestCommitBuilder = createSpecBuilderClass('PullRequestCommit', {
+  id: {default: nextID},
+  commit: {linked: CommitBuilder},
+}, 'Node & UniformResourceLocatable');
+
+export const PullRequestTimelineItemsBuilder = createUnionBuilderClass('PullRequestTimelineItems', {
+  bePullRequestCommit: PullRequestCommitBuilder,
+  bePullRequestCommitCommentThread: PullRequestCommitCommentThreadBuilder,
   beCrossReferencedEvent: CrossReferencedEventBuilder,
   beHeadRefForcePushedEvent: HeadRefForcePushedEventBuilder,
   beIssueComment: IssueCommentBuilder,
@@ -77,11 +82,6 @@ export const ReviewBuilder = createSpecBuilderClass('PullRequestReview', {
 
 export const CommitConnectionBuilder = createConnectionBuilderClass('PullRequestCommit', CommentBuilder);
 
-export const PullRequestCommitBuilder = createSpecBuilderClass('PullRequestCommit', {
-  id: {default: nextID},
-  commit: {linked: CommitBuilder},
-}, 'Node & UniformResourceLocatable');
-
 export const PullRequestBuilder = createSpecBuilderClass('PullRequest', {
   id: {default: nextID},
   __typename: {default: 'PullRequest'},
@@ -110,7 +110,7 @@ export const PullRequestBuilder = createSpecBuilderClass('PullRequest', {
   recentCommits: {linked: createConnectionBuilderClass('PullRequestCommit', PullRequestCommitBuilder)},
   reviews: {linked: createConnectionBuilderClass('ReviewConnection', ReviewBuilder)},
   reviewThreads: {linked: createConnectionBuilderClass('ReviewThreadConnection', ReviewThreadBuilder)},
-  timeline: {linked: createConnectionBuilderClass('PullRequestTimeline', PullRequestTimelineItemBuilder)},
+  timelineItems: {linked: createConnectionBuilderClass('PullRequestTimelineItems', PullRequestTimelineItemsBuilder)},
   reactionGroups: {linked: ReactionGroupBuilder, plural: true, singularName: 'reactionGroup'},
   viewerCanReact: {default: true},
 },
