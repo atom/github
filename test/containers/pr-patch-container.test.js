@@ -220,6 +220,24 @@ describe('PullRequestPatchContainer', function() {
 
       assert.isFalse(setStateSpy.called);
     });
+
+    it('respects a custom largeDiffThreshold', async function() {
+      setDiffResponse(rawDiff);
+
+      const children = createChildrenCallback();
+      shallow(buildApp({
+        largeDiffThreshold: 1,
+        children,
+      }));
+
+      await children.nextCall();
+      const {error, mfp} = await children.nextCall();
+
+      assert.isNull(error);
+      assert.lengthOf(mfp.getFilePatches(), 1);
+      const [fp] = mfp.getFilePatches();
+      assert.isFalse(fp.getRenderStatus().isVisible());
+    });
   });
 
   describe('when there has been an error', function() {
