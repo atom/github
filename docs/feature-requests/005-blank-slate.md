@@ -124,7 +124,7 @@ The "owner" drop-down is populated with the user's account name and the list of 
 
 The "repository name" field is initially empty and focused. As the user types, an error message appears if a repository with the chosen name and owner already exists.
 
-The "source remote name" input is pre-populated with the value of the Atom setting `github.cloneSourceRemoteName`. If it's changed to be empty, or to contain characters that are not valid in a git remote name, an error message is shown.
+Clicking the "advanced" arrow expands controls to customize cloning protocol and the created local remote name. The "source remote name" input is pre-populated with the value of the Atom setting `github.cloneSourceRemoteName`. If it's changed to be empty, or to contain characters that are not valid in a git remote name, an error message is shown.
 
 The clone destination path is pre-populated with the directory specified as `core.projectHome` in the user's Atom settings joined with the repository name. If the destination directory already exists, the path is considered invalid and an error message is shown.
 
