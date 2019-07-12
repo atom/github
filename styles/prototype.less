@@ -42,13 +42,24 @@
   }
 }
 
-.github-Clone , .github-Connect , .github-Create {
+.github-Clone , .github-Connect , .github-Create, .github-Publish {
   &-header span {
     margin-right: @component-padding/2;
   }
 
   hr {
     border-top-color: @pane-item-border-color;
+  }
+
+  details {
+    summary {
+      cursor: default;
+      user-select: none;
+    }
+
+    main {
+      padding-top: @component-padding;
+    }
   }
 
   &-searchResults {
