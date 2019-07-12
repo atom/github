@@ -52,7 +52,7 @@ We detect this state when the active repository is empty, meaning the current pr
 
 _Scenario:_ A user has begun a project locally and now wishes to put it under version control and share it on GitHub.
 
-Clicking the "Create GitHub repository" button opens the [Create repository dialog](#create-repository-dialog) in "local repository" mode.
+Clicking the "Publish GitHub repository" button opens the [Publish repository dialog](#publish-repository-dialog).
 
 ### Local repository, initialized, no dotcom remotes
 
@@ -60,20 +60,11 @@ We detect this state when the active repository is present but has no dotcom rem
 
 <img width="400" alt="github tab, local repository with no GitHub remotes" src="https://user-images.githubusercontent.com/17565/57078536-72f7ba80-6cbc-11e9-84e8-8c2384caccdc.png">
 
-
 #### ...no dotcom repository
 
 _Scenario:_ A user has begun a project locally and now wishes to share it on GitHub.
 
-Clicking the "Create GitHub repository" button opens the [Create repository dialog](#create-repository-dialog) panel in "local repository" mode.
-
-#### ...existing dotcom repository
-
-_Scenario:_ A user has a project cloned locally and it exists on GitHub.
-
-_Scenario:_ A user has a project cloned locally and it exists on GitHub, but they cannot push. Maybe they cloned the project before to read its source more easily, but now they wish to contribute.
-
-Clicking the "Connect GitHub repository" button opens the [Connect repository dialog](#connect-repository-dialog).
+Clicking the "Create GitHub repository" button opens the [Create repository dialog](#create-repository-dialog).
 
 ### Local repository, initialized, dotcom remotes
 
@@ -180,10 +171,6 @@ Clicking the "Connect" button:
 
 ## Create repository dialog
 
-The create repository dialog may be opened in either "no local repository" mode or "local repository" mode.
-
-### "No local repository" mode
-
 <img width="650" alt="create" src="https://user-images.githubusercontent.com/17565/57249991-62c14180-7014-11e9-808a-5d7cdca7d91e.png">
 
 The "owner" drop-down is populated with the user's account name and the list of organizations to which the authenticated user belongs. Organizations to which the user has insufficient permissions to create repositories are disabled with an explanatory suffix.
@@ -202,11 +189,12 @@ Clicking the "Create" button:
 * Ensures that the clone destination path is the active GitHub package context.
 * Closes the "Create repository" dialog.
 
-### "Local repository" mode
+## Publish repository dialog
 
-The major difference in this mode is that certain controls are pre-populated with values from the state of the provided local repository.
+> TODO: screenshot
 
-* The "repository name" field is pre-populated with the directory name of the local repository's root directory.
+The major difference between this dialog and the [Create repository dialog](#create-repository-dialog) is that the local repository's path is displayed above the owner and name controls.
+
 * The "source remote" field is invalid if a remote with the given name is already present in the local repository.
 
 Clicking the "Create" button also behaves slightly differently:
