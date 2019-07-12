@@ -84,19 +84,11 @@ Clicking on an entry in the search result list or entering the full clone URL of
 
 <img width="650" alt="clone dialog, GitHub mode" src="https://user-images.githubusercontent.com/17565/57244555-ac0a9480-7006-11e9-8048-950e58f038a3.png">
 
+Clicking the "advanced" arrow expands controls to customize cloning protocol and the created local remote name.
+
+> TODO: screenshot
+
 The "protocol" toggle is initialized to match the value of the `github.preferredRemoteProtocol` config setting. If the protocol is changed, the setting is changed to match.
-
-If the authenticated user cannot push to the chosen GitHub repository, the "fork" checkbox is pre-checked.
-
-While the "fork" checkbox is checked, the "fork destination" dropdown is also shown, populated with organizations to which the user belongs. Organizations within which the user does not has permission to create repositories are disabled with an explanatory suffix. The user's account is selected by default in the "fork destination" dropdown. The "upstream remote name" input is shown and populated with the value of the Atom config setting `github.upstreamRemoteName`.
-
-<img width="650" alt="clone dialog, fork checked" src="https://user-images.githubusercontent.com/17565/57244575-b75dc000-7006-11e9-9d9b-a3b8aada82f8.png">
-
-If the user already has push rights to a fork of the chosen repository, they are prompted to clone an existing fork instead.
-
-<img width="650" alt="clone dialog, existing forks" src="https://user-images.githubusercontent.com/17565/57244583-c04e9180-7006-11e9-8e3c-f5103214767d.png">
-
-Clicking on an existing fork modifies the search query to select the chosen fork.
 
 ### Non-GitHub clone mode
 
@@ -123,51 +115,6 @@ Clicking the "Clone" button:
 * Adds the clone destination path as a project root.
 * Ensures that the clone destination is the active GitHub package context.
 * Closes the "Clone repository" dialog.
-
-## Connect repository dialog
-
-The connect repository dialog is similar to the [clone repository dialog](#clone-repository-dialog), but omits the controls related to choosing a clone destination.
-
-The connect repository dialog begins in search mode. As you type within the text input, once more than three characters have been entered, repositories on GitHub matching the entered text appear in the result list below. Repositories may be identified by full clone URL, `owner/name` pair, or a unique substring of `owner/name`.
-
-<img width="650" alt="connect dialog, search results" src="https://user-images.githubusercontent.com/17565/57249905-22fa5a00-7014-11e9-9dc9-e218116a0387.png">
-
-### GitHub clone mode
-
-Clicking on an entry in the search result list or entering the full clone URL of a GitHub repository changes the dialog to "GitHub clone" mode:
-
-<img width="650" alt="connect dialog, GitHub mode" src="https://user-images.githubusercontent.com/17565/57249935-3e656500-7014-11e9-8c83-393d61868c9d.png">
-
-If the authenticated user cannot push to the chosen GitHub repository, the "fork" checkbox is pre-checked.
-
-While the "fork" checkbox is checked, the "fork destination" dropdown is also shown, populated with organizations to which the user belongs. Organizations within which the user does not has permission to create repositories are disabled with an explanatory suffix. The user's account is selected by default in the "fork destination" dropdown. The "upstream remote name" input is shown and populated with the value of the Atom config setting `github.upstreamRemoteName`.
-
-If the user already has push rights to a fork of the chosen repository, they are prompted to clone an existing fork instead. Clicking on an existing fork modifies the search query to select the chosen fork.
-
-### Non-GitHub clone mode
-
-Entering the full clone URL of a non-GitHub repository changes the dialog to "non-GitHub clone" mode:
-
-<img width="650" alt="connect dialog, non-GitHub" src="https://user-images.githubusercontent.com/17565/57249963-53da8f00-7014-11e9-849c-89628b76370a.png">
-
-
-### Common behavior
-
-The "remote name" input is pre-populated with the value of the Atom setting `github.cloneSourceRemoteName`. If it's changed to be empty, or to contain characters that are not valid in a git remote name, an error message is shown.
-
-The "Connect" button is enabled when:
-
-* A remote source is uniquely identified, by GitHub `name/owner` or git URL;
-* The "remote name" input is populated with a valid git remote name;
-* The fork checkbox is unchecked, or it is checked, an enabled fork destination is chosen from the dropdown, and the "upstream remote name" input is populated with a valid git remote name.
-
-Clicking the "Connect" button:
-
-* If the fork checkbox is checked, forks the repository to the chosen fork destination.
-* Adds the chosen repository or the newly created fork as a remote with the chosen remote name.
-* If the fork checkbox was checked, adds the fork source as a remote with the chosen upstream remote name.
-* Ensures that the connected local repository is the active GitHub package context.
-* Closes the "Connect repository" dialog.
 
 ## Create repository dialog
 
@@ -242,6 +189,7 @@ We could open dotcom for repository creation, but then we would have no way to s
 This effort should not include:
 
 * GitHub enterprise support. ( :sad: ) We have separate issues ([#270](https://github.com/atom/github/issues/270), [#919](https://github.com/atom/github/issues/919)) to track that, although this does complicate its eventual implementation, because the clone and create dialogs need to be Enterprise-aware.
+* Workflows related to fork creation and management.
 * General remote management ([#555](https://github.com/atom/github/issues/555)).
 
 ## :construction: Implementation phases
