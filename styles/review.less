@@ -15,6 +15,21 @@
   overflow-y: hidden;
   height: 100%;
 
+  // tab navigation
+
+  .github-tab {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 10px;
+    min-height: 3em;
+
+    &.github-Reviews-startReviewButton {
+      justify-content: flex-end;
+    }
+  }
+
   atom-text-editor {
     padding: @component-padding/2;
     border-top: 1px solid @base-border-color;
@@ -422,12 +437,9 @@
     margin-left: @component-padding/2;
   }
 
-  &-pendingBadge {
-    margin-left: @component-padding;
-  }
-
-  &-authorAssociationBadge {
-    margin-left: @component-padding;
+  &-pendingBadge, &-authorAssociationBadge {
+    margin-left: @component-padding/2;
+    font-size: 90%;
   }
 
   &-text  {
@@ -454,10 +466,6 @@
     }
   }
 
-  &-replyButton {
-    margin-left: @avatar-size + 5px; // match left position of the comment editor
-  }
-
   &-resolvedText {
     text-align: center;
     margin-bottom: @component-padding;
@@ -474,6 +482,17 @@
     }
   }
 
+  // reply buttons row ------------------
+
+  &-replyButtonRow {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: @component-padding/2;
+
+    .btn {
+      margin-left: @component-padding/2;
+    }
+  }
 
   // Footer ------------------
 
@@ -486,12 +505,36 @@
   }
 
   &-resolveButton {
-    margin-left: auto;
     &.btn.icon {
       &:before {
         font-size: 14px;
       }
     }
   }
+}
 
+.github-PendingReviews {
+
+  atom-text-editor {
+    min-height: 5.125em;
+  }
+
+  &-editor {
+    display: flex;
+    .icon {
+      padding-top: @component-padding/2;
+      min-width: 2em;
+    }
+  }
+
+  &-reviewType {
+    padding-left: 2em;
+  }
+
+  &-summaryFooter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: @component-padding/2;
+  }
 }

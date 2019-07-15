@@ -18,7 +18,7 @@ atom-text-editor {
   width: 1.4em;
 }
 
-.github-editorCommentGutterIcon {
+.github-editorCommentGutterIcon , .github-addCommentGutterIcon {
   &.decoration {
     width: 100%;
   }
@@ -34,5 +34,17 @@ atom-text-editor {
     border: none;
     background: none;
     vertical-align: middle;
+  }
+}
+
+.github-addCommentGutterIcon {
+  button {
+    display: none;
+  }
+
+  &:hover {
+    button {
+      display: inherit;
+    }
   }
 }
