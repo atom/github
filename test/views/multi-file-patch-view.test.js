@@ -4,7 +4,7 @@ import {shallow, mount} from 'enzyme';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 import {cloneRepository, buildRepository} from '../helpers';
-import {EXPANDED, COLLAPSED, DEFERRED} from '../../lib/models/patch/patch';
+import {EXPANDED, COLLAPSED, DEFERRED, REMOVED} from '../../lib/models/patch/patch';
 import MultiFilePatchView from '../../lib/views/multi-file-patch-view';
 import {multiFilePatchBuilder} from '../builder/patch';
 import {aggregatedReviewsBuilder} from '../builder/graphql/aggregated-reviews-builder';
@@ -1915,6 +1915,28 @@ describe('MultiFilePatchView', function() {
       wrapper = mount(buildApp({multiFilePatch: mfp}));
       assert.isFalse(wrapper.find('.github-FilePatchView-showDiffButton').exists());
       assert.isTrue(wrapper.find('.github-HunkHeaderView').exists());
+    });
+  });
+
+  describe('removed diff message', function() {
+    let wrapper, mfp;
+
+    beforeEach(function() {
+      const {multiFilePatch} = multiFilePatchBuilder()
+        .addFilePatch(fp => {
+          fp.renderStatus(REMOVED);
+        }).build();
+      mfp = multiFilePatch;
+      wrapper = mount(buildApp({multiFilePatch: mfp}));
+    });
+
+    it('displays the message when a file has been removed', function() {
+      assert.include(
+        wrapper.find('.github-FilePatchView-controlBlock .github-FilePatchView-message').first().text(),
+        'This diff is too large to load at all.',
+      );
+      assert.isFalse(wrapper.find('.github-FilePatchView-showDiffButton').exists());
+      assert.isFalse(wrapper.find('.github-HunkHeaderView').exists());
     });
   });
 });
