@@ -125,6 +125,11 @@
     }
   }
 
+  &-destinationRow , &-localPathRow {
+    display: flex;
+    flex-direction: row;
+  }
+
   &-sourceRemote , &-upstreamRemote {
     display: flex;
     flex-direction: row;
@@ -132,7 +137,6 @@
 
     label {
       margin: 0 @component-padding 0 0;
-      width: 12em;
     }
 
     .github-AtomTextEditor-container {
@@ -149,27 +153,15 @@
 .github-Create , .github-Publish {
   &-visibilityHeading , &-protocolHeading {
     display: inline-block;
-    width: 5em;
   }
 
   &-visibilityOption , &-protocolOption {
     display: inline-block;
-    width: 7em;
+    margin-right: @component-padding;
 
     span::before {
       margin-left: @component-padding/4;
-    }
-  }
-
-  &-sourceRemote {
-    label {
-      display: flex;
-      align-items: center;
-      width: 100%;
-    }
-
-    .github-AtomTextEditor-container {
-      width: 12em;
+      margin-right: @component-padding/4;
     }
   }
 
