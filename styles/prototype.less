@@ -127,7 +127,7 @@
   }
 }
 
-.github-Create {
+.github-Create , .github-Publish {
   &-visibilityHeading , &-protocolHeading {
     display: inline-block;
     width: 5em;
@@ -154,7 +154,11 @@
     }
   }
 
-  &-destination label {
+  &-destination label , &-localPath label {
     width: 100%;
+  }
+
+  &-localPath atom-text-editor[mini][readonly] {
+    color: @text-color-subtle;
   }
 }
