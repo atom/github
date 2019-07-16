@@ -36,3 +36,25 @@ atom-text-editor {
     vertical-align: middle;
   }
 }
+
+.github-EditorComment-omitted {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: @tool-panel-background-color;
+  border-radius: @component-border-radius;
+  padding: @component-padding;
+  margin: @component-padding/2 0;
+
+  p {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin: @component-padding/4;
+  }
+
+  button {
+    margin-left: @component-padding;
+  }
+}
