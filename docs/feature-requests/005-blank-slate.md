@@ -34,19 +34,19 @@ We detect this state when the active repository is absent, meaning there are no 
 
 _Scenario:_ A user wants to start a new project published on GitHub.
 
-Clicking the "Create GitHub repository" button opens the [Create repository dialog](#create-repository-dialog) in "no local repository" mode.
+Clicking the "Create a new GitHub repository" button opens the [Create repository dialog](#create-repository-dialog).
 
 #### ...existing dotcom repository
 
 _Scenario:_ A user wishes to contribute to a project that exists on GitHub, but does not yet have a clone on their local machine. Perhaps a friend or co-worker created the repository and they wish to collaborate, or they're working on a personal project on a different machine, or there is an open-source repository they wish to contribute to.
 
-Clicking the "Clone GitHub repository" button opens the [Clone repository dialog](#clone-repository-dialog).
+Clicking the "Clone an existing GitHub repository" button opens the [Clone repository dialog](#clone-repository-dialog).
 
 ### Local repository, uninitialized
 
 We detect this state when the active repository is empty, meaning the current project root has no Git repository.
 
-<img width="400" alt="github tab, local repository is uninitialized" src="https://user-images.githubusercontent.com/17565/57078458-5065a180-6cbc-11e9-94d7-f4a6f94bee54.png">
+<img width="451" alt="local-uninitialized" src="https://user-images.githubusercontent.com/17565/61296239-bdf77900-a7a7-11e9-8fcd-36340d2a3baa.png">
 
 #### ...no dotcom repository
 
@@ -58,13 +58,13 @@ Clicking the "Publish GitHub repository" button opens the [Publish repository di
 
 We detect this state when the active repository is present but has no dotcom remotes.
 
-<img width="400" alt="github tab, local repository with no GitHub remotes" src="https://user-images.githubusercontent.com/17565/57078536-72f7ba80-6cbc-11e9-84e8-8c2384caccdc.png">
+<img width="460" alt="github tab, local repository with no GitHub remotes" src="https://user-images.githubusercontent.com/17565/61293864-a36ed100-a7a2-11e9-99b9-e7d920e7cc1f.png">
 
 #### ...no dotcom repository
 
 _Scenario:_ A user has begun a project locally and now wishes to share it on GitHub.
 
-Clicking the "Create GitHub repository" button opens the [Create repository dialog](#create-repository-dialog).
+Clicking the "Publish on GitHub" button opens the [Publish repository dialog](#publish-repository-dialog).
 
 ### Local repository, initialized, dotcom remotes
 
@@ -82,31 +82,30 @@ The clone repository dialog begins in search mode. As you type within the text i
 
 Clicking on an entry in the search result list or entering the full clone URL of a GitHub repository changes the dialog to "GitHub clone" mode:
 
-<img width="650" alt="clone dialog, GitHub mode" src="https://user-images.githubusercontent.com/17565/57244555-ac0a9480-7006-11e9-8048-950e58f038a3.png">
+<img width="634" alt="clone dialog, GitHub mode" src="https://user-images.githubusercontent.com/17565/61298175-c356c280-a7ab-11e9-861f-1585e21bb58c.png">
 
 Clicking the "advanced" arrow expands controls to customize cloning protocol and the created local remote name.
 
-> TODO: screenshot
+<img width="647" alt="clone dialog, GitHub mode, advanced section expanded" src="https://user-images.githubusercontent.com/17565/61298176-c356c280-a7ab-11e9-8d2c-d2039ae2729e.png">
 
 The "protocol" toggle is initialized to match the value of the `github.preferredRemoteProtocol` config setting. If the protocol is changed, the setting is changed to match.
 
 ### Non-GitHub clone mode
 
-Entering the full clone URL of a non-GitHub repository changes the dialog to "non-GitHub clone" mode:
+Entering the full clone URL of a non-GitHub repository changes the dialog to "non-GitHub clone" mode. Clicking the "advanced" arrow expands controls to customize the created local remote name. (The cloning protocol is inferred from the source URL.)
 
-<img width="650" alt="clone dialog, non-GitHub" src="https://user-images.githubusercontent.com/17565/57096447-4c00af00-6ce3-11e9-811b-02f472ccaa52.png">
+<img width="643" alt="clone dialog, non-GitHub" src="https://user-images.githubusercontent.com/17565/61298177-c356c280-a7ab-11e9-9ab9-d6deed1d9e6a.png">
 
 ### Common behavior
 
 The "source remote name" input is pre-populated with the value of the Atom setting `github.cloneSourceRemoteName`. If it's changed to be empty, or to contain characters that are not valid in a git remote name, an error message is shown.
 
-The clone destination path is pre-populated with the directory specified as `core.projectHome` in the user's Atom settings joined with the repository name. If the destination directory already exists, the path is considered invalid and an error message is shown.
+The clone destination path is pre-populated with the directory specified as `core.projectHome` in the user's Atom settings joined with the repository name. If the destination directory already exists and is nonempty, or is not writable by the current user, the path is considered invalid and an error message is shown. Clicking the button to the right of the destination path text field opens a system directory selection or creation dialog that populates the clone destination path with on accept.
 
 The "Clone" button is enabled when:
 
 * A clone source is uniquely identified, by GitHub `name/owner` or git URL;
 * The "source remote name" input is populated with a valid git remote name;
-* The fork checkbox is unchecked, or it is checked, an enabled fork destination is chosen from the dropdown, and the "upstream remote name" input is populated with a valid git remote name.
 * A valid path is entered within the clone destination path input.
 
 Clicking the "Clone" button:
@@ -118,15 +117,15 @@ Clicking the "Clone" button:
 
 ## Create repository dialog
 
-<img width="650" alt="create" src="https://user-images.githubusercontent.com/17565/57249991-62c14180-7014-11e9-808a-5d7cdca7d91e.png">
+<img width="638" alt="create dialog" src="https://user-images.githubusercontent.com/17565/61298178-c356c280-a7ab-11e9-9d61-3a57ac51dd65.png">
 
 The "owner" drop-down is populated with the user's account name and the list of organizations to which the authenticated user belongs. Organizations to which the user has insufficient permissions to create repositories are disabled with an explanatory suffix.
 
 The "repository name" field is initially empty and focused. As the user types, an error message appears if a repository with the chosen name and owner already exists.
 
-Clicking the "advanced" arrow expands controls to customize cloning protocol and the created local remote name. The "source remote name" input is pre-populated with the value of the Atom setting `github.cloneSourceRemoteName`. If it's changed to be empty, or to contain characters that are not valid in a git remote name, an error message is shown.
+The clone destination path is pre-populated with the directory specified as `core.projectHome` in the user's Atom settings joined with the repository name. If the destination directory already exists and is nonempty, or is unwritable by the current user, the path is considered invalid and an error message is shown. Clicking the button to the right of the destination path text field opens a system directory selection or creation dialog that populates the clone destination path with on accept.
 
-The clone destination path is pre-populated with the directory specified as `core.projectHome` in the user's Atom settings joined with the repository name. If the destination directory already exists, the path is considered invalid and an error message is shown.
+Clicking the "advanced" arrow expands controls to customize cloning protocol and the created local remote name. The "source remote name" input is pre-populated with the value of the Atom setting `github.cloneSourceRemoteName`. If it's changed to be empty, or to contain characters that are not valid in a git remote name, an error message is shown.
 
 Clicking the "Create" button:
 
@@ -138,21 +137,21 @@ Clicking the "Create" button:
 
 ## Publish repository dialog
 
-> TODO: screenshot
+<img width="632" alt="publish dialog" src="https://user-images.githubusercontent.com/17565/61298633-92c35880-a7ac-11e9-93a1-56703f0b2afa.png">
 
-The major difference between this dialog and the [Create repository dialog](#create-repository-dialog) is that the local repository's path is displayed above the owner and name controls.
+The major difference between this dialog and the [Create repository dialog](#create-repository-dialog) is that the local repository's path is displayed in a read-only input field and the directory selection button is disabled.
 
 * The "source remote" field is invalid if a remote with the given name is already present in the local repository.
 
-Clicking the "Create" button also behaves slightly differently:
+Clicking the "Publish" button also behaves slightly differently from the "Create" button:
 
 * Initializes a git repository in the local repository path if it is not already a git repository.
-* Creates a repository on GitHub with the chosen owner, name, and description.
+* Creates a repository on GitHub with the chosen owner and name.
 * Adds a remote with the specified "source remote name" and sets it to the clone URL of the newly created repository, respecting the https/ssh toggle.
 * If a branch called `master` is present in the local repository, its push and fetch upstreams are configured to be the source remote.
 * The local repository path is added as a project root if it is not already present.
 * Ensures that the clone destination path is the active GitHub package context.
-* Closes the "Create repository" dialog.
+* Closes the "Publish repository" dialog.
 
 ## Improved branch publish behavior
 
