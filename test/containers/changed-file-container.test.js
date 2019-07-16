@@ -5,7 +5,7 @@ import {mount} from 'enzyme';
 
 import ChangedFileContainer from '../../lib/containers/changed-file-container';
 import ChangedFileItem from '../../lib/items/changed-file-item';
-import {TOO_LARGE, EXPANDED} from '../../lib/models/patch/patch';
+import {DEFERRED, EXPANDED} from '../../lib/models/patch/patch';
 import {cloneRepository, buildRepository} from '../helpers';
 
 describe('ChangedFileContainer', function() {
@@ -93,7 +93,7 @@ describe('ChangedFileContainer', function() {
     await assert.async.isTrue(wrapper.update().exists('ChangedFileController'));
     const before = wrapper.find('ChangedFileController').prop('multiFilePatch');
     const fp = before.getFilePatches()[0];
-    assert.strictEqual(fp.getRenderStatus(), TOO_LARGE);
+    assert.strictEqual(fp.getRenderStatus(), DEFERRED);
     before.expandFilePatch(fp);
     assert.strictEqual(fp.getRenderStatus(), EXPANDED);
 

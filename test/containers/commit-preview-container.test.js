@@ -5,7 +5,7 @@ import path from 'path';
 
 import CommitPreviewContainer from '../../lib/containers/commit-preview-container';
 import CommitPreviewItem from '../../lib/items/commit-preview-item';
-import {TOO_LARGE, EXPANDED} from '../../lib/models/patch/patch';
+import {DEFERRED, EXPANDED} from '../../lib/models/patch/patch';
 import {cloneRepository, buildRepository} from '../helpers';
 
 describe('CommitPreviewContainer', function() {
@@ -89,7 +89,7 @@ describe('CommitPreviewContainer', function() {
     await assert.async.isTrue(wrapper.update().exists('CommitPreviewController'));
 
     const before = wrapper.find('CommitPreviewController').prop('multiFilePatch');
-    assert.strictEqual(before.getFilePatches()[0].getRenderStatus(), TOO_LARGE);
+    assert.strictEqual(before.getFilePatches()[0].getRenderStatus(), DEFERRED);
     assert.strictEqual(before.getFilePatches()[1].getRenderStatus(), EXPANDED);
 
     before.expandFilePatch(before.getFilePatches()[0]);

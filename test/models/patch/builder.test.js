@@ -1,5 +1,5 @@
 import {buildFilePatch, buildMultiFilePatch} from '../../../lib/models/patch';
-import {TOO_LARGE, EXPANDED} from '../../../lib/models/patch/patch';
+import {DEFERRED, EXPANDED} from '../../../lib/models/patch/patch';
 import {multiFilePatchBuilder} from '../../builder/patch';
 import {assertInPatch, assertInFilePatch} from '../../helpers';
 
@@ -854,7 +854,7 @@ describe('buildFilePatch', function() {
       assert.lengthOf(mfp.getFilePatches(), 2);
       const [fp0, fp1] = mfp.getFilePatches();
 
-      assert.strictEqual(fp0.getRenderStatus(), TOO_LARGE);
+      assert.strictEqual(fp0.getRenderStatus(), DEFERRED);
       assert.strictEqual(fp0.getOldPath(), 'first');
       assert.strictEqual(fp0.getNewPath(), 'first');
       assert.deepEqual(fp0.getStartRange().serialize(), [[0, 0], [0, 0]]);
@@ -904,7 +904,7 @@ describe('buildFilePatch', function() {
       assert.lengthOf(mfp.getFilePatches(), 2);
       const [fp0, fp1] = mfp.getFilePatches();
 
-      assert.strictEqual(fp0.getRenderStatus(), TOO_LARGE);
+      assert.strictEqual(fp0.getRenderStatus(), DEFERRED);
       assert.strictEqual(fp0.getOldPath(), 'big');
       assert.strictEqual(fp0.getNewPath(), 'big');
       assert.deepEqual(fp0.getMarker().getRange().serialize(), [[0, 0], [0, 0]]);
@@ -939,7 +939,7 @@ describe('buildFilePatch', function() {
       assert.lengthOf(mfp.getFilePatches(), 1);
       const [fp] = mfp.getFilePatches();
 
-      assert.strictEqual(fp.getRenderStatus(), TOO_LARGE);
+      assert.strictEqual(fp.getRenderStatus(), DEFERRED);
       assert.strictEqual(fp.getOldPath(), 'first');
       assert.strictEqual(fp.getNewPath(), 'first');
       assert.deepEqual(fp.getStartRange().serialize(), [[0, 0], [0, 0]]);
@@ -980,7 +980,7 @@ describe('buildFilePatch', function() {
       assert.lengthOf(mfp.getFilePatches(), 1);
       const [fp] = mfp.getFilePatches();
 
-      assert.strictEqual(fp.getRenderStatus(), TOO_LARGE);
+      assert.strictEqual(fp.getRenderStatus(), DEFERRED);
       assert.strictEqual(fp.getOldPath(), 'big');
       assert.strictEqual(fp.getNewPath(), 'big');
       assert.deepEqual(fp.getStartRange().serialize(), [[0, 0], [0, 0]]);
@@ -1044,7 +1044,7 @@ describe('buildFilePatch', function() {
         },
       );
 
-      assert.strictEqual(fp1.getRenderStatus(), TOO_LARGE);
+      assert.strictEqual(fp1.getRenderStatus(), DEFERRED);
       assert.deepEqual(fp1.getPatch().getMarker().getRange().serialize(), [[4, 0], [4, 0]]);
       assertInFilePatch(fp1, mfp.getBuffer()).hunks();
 

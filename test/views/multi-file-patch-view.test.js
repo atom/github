@@ -4,7 +4,7 @@ import {shallow, mount} from 'enzyme';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 import {cloneRepository, buildRepository} from '../helpers';
-import {EXPANDED, COLLAPSED, TOO_LARGE} from '../../lib/models/patch/patch';
+import {EXPANDED, COLLAPSED, DEFERRED} from '../../lib/models/patch/patch';
 import MultiFilePatchView from '../../lib/views/multi-file-patch-view';
 import {multiFilePatchBuilder} from '../builder/patch';
 import {aggregatedReviewsBuilder} from '../builder/graphql/aggregated-reviews-builder';
@@ -1878,7 +1878,7 @@ describe('MultiFilePatchView', function() {
     beforeEach(function() {
       const {multiFilePatch} = multiFilePatchBuilder()
         .addFilePatch(fp => {
-          fp.renderStatus(TOO_LARGE);
+          fp.renderStatus(DEFERRED);
         }).build();
       mfp = multiFilePatch;
       wrapper = mount(buildApp({multiFilePatch: mfp}));
