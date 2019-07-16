@@ -7,8 +7,9 @@ describe('patch filter', function() {
       .addSmallPatch('path-b.txt')
       .toString();
 
-    const filtered = filter(original);
+    const {filtered, removed} = filter(original);
     assert.strictEqual(filtered, original);
+    assert.sameMembers(Array.from(removed), []);
   });
 
   it('removes files from the patch that exceed the size threshold', function() {
@@ -21,8 +22,9 @@ describe('patch filter', function() {
       .addSmallPatch('path-b.txt')
       .toString();
 
-    const filtered = filter(original);
+    const {filtered, removed} = filter(original);
     assert.strictEqual(filtered, expected);
+    assert.sameMembers(Array.from(removed), ['path-a.txt']);
   });
 });
 
