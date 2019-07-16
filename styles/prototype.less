@@ -125,9 +125,27 @@
     }
   }
 
-  &-destinationRow , &-localPathRow {
+  &-destinationRow , &-localPathRow , &-repoRow {
     display: flex;
     flex-direction: row;
+    align-items: stretch;
+  }
+
+  &-rightBumper {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    width: 3em;
+    height: auto;
+    margin: 0;
+    padding: 0 @component-padding;
+
+    &::before {
+      margin-top: -1px;
+      margin-right: 0;
+    }
   }
 
   &-sourceRemote , &-upstreamRemote {
