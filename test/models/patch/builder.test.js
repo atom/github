@@ -1,5 +1,5 @@
 import {buildFilePatch, buildMultiFilePatch} from '../../../lib/models/patch';
-import {DEFERRED, EXPANDED} from '../../../lib/models/patch/patch';
+import {DEFERRED, EXPANDED, REMOVED} from '../../../lib/models/patch/patch';
 import {multiFilePatchBuilder} from '../../builder/patch';
 import {assertInPatch, assertInFilePatch} from '../../helpers';
 
@@ -1173,6 +1173,44 @@ describe('buildFilePatch', function() {
           ],
         },
       );
+    });
+  });
+
+  describe('with a removed diff', function() {
+    it('creates a HiddenPatch when the diff has been removed', function() {
+      const mfp = buildMultiFilePatch([
+        {
+          oldPath: 'only', oldMode: '100644', newPath: 'only', newMode: '100755', status: 'modified',
+          hunks: [
+            {
+              oldStartLine: 1, oldLineCount: 1, newStartLine: 1, newLineCount: 2,
+              lines: [' line-4', '+line-5'],
+            },
+          ],
+        },
+      ], {removed: new Set(['removed'])});
+
+      assert.lengthOf(mfp.getFilePatches(), 2);
+      const [fp0, fp1] = mfp.getFilePatches();
+
+      assert.strictEqual(fp0.getRenderStatus(), EXPANDED);
+      assert.strictEqual(fp0.getOldPath(), 'only');
+      assert.strictEqual(fp0.getNewPath(), 'only');
+      assert.deepEqual(fp0.getMarker().getRange().serialize(), [[0, 0], [1, 6]]);
+      assertInFilePatch(fp0, mfp.getBuffer()).hunks(
+        {
+          startRow: 0, endRow: 1, header: '@@ -1,1 +1,2 @@', regions: [
+            {kind: 'unchanged', string: ' line-4\n', range: [[0, 0], [0, 6]]},
+            {kind: 'addition', string: '+line-5', range: [[1, 0], [1, 6]]},
+          ],
+        },
+      );
+
+      assert.strictEqual(fp1.getRenderStatus(), REMOVED);
+      assert.strictEqual(fp1.getOldPath(), 'removed');
+      assert.strictEqual(fp1.getNewPath(), 'removed');
+      assert.deepEqual(fp1.getMarker().getRange().serialize(), [[1, 6], [1, 6]]);
+      assertInFilePatch(fp1, mfp.getBuffer()).hunks();
     });
   });
 
