@@ -82,11 +82,11 @@ The clone repository dialog begins in search mode. As you type within the text i
 
 Clicking on an entry in the search result list or entering the full clone URL of a GitHub repository changes the dialog to "GitHub clone" mode:
 
-<img width="634" alt="clone dialog, GitHub mode" src="https://user-images.githubusercontent.com/17565/61298175-c356c280-a7ab-11e9-861f-1585e21bb58c.png">
+<img width="640" alt="clone dialog, GitHub mode" src="https://user-images.githubusercontent.com/17565/61302430-c2299380-a7b3-11e9-9dd6-9cb2cd55cf46.png">
 
 Clicking the "advanced" arrow expands controls to customize cloning protocol and the created local remote name.
 
-<img width="647" alt="clone dialog, GitHub mode, advanced section expanded" src="https://user-images.githubusercontent.com/17565/61298176-c356c280-a7ab-11e9-8d2c-d2039ae2729e.png">
+<img width="639" alt="clone dialog, GitHub mode, advanced section expanded" src="https://user-images.githubusercontent.com/17565/61302431-c2299380-a7b3-11e9-9399-8cd2f8132d33.png">
 
 The "protocol" toggle is initialized to match the value of the `github.preferredRemoteProtocol` config setting. If the protocol is changed, the setting is changed to match.
 
@@ -94,7 +94,7 @@ The "protocol" toggle is initialized to match the value of the `github.preferred
 
 Entering the full clone URL of a non-GitHub repository changes the dialog to "non-GitHub clone" mode. Clicking the "advanced" arrow expands controls to customize the created local remote name. (The cloning protocol is inferred from the source URL.)
 
-<img width="643" alt="clone dialog, non-GitHub" src="https://user-images.githubusercontent.com/17565/61298177-c356c280-a7ab-11e9-9ab9-d6deed1d9e6a.png">
+<img width="635" alt="clone dialog, non-GitHub mode" src="https://user-images.githubusercontent.com/17565/61302433-c2299380-a7b3-11e9-98db-b2eca8f7f76e.png">
 
 ### Common behavior
 
