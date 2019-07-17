@@ -1,114 +1,115 @@
 import React from 'react';
-import {mount} from 'enzyme';
+import {shallow} from 'enzyme';
 
 import CredentialDialog from '../../lib/views/credential-dialog';
+import {dialogRequests} from '../../lib/controllers/dialogs-controller';
 
 describe('CredentialDialog', function() {
   let atomEnv;
-  let app, wrapper, didSubmit, didCancel;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
-
-    didSubmit = sinon.stub();
-    didCancel = sinon.stub();
-
-    app = (
-      <CredentialDialog
-        commands={atomEnv.commands}
-        prompt="speak friend and enter"
-        includeUsername={true}
-        includeRemember={false}
-        onSubmit={didSubmit}
-        onCancel={didCancel}
-      />
-    );
   });
 
   afterEach(function() {
     atomEnv.destroy();
   });
 
-  const setTextIn = function(selector, text) {
-    wrapper.find(selector).simulate('change', {target: {value: text}});
-  };
+  function buildApp(overrides = {}) {
+    return (
+      <CredentialDialog
+        commands={atomEnv.commands}
+        request={dialogRequests.credential()}
+        {...overrides}
+      />
+    );
+  }
 
-  describe('confirm', function() {
+  describe('accept', function() {
     it('reports the current username and password', function() {
-      wrapper = mount(app);
+      const accept = sinon.spy();
+      const request = dialogRequests.credential({includeUsername: true});
+      request.onAccept(accept);
+      const wrapper = shallow(buildApp({request}));
 
-      setTextIn('.github-CredentialDialog-Username', 'someone');
-      setTextIn('.github-CredentialDialog-Password', 'letmein');
-
+      wrapper.find('.github-Credential-username').simulate('change', {target: {value: 'someone'}});
+      wrapper.find('.github-Credential-password').simulate('change', {target: {value: 'letmein'}});
       wrapper.find('.btn-primary').simulate('click');
 
-      assert.deepEqual(didSubmit.firstCall.args[0], {
+      assert.isTrue(accept.calledWith({
         username: 'someone',
         password: 'letmein',
-      });
+      }));
     });
 
     it('omits the username if includeUsername is false', function() {
-      wrapper = mount(React.cloneElement(app, {includeUsername: false}));
+      const accept = sinon.spy();
+      const request = dialogRequests.credential({includeUsername: false});
+      request.onAccept(accept);
+      const wrapper = shallow(buildApp({request}));
 
-      assert.isFalse(wrapper.find('.github-CredentialDialog-Username').exists());
-      setTextIn('.github-CredentialDialog-Password', 'twowordsuppercase');
-
+      assert.isFalse(wrapper.find('.github-Credential-username').exists());
+      wrapper.find('.github-Credential-password').simulate('change', {target: {value: 'twowordsuppercase'}});
       wrapper.find('.btn-primary').simulate('click');
 
-      assert.deepEqual(didSubmit.firstCall.args[0], {
+      assert.isTrue(accept.calledWith({
         password: 'twowordsuppercase',
-      });
+      }));
     });
 
     it('includes a "remember me" checkbox', function() {
-      wrapper = mount(React.cloneElement(app, {includeRemember: true}));
+      const accept = sinon.spy();
+      const request = dialogRequests.credential({includeUsername: true, includeRemember: true});
+      request.onAccept(accept);
+      const wrapper = shallow(buildApp({request}));
 
-      const rememberBox = wrapper.find('.github-CredentialDialog-remember');
+      const rememberBox = wrapper.find('.github-Credential-remember');
       assert.isTrue(rememberBox.exists());
       rememberBox.simulate('change', {target: {checked: true}});
 
-      setTextIn('.github-CredentialDialog-Username', 'someone');
-      setTextIn('.github-CredentialDialog-Password', 'letmein');
-
+      wrapper.find('.github-Credential-username').simulate('change', {target: {value: 'someone'}});
+      wrapper.find('.github-Credential-password').simulate('change', {target: {value: 'letmein'}});
       wrapper.find('.btn-primary').simulate('click');
 
-      assert.deepEqual(didSubmit.firstCall.args[0], {
+      assert.isTrue(accept.calledWith({
         username: 'someone',
         password: 'letmein',
         remember: true,
-      });
+      }));
     });
 
     it('omits the "remember me" checkbox', function() {
-      wrapper = mount(app);
-      assert.isFalse(wrapper.find('.github-CredentialDialog-remember').exists());
+      const request = dialogRequests.credential({includeRemember: false});
+      const wrapper = shallow(buildApp({request}));
+      assert.isFalse(wrapper.exists('.github-Credential-remember'));
     });
   });
 
   it('calls the cancel callback', function() {
-    wrapper = mount(app);
-    wrapper.find('.github-CancelButton').simulate('click');
-    assert.isTrue(didCancel.called);
+    const cancel = sinon.spy();
+    const request = dialogRequests.credential();
+    request.onCancel(cancel);
+    const wrapper = shallow(buildApp({request}));
+
+    wrapper.find('.github-Dialog-cancelButton').simulate('click');
+    assert.isTrue(cancel.called);
   });
 
   describe('show password', function() {
     it('sets the passwords input type to "text" on the first click', function() {
-      wrapper = mount(app);
+      const wrapper = shallow(buildApp());
+      wrapper.find('.github-Credential-visibility').simulate('click');
 
-      wrapper.find('.github-DialogLabelButton').simulate('click');
-
-      const passwordInput = wrapper.find('.github-CredentialDialog-Password');
-      assert.equal(passwordInput.prop('type'), 'text');
+      const passwordInput = wrapper.find('.github-Credential-password');
+      assert.strictEqual(passwordInput.prop('type'), 'text');
     });
 
     it('sets the passwords input type back to "password" on the second click', function() {
-      wrapper = mount(app);
+      const wrapper = shallow(buildApp());
+      wrapper.find('.github-Credential-visibility').simulate('click').simulate('click');
 
-      wrapper.find('.github-DialogLabelButton').simulate('click').simulate('click');
-
-      const passwordInput = wrapper.find('.github-CredentialDialog-Password');
-      assert.equal(passwordInput.prop('type'), 'password');
+      const passwordInput = wrapper.find('.github-Credential-password');
+      assert.strictEqual(passwordInput.prop('type'), 'password');
     });
   });
 });
