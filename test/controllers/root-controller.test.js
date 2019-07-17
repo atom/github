@@ -10,11 +10,13 @@ import {multiFilePatchBuilder} from '../builder/patch';
 import {GitError} from '../../lib/git-shell-out-strategy';
 import Repository from '../../lib/models/repository';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
+import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
+import RefHolder from '../../lib/models/ref-holder';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
+import {dialogRequests} from '../../lib/controllers/dialogs-controller';
 import GitTabItem from '../../lib/items/git-tab-item';
 import GitHubTabItem from '../../lib/items/github-tab-item';
-import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import IssueishDetailItem from '../../lib/items/issueish-detail-item';
 import CommitPreviewItem from '../../lib/items/commit-preview-item';
 import CommitDetailItem from '../../lib/items/commit-detail-item';
@@ -25,7 +27,7 @@ import OpenCommitDialog from '../../lib/views/open-commit-dialog';
 
 describe('RootController', function() {
   let atomEnv, app;
-  let workspace, commandRegistry, notificationManager, tooltips, config, confirm, deserializers, grammars, project;
+  let workspace, commands, notificationManager, tooltips, config, confirm, deserializers, grammars, project;
   let workdirContextPool;
 
   beforeEach(function() {
@@ -58,12 +60,16 @@ describe('RootController', function() {
         confirm={confirm}
         project={project}
         keymaps={atomEnv.keymaps}
+
         loginModel={loginModel}
+        workdirContextPool={workdirContextPool}
         repository={absentRepository}
         resolutionProgress={emptyResolutionProgress}
+
+        initialize={() => {}}
+
         startOpen={false}
         startRevealed={false}
-        workdirContextPool={workdirContextPool}
       />
     );
   });
@@ -255,73 +261,57 @@ describe('RootController', function() {
     });
   });
 
-  describe('initializeRepo', function() {
-    let createRepositoryForProjectPath, resolveInit, rejectInit;
+  describe('initialize', function() {
+    let initialize;
 
     beforeEach(function() {
-      createRepositoryForProjectPath = sinon.stub().returns(new Promise((resolve, reject) => {
-        resolveInit = resolve;
-        rejectInit = reject;
-      }));
+      initialize = sinon.stub().resolves();
+      app = React.cloneElement(app, {initialize});
     });
 
-    it('renders the modal init panel', function() {
-      app = React.cloneElement(app, {createRepositoryForProjectPath});
+    it('requests the init dialog with a command', function() {
+      sinon.stub(config, 'get').returns(path.join('/home/me/src'));
+
       const wrapper = shallow(app);
 
-      wrapper.instance().initializeRepo();
-      wrapper.update();
-
-      assert.lengthOf(wrapper.find('Panel').find({location: 'modal'}).find('InitDialog'), 1);
+      wrapper.find('Command[command="github:initialize"]').prop('callback')();
+      const req = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req.identifier, 'init');
+      assert.strictEqual(req.getParams().dirPath, path.join('/home/me/src'));
     });
 
-    it('triggers the init callback on accept', function() {
-      app = React.cloneElement(app, {createRepositoryForProjectPath});
+    it('requests the init dialog from the git tab', function() {
       const wrapper = shallow(app);
+      const gitTabWrapper = wrapper
+        .find('PaneItem[className="github-Git-root"]')
+        .renderProp('children')({itemHolder: new RefHolder()});
 
-      wrapper.instance().initializeRepo();
-      wrapper.update();
-      const dialog = wrapper.find('InitDialog');
-      dialog.prop('didAccept')('/a/path');
-      resolveInit();
+      gitTabWrapper.find('GitTabItem').prop('openInitializeDialog')(path.join('/some/workdir'));
 
-      assert.isTrue(createRepositoryForProjectPath.calledWith('/a/path'));
+      const req = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req.identifier, 'init');
+      assert.strictEqual(req.getParams().dirPath, path.join('/some/workdir'));
     });
 
-    it('dismisses the init callback on cancel', function() {
-      app = React.cloneElement(app, {createRepositoryForProjectPath});
+    it('triggers the initialize callback on accept', async function() {
       const wrapper = shallow(app);
+      wrapper.find('Command[command="github:initialize"]').prop('callback')();
 
-      wrapper.instance().initializeRepo();
-      wrapper.update();
-      const dialog = wrapper.find('InitDialog');
-      dialog.prop('didCancel')();
-
-      wrapper.update();
-      assert.isFalse(wrapper.find('InitDialog').exists());
+      const req = wrapper.find('DialogsController').prop('request');
+      await req.accept(path.join('/home/me/src'));
+      assert.isTrue(initialize.calledWith(path.join('/home/me/src')));
     });
 
-    it('creates a notification if the init fails', async function() {
-      sinon.stub(notificationManager, 'addError');
-
-      app = React.cloneElement(app, {createRepositoryForProjectPath});
+    it('dismisses the dialog with its cancel callback', function() {
       const wrapper = shallow(app);
+      wrapper.find('Command[command="github:initialize"]').prop('callback')();
 
-      wrapper.instance().initializeRepo();
-      wrapper.update();
-      const dialog = wrapper.find('InitDialog');
-      const acceptPromise = dialog.prop('didAccept')('/a/path');
-      const err = new GitError('git init exited with status 1');
-      err.stdErr = 'this is stderr';
-      rejectInit(err);
-      await acceptPromise;
+      const req0 = wrapper.find('DialogsController').prop('request');
+      assert.notStrictEqual(req0, dialogRequests.null);
+      req0.cancel();
 
-      wrapper.update();
-      assert.isFalse(wrapper.find('InitDialog').exists());
-      assert.isTrue(notificationManager.addError.calledWith(
-        'Unable to initialize git repository in /a/path',
-        sinon.match({detail: sinon.match(/this is stderr/)}),
-      ));
+      const req1 = wrapper.update().find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
     });
   });
 
