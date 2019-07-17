@@ -1,69 +1,74 @@
 import React from 'react';
-import {mount} from 'enzyme';
+import {shallow} from 'enzyme';
 import path from 'path';
 
 import InitDialog from '../../lib/views/init-dialog';
+import {dialogRequests} from '../../lib/controllers/dialogs-controller';
 
 describe('InitDialog', function() {
-  let atomEnv, config, commandRegistry;
-  let app, wrapper, didAccept, didCancel;
-
-  beforeEach(function() {
-    atomEnv = global.buildAtomEnvironment();
-    config = atomEnv.config;
-    commandRegistry = atomEnv.commands;
-    sinon.stub(config, 'get').returns(path.join('home', 'me', 'codes'));
-
-    didAccept = sinon.stub();
-    didCancel = sinon.stub();
-
-    app = (
+  function buildApp(overrides = {}) {
+    return (
       <InitDialog
-        config={config}
-        commandRegistry={commandRegistry}
-        didAccept={didAccept}
-        didCancel={didCancel}
+        request={dialogRequests.init({dirPath: __dirname})}
+        inProgress={false}
+        {...overrides}
       />
     );
-    wrapper = mount(app);
+  }
+
+  it('defaults the destination directory to the dirPath parameter', function() {
+    const wrapper = shallow(buildApp({
+      request: dialogRequests.init({dirPath: path.join('/home/me/src')}),
+    }));
+    assert.strictEqual(wrapper.find('AtomTextEditor').prop('buffer').getText(), path.join('/home/me/src'));
   });
 
-  afterEach(function() {
-    atomEnv.destroy();
-  });
+  it('disables the initialize button when the project path is empty', function() {
+    const wrapper = shallow(buildApp({}));
 
-  const setTextIn = function(selector, text) {
-    wrapper.find(selector).getDOMNode().getModel().setText(text);
-    wrapper.update();
-  };
-
-  it('defaults to your project home path', function() {
-    const text = wrapper.find('atom-text-editor').getDOMNode().getModel().getText();
-    assert.equal(text, path.join('home', 'me', 'codes'));
-  });
-
-  it('disables the initialize button with no project path', function() {
-    setTextIn('.github-ProjectPath atom-text-editor', '');
-
+    assert.isFalse(wrapper.find('button.icon-repo-create').prop('disabled'));
+    wrapper.find('AtomTextEditor').prop('buffer').setText('');
     assert.isTrue(wrapper.find('button.icon-repo-create').prop('disabled'));
-  });
-
-  it('enables the initialize button when the project path is populated', function() {
-    setTextIn('.github-ProjectPath atom-text-editor', path.join('somewhere', 'else'));
-
+    wrapper.find('AtomTextEditor').prop('buffer').setText('/some/path');
     assert.isFalse(wrapper.find('button.icon-repo-create').prop('disabled'));
   });
 
-  it('calls the acceptance callback', function() {
-    setTextIn('.github-ProjectPath atom-text-editor', '/somewhere/directory/');
+  it('calls the request accept method with the chosen path', function() {
+    const accept = sinon.spy();
+    const request = dialogRequests.init({dirPath: __dirname});
+    request.onAccept(accept);
 
+    const wrapper = shallow(buildApp({request}));
+    wrapper.find('AtomTextEditor').prop('buffer').setText('/some/path');
     wrapper.find('button.icon-repo-create').simulate('click');
 
-    assert.isTrue(didAccept.calledWith('/somewhere/directory/'));
+    assert.isTrue(accept.calledWith('/some/path'));
   });
 
-  it('calls the cancellation callback', function() {
-    wrapper.find('button.github-CancelButton').simulate('click');
-    assert.isTrue(didCancel.called);
+  it('displays a spinner while initialization is in progress', function() {
+    const wrapper = shallow(buildApp({inProgress: true}));
+
+    assert.isTrue(wrapper.find('AtomTextEditor').prop('readOnly'));
+    assert.isTrue(wrapper.find('button.icon-repo-create').prop('disabled'));
+    assert.isTrue(wrapper.exists('span.loading-spinner-small'));
+  });
+
+  it('displays an error when the accept callback has failed', function() {
+    const e = new Error('unfriendly message');
+    e.userMessage = 'friendly message';
+
+    const wrapper = shallow(buildApp({error: e}));
+    assert.strictEqual(wrapper.find('.error-messages li').text(), 'friendly message');
+  });
+
+  it('calls the request cancel callback', function() {
+    const cancel = sinon.spy();
+    const request = dialogRequests.init({dirPath: __dirname});
+    request.onCancel(cancel);
+
+    const wrapper = shallow(buildApp({request}));
+
+    wrapper.find('button.github-Dialog-cancelButton').simulate('click');
+    assert.isTrue(cancel.called);
   });
 });
