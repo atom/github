@@ -5,13 +5,13 @@ import path from 'path';
 import CloneDialog from '../../lib/views/clone-dialog';
 
 describe('CloneDialog', function() {
-  let atomEnv, config, commandRegistry;
+  let atomEnv, config, commands;
   let app, wrapper, didAccept, didCancel;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     config = atomEnv.config;
-    commandRegistry = atomEnv.commands;
+    commands = atomEnv.commands;
     sinon.stub(config, 'get').returns(path.join('home', 'me', 'codes'));
 
     didAccept = sinon.stub();
@@ -20,7 +20,7 @@ describe('CloneDialog', function() {
     app = (
       <CloneDialog
         config={config}
-        commandRegistry={commandRegistry}
+        commands={commands}
         didAccept={didAccept}
         didCancel={didCancel}
       />

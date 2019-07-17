@@ -4,12 +4,12 @@ import {mount} from 'enzyme';
 import OpenCommitDialog from '../../lib/views/open-commit-dialog';
 
 describe('OpenCommitDialog', function() {
-  let atomEnv, commandRegistry;
+  let atomEnv, commands;
   let app, wrapper, didAccept, didCancel, isValidEntry;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
-    commandRegistry = atomEnv.commands;
+    commands = atomEnv.commands;
 
     didAccept = sinon.stub();
     didCancel = sinon.stub();
@@ -17,7 +17,7 @@ describe('OpenCommitDialog', function() {
 
     app = (
       <OpenCommitDialog
-        commandRegistry={commandRegistry}
+        commands={commands}
         didAccept={didAccept}
         didCancel={didCancel}
         isValidEntry={isValidEntry}

@@ -15,12 +15,12 @@ import GithubTileView from '../../lib/views/github-tile-view';
 
 describe('StatusBarTileController', function() {
   let atomEnvironment;
-  let workspace, workspaceElement, commandRegistry, notificationManager, tooltips, confirm;
+  let workspace, workspaceElement, commands, notificationManager, tooltips, confirm;
 
   beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
     workspace = atomEnvironment.workspace;
-    commandRegistry = atomEnvironment.commands;
+    commands = atomEnvironment.commands;
     notificationManager = atomEnvironment.notifications;
     tooltips = atomEnvironment.tooltips;
     confirm = sinon.stub(atomEnvironment, 'confirm');
@@ -36,7 +36,7 @@ describe('StatusBarTileController', function() {
     return (
       <StatusBarTileController
         workspace={workspace}
-        commandRegistry={commandRegistry}
+        commands={commands}
         notificationManager={notificationManager}
         tooltips={tooltips}
         confirm={confirm}
@@ -575,7 +575,7 @@ describe('StatusBarTileController', function() {
 
         sinon.spy(repository, 'fetch');
 
-        commandRegistry.dispatch(workspaceElement, 'github:fetch');
+        commands.dispatch(workspaceElement, 'github:fetch');
 
         assert.isTrue(repository.fetch.called);
       });
@@ -588,7 +588,7 @@ describe('StatusBarTileController', function() {
 
         sinon.spy(repository, 'pull');
 
-        commandRegistry.dispatch(workspaceElement, 'github:pull');
+        commands.dispatch(workspaceElement, 'github:pull');
 
         assert.isTrue(repository.pull.called);
       });
@@ -600,7 +600,7 @@ describe('StatusBarTileController', function() {
 
         sinon.spy(repository, 'push');
 
-        commandRegistry.dispatch(workspaceElement, 'github:push');
+        commands.dispatch(workspaceElement, 'github:push');
 
         assert.isTrue(repository.push.calledWith('master', sinon.match({force: false, setUpstream: false})));
       });
@@ -614,7 +614,7 @@ describe('StatusBarTileController', function() {
 
         sinon.spy(repository.git, 'push');
 
-        commandRegistry.dispatch(workspaceElement, 'github:force-push');
+        commands.dispatch(workspaceElement, 'github:force-push');
 
         assert.equal(confirm.callCount, 1);
         await assert.async.isTrue(repository.git.push.calledWith('origin', 'master', sinon.match({force: true, setUpstream: false})));

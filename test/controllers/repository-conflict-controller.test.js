@@ -14,9 +14,9 @@ describe('RepositoryConflictController', () => {
     atomEnv = global.buildAtomEnvironment();
     atomEnv.config.set('github.graphicalConflictResolution', true);
     workspace = atomEnv.workspace;
-    const commandRegistry = atomEnv.commands;
+    const commands = atomEnv.commands;
 
-    app = <RepositoryConflictController workspace={workspace} config={atomEnv.config} commandRegistry={commandRegistry} />;
+    app = <RepositoryConflictController workspace={workspace} config={atomEnv.config} commands={commands} />;
   });
 
   afterEach(() => atomEnv.destroy());

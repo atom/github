@@ -15,7 +15,7 @@ describe('CredentialDialog', function() {
 
     app = (
       <CredentialDialog
-        commandRegistry={atomEnv.commands}
+        commands={atomEnv.commands}
         prompt="speak friend and enter"
         includeUsername={true}
         includeRemember={false}

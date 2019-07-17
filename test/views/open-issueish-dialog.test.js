@@ -4,19 +4,19 @@ import {mount} from 'enzyme';
 import OpenIssueishDialog from '../../lib/views/open-issueish-dialog';
 
 describe('OpenIssueishDialog', function() {
-  let atomEnv, commandRegistry;
+  let atomEnv, commands;
   let app, wrapper, didAccept, didCancel;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
-    commandRegistry = atomEnv.commands;
+    commands = atomEnv.commands;
 
     didAccept = sinon.stub();
     didCancel = sinon.stub();
 
     app = (
       <OpenIssueishDialog
-        commandRegistry={commandRegistry}
+        commands={commands}
         didAccept={didAccept}
         didCancel={didCancel}
       />

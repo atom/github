@@ -31,7 +31,7 @@ describe('RootController', function() {
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
-    commandRegistry = atomEnv.commands;
+    commands = atomEnv.commands;
     deserializers = atomEnv.deserializers;
     grammars = atomEnv.grammars;
     notificationManager = atomEnv.notifications;
@@ -49,7 +49,7 @@ describe('RootController', function() {
     app = (
       <RootController
         workspace={workspace}
-        commandRegistry={commandRegistry}
+        commands={commands}
         deserializers={deserializers}
         grammars={grammars}
         notificationManager={notificationManager}
@@ -1297,7 +1297,7 @@ describe('RootController', function() {
     });
 
     it('sends an event when a command is triggered via a context menu', function() {
-      commandRegistry.dispatch(
+      commands.dispatch(
         wrapper.find('CommitView').getDOMNode(),
         'github:toggle-expanded-commit-message-editor',
         [{contextCommand: true}],
@@ -1310,7 +1310,7 @@ describe('RootController', function() {
     });
 
     it('does not send an event when a command is triggered in other ways', function() {
-      commandRegistry.dispatch(
+      commands.dispatch(
         wrapper.find('CommitView').getDOMNode(),
         'github:toggle-expanded-commit-message-editor',
       );
@@ -1318,7 +1318,7 @@ describe('RootController', function() {
     });
 
     it('does not send an event when a command not starting with github: is triggered via a context menu', function() {
-      commandRegistry.dispatch(
+      commands.dispatch(
         wrapper.find('CommitView').getDOMNode(),
         'core:copy',
         [{contextCommand: true}],
