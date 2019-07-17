@@ -486,52 +486,49 @@ describe('RootController', function() {
     });
   });
 
-  describe('promptForCredentials()', function() {
-    let wrapper;
-
-    beforeEach(function() {
-      wrapper = shallow(app);
-    });
-
+  describe('openCredentialsDialog()', function() {
     it('renders the modal credentials dialog', function() {
-      wrapper.instance().promptForCredentials({
+      const wrapper = shallow(app);
+
+      wrapper.instance().openCredentialsDialog({
         prompt: 'Password plz',
         includeUsername: true,
       });
       wrapper.update();
 
-      const dialog = wrapper.find('Panel').find({location: 'modal'}).find('CredentialDialog');
-      assert.isTrue(dialog.exists());
-      assert.equal(dialog.prop('prompt'), 'Password plz');
-      assert.isTrue(dialog.prop('includeUsername'));
+      const req = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req.identifier, 'credential');
+      assert.deepEqual(req.getParams(), {
+        prompt: 'Password plz',
+        includeUsername: true,
+        includeRemember: false,
+      });
     });
 
     it('resolves the promise with credentials on accept', async function() {
-      const credentialPromise = wrapper.instance().promptForCredentials({
+      const wrapper = shallow(app);
+      const credentialPromise = wrapper.instance().openCredentialsDialog({
         prompt: 'Speak "friend" and enter',
         includeUsername: false,
       });
       wrapper.update();
 
-      wrapper.find('CredentialDialog').prop('onSubmit')({password: 'friend'});
+      const req = wrapper.find('DialogsController').prop('request');
+      req.accept({password: 'friend'});
       assert.deepEqual(await credentialPromise, {password: 'friend'});
-
-      wrapper.update();
-      assert.isFalse(wrapper.find('CredentialDialog').exists());
     });
 
     it('rejects the promise on cancel', async function() {
-      const credentialPromise = wrapper.instance().promptForCredentials({
+      const wrapper = shallow(app);
+      const credentialPromise = wrapper.instance().openCredentialsDialog({
         prompt: 'Enter the square root of 1244313452349528345',
         includeUsername: false,
       });
       wrapper.update();
 
-      wrapper.find('CredentialDialog').prop('onCancel')();
+      const req = wrapper.find('DialogsController').prop('request');
+      req.cancel(new Error('cancelled'));
       await assert.isRejected(credentialPromise);
-
-      wrapper.update();
-      assert.isFalse(wrapper.find('CredentialDialog').exists());
     });
   });
 
