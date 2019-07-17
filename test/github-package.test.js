@@ -682,7 +682,7 @@ describe('GithubPackage', function() {
     });
   });
 
-  describe('createRepositoryForProjectPath()', function() {
+  describe('initialize', function() {
     it('creates and sets a repository for the given project path', async function() {
       const nonRepositoryPath = await getTempDir();
       project.setPaths([nonRepositoryPath]);
@@ -693,7 +693,7 @@ describe('GithubPackage', function() {
       assert.isTrue(githubPackage.getActiveRepository().isEmpty());
       assert.isFalse(githubPackage.getActiveRepository().isAbsent());
 
-      await githubPackage.createRepositoryForProjectPath(nonRepositoryPath);
+      await githubPackage.initialize(nonRepositoryPath);
 
       assert.isTrue(githubPackage.getActiveRepository().isPresent());
       assert.strictEqual(

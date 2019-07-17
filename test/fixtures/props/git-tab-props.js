@@ -24,7 +24,7 @@ export function gitTabItemProps(atomEnv, repository, overrides = {}) {
     undoLastDiscard: noop,
     discardWorkDirChangesForPaths: noop,
     openFiles: noop,
-    initializeRepo: noop,
+    openInitializeDialog: noop,
     ...overrides
   };
 }
@@ -85,7 +85,7 @@ export async function gitTabViewProps(atomEnv, repository, overrides = {}) {
     project: atomEnv.project,
     tooltips: atomEnv.tooltips,
 
-    initializeRepo: () => {},
+    openInitializeDialog: () => {},
     abortMerge: () => {},
     commit: () => {},
     undoLastCommit: () => {},
