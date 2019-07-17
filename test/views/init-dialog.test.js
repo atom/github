@@ -6,9 +6,20 @@ import InitDialog from '../../lib/views/init-dialog';
 import {dialogRequests} from '../../lib/controllers/dialogs-controller';
 
 describe('InitDialog', function() {
+  let atomEnv;
+
+  beforeEach(function() {
+    atomEnv = global.buildAtomEnvironment();
+  });
+
+  afterEach(function() {
+    atomEnv.destroy();
+  });
+
   function buildApp(overrides = {}) {
     return (
       <InitDialog
+        commands={atomEnv.commands}
         request={dialogRequests.init({dirPath: __dirname})}
         inProgress={false}
         {...overrides}
