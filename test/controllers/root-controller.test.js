@@ -7,7 +7,6 @@ import dedent from 'dedent-js';
 
 import {cloneRepository, buildRepository} from '../helpers';
 import {multiFilePatchBuilder} from '../builder/patch';
-import {GitError} from '../../lib/git-shell-out-strategy';
 import Repository from '../../lib/models/repository';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
@@ -67,6 +66,7 @@ describe('RootController', function() {
         resolutionProgress={emptyResolutionProgress}
 
         initialize={() => {}}
+        clone={() => {}}
 
         startOpen={false}
         startRevealed={false}
@@ -315,6 +315,48 @@ describe('RootController', function() {
     });
   });
 
+  describe('clone', function() {
+    let clone;
+
+    beforeEach(function() {
+      clone = sinon.stub().resolves();
+      app = React.cloneElement(app, {clone});
+    });
+
+    it('requests the clone dialog with a command', function() {
+      sinon.stub(config, 'get').returns(path.join('/home/me/src'));
+
+      const wrapper = shallow(app);
+
+      wrapper.find('Command[command="github:clone"]').prop('callback')();
+      const req = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req.identifier, 'clone');
+      assert.strictEqual(req.getParams().sourceURL, '');
+      assert.strictEqual(req.getParams().destPath, '');
+    });
+
+    it('triggers the clone callback on accept', async function() {
+      const wrapper = shallow(app);
+      wrapper.find('Command[command="github:clone"]').prop('callback')();
+
+      const req = wrapper.find('DialogsController').prop('request');
+      await req.accept('git@github.com:atom/atom.git', path.join('/home/me/src'));
+      assert.isTrue(clone.calledWith('git@github.com:atom/atom.git', path.join('/home/me/src')));
+    });
+
+    it('dismisses the dialog with its cancel callback', function() {
+      const wrapper = shallow(app);
+      wrapper.find('Command[command="github:clone"]').prop('callback')();
+
+      const req0 = wrapper.find('DialogsController').prop('request');
+      assert.notStrictEqual(req0, dialogRequests.null);
+      req0.cancel();
+
+      const req1 = wrapper.update().find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
+    });
+  });
+
   describe('github:open-commit', function() {
     let workdirPath, wrapper, openCommitDetails, resolveOpenCommit, repository;
 
@@ -441,97 +483,6 @@ describe('RootController', function() {
       assert.lengthOf(wrapper.find('OpenIssueishDialog'), 0);
       assert.isFalse(openIssueishDetails.called);
       assert.isFalse(wrapper.state('openIssueishDialogActive'));
-    });
-  });
-
-  describe('github:clone', function() {
-    let wrapper, cloneRepositoryForProjectPath, resolveClone, rejectClone;
-
-    beforeEach(function() {
-      cloneRepositoryForProjectPath = sinon.stub().returns(new Promise((resolve, reject) => {
-        resolveClone = resolve;
-        rejectClone = reject;
-      }));
-
-      app = React.cloneElement(app, {cloneRepositoryForProjectPath});
-      wrapper = shallow(app);
-    });
-
-    it('renders the modal clone panel', function() {
-      wrapper.instance().openCloneDialog();
-      wrapper.update();
-
-      assert.lengthOf(wrapper.find('Panel').find({location: 'modal'}).find('CloneDialog'), 1);
-    });
-
-    it('triggers the clone callback on accept and fires `clone-repo` event', async function() {
-      sinon.stub(reporterProxy, 'addEvent');
-      wrapper.instance().openCloneDialog();
-      wrapper.update();
-
-      const dialog = wrapper.find('CloneDialog');
-      const promise = dialog.prop('didAccept')('git@github.com:atom/github.git', '/home/me/github');
-      resolveClone();
-      await promise;
-
-      assert.isTrue(cloneRepositoryForProjectPath.calledWith('git@github.com:atom/github.git', '/home/me/github'));
-      await assert.isTrue(reporterProxy.addEvent.calledWith('clone-repo', {package: 'github'}));
-    });
-
-    it('marks the clone dialog as in progress during clone', async function() {
-      wrapper.instance().openCloneDialog();
-      wrapper.update();
-
-      const dialog = wrapper.find('CloneDialog');
-      assert.isFalse(dialog.prop('inProgress'));
-
-      const acceptPromise = dialog.prop('didAccept')('git@github.com:atom/github.git', '/home/me/github');
-      wrapper.update();
-
-      assert.isTrue(wrapper.find('CloneDialog').prop('inProgress'));
-
-      resolveClone();
-      await acceptPromise;
-
-      wrapper.update();
-      assert.isFalse(wrapper.find('CloneDialog').exists());
-    });
-
-    it('creates a notification if the clone fails and does not fire `clone-repo` event', async function() {
-      sinon.stub(notificationManager, 'addError');
-      sinon.stub(reporterProxy, 'addEvent');
-
-      wrapper.instance().openCloneDialog();
-      wrapper.update();
-
-      const dialog = wrapper.find('CloneDialog');
-      assert.isFalse(dialog.prop('inProgress'));
-
-      const acceptPromise = dialog.prop('didAccept')('git@github.com:nope/nope.git', '/home/me/github');
-      const err = new GitError('git clone exited with status 1');
-      err.stdErr = 'this is stderr';
-      rejectClone(err);
-      await acceptPromise;
-
-      wrapper.update();
-      assert.isFalse(wrapper.find('CloneDialog').exists());
-      assert.isTrue(notificationManager.addError.calledWith(
-        'Unable to clone git@github.com:nope/nope.git',
-        sinon.match({detail: sinon.match(/this is stderr/)}),
-      ));
-      assert.isFalse(reporterProxy.addEvent.called);
-    });
-
-    it('dismisses the clone panel on cancel', function() {
-      wrapper.instance().openCloneDialog();
-      wrapper.update();
-
-      const dialog = wrapper.find('CloneDialog');
-      dialog.prop('didCancel')();
-
-      wrapper.update();
-      assert.lengthOf(wrapper.find('CloneDialog'), 0);
-      assert.isFalse(cloneRepositoryForProjectPath.called);
     });
   });
 

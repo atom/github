@@ -16,7 +16,13 @@ describe('DialogsController', function() {
 
   function buildApp(overrides = {}) {
     return (
-      <DialogsController workspace={atomEnv.workspace} request={dialogRequests.null} {...overrides} />
+      <DialogsController
+        workspace={atomEnv.workspace}
+        config={atomEnv.config}
+        commands={atomEnv.commands}
+        request={dialogRequests.null}
+        {...overrides}
+      />
     );
   }
 
@@ -108,6 +114,8 @@ describe('DialogsController', function() {
 
       const wrapper = shallow(buildApp({request}));
       const dialog = wrapper.find('InitDialog');
+      assert.strictEqual(dialog.prop('commands'), atomEnv.commands);
+
       const req = dialog.prop('request');
 
       req.accept();
@@ -119,7 +127,29 @@ describe('DialogsController', function() {
       assert.strictEqual(req.getParams().dirPath, '/some/path');
     });
 
-    it('passes appropriate props to CloneDialog');
+    it('passes appropriate props to CloneDialog', function() {
+      const accept = sinon.spy();
+      const cancel = sinon.spy();
+      const request = dialogRequests.clone({sourceURL: 'git@github.com:atom/github.git', destPath: '/some/path'});
+      request.onAccept(accept);
+      request.onCancel(cancel);
+
+      const wrapper = shallow(buildApp({request}));
+      const dialog = wrapper.find('CloneDialog');
+      assert.strictEqual(dialog.prop('config'), atomEnv.config);
+      assert.strictEqual(dialog.prop('commands'), atomEnv.commands);
+
+      const req = dialog.prop('request');
+
+      req.accept();
+      assert.isTrue(accept.called);
+
+      req.cancel();
+      assert.isTrue(cancel.called);
+
+      assert.strictEqual(req.getParams().sourceURL, 'git@github.com:atom/github.git');
+      assert.strictEqual(req.getParams().destPath, '/some/path');
+    });
 
     it('passes appropriate props to CredentialDialog');
 
