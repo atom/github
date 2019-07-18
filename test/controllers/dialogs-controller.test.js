@@ -199,6 +199,24 @@ describe('DialogsController', function() {
       assert.isTrue(cancel.called);
     });
 
-    it('passes appropriate props to OpenCommitDialog');
+    it('passes appropriate props to OpenCommitDialog', function() {
+      const accept = sinon.spy();
+      const cancel = sinon.spy();
+      const request = dialogRequests.commit();
+      request.onAccept(accept);
+      request.onCancel(cancel);
+
+      const wrapper = shallow(buildApp({request}));
+      const dialog = wrapper.find('OpenCommitDialog');
+      assert.strictEqual(dialog.prop('commands'), atomEnv.commands);
+
+      const req = dialog.prop('request');
+
+      req.accept('abcd1234');
+      assert.isTrue(accept.calledWith('abcd1234'));
+
+      req.cancel();
+      assert.isTrue(cancel.called);
+    });
   });
 });
