@@ -22,7 +22,6 @@ import CommitDetailItem from '../../lib/items/commit-detail-item';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 import RootController from '../../lib/controllers/root-controller';
-import OpenCommitDialog from '../../lib/views/open-commit-dialog';
 
 describe('RootController', function() {
   let atomEnv, app;
@@ -413,70 +412,53 @@ describe('RootController', function() {
     });
   });
 
-  describe('github:open-commit', function() {
-    let workdirPath, wrapper, openCommitDetails, resolveOpenCommit, repository;
+  describe('openCommitDialog()', function() {
+    let workdirPath, repository;
 
     beforeEach(async function() {
-      openCommitDetails = sinon.stub(atomEnv.workspace, 'open').returns(new Promise(resolve => {
-        resolveOpenCommit = resolve;
-      }));
+      sinon.stub(reporterProxy, 'addEvent');
+      sinon.stub(atomEnv.workspace, 'open').resolves('item');
 
       workdirPath = await cloneRepository('multiple-commits');
       repository = await buildRepository(workdirPath);
+      sinon.stub(repository, 'getCommit').callsFake(ref => {
+        return ref === 'abcd1234' ? Promise.resolve('ok') : Promise.reject(new Error('nah'));
+      });
 
       app = React.cloneElement(app, {repository});
-      wrapper = shallow(app);
     });
 
-    it('renders the modal open-commit panel', function() {
-      wrapper.instance().showOpenCommitDialog();
-      wrapper.update();
+    it('renders the OpenCommitDialog', function() {
+      const wrapper = shallow(app);
 
-      assert.lengthOf(wrapper.find('Panel').find({location: 'modal'}).find('OpenCommitDialog'), 1);
+      wrapper.find('Command[command="github:open-commit"]').prop('callback')();
+      assert.strictEqual(wrapper.find('DialogsController').prop('request').identifier, 'commit');
     });
 
-    it('triggers the open callback on accept and fires `open-commit-in-pane` event', async function() {
-      sinon.stub(reporterProxy, 'addEvent');
-      wrapper.instance().showOpenCommitDialog();
-      wrapper.update();
+    it('triggers the open callback on accept', async function() {
+      const wrapper = shallow(app);
+      wrapper.find('Command[command="github:open-commit"]').prop('callback')();
 
-      const dialog = wrapper.find('OpenCommitDialog');
-      const ref = 'asdf1234';
+      const req = wrapper.find('DialogsController').prop('request');
+      await req.accept('abcd1234');
 
-      const promise = dialog.prop('didAccept')({ref});
-      resolveOpenCommit();
-      await promise;
-
-      const uri = CommitDetailItem.buildURI(workdirPath, ref);
-
-      assert.isTrue(openCommitDetails.calledWith(uri));
-
-      await assert.isTrue(reporterProxy.addEvent.calledWith('open-commit-in-pane', {package: 'github', from: OpenCommitDialog.name}));
+      assert.isTrue(workspace.open.calledWith(
+        CommitDetailItem.buildURI(repository.getWorkingDirectoryPath(), 'abcd1234'),
+        {searchAllPanes: true},
+      ));
+      assert.isTrue(reporterProxy.addEvent.called);
     });
 
-    it('dismisses the open-commit panel on cancel', function() {
-      wrapper.instance().showOpenCommitDialog();
+    it('dismisses the OpenCommitDialog on cancel', function() {
+      const wrapper = shallow(app);
+      wrapper.find('Command[command="github:open-commit"]').prop('callback')();
+
+      const req0 = wrapper.find('DialogsController').prop('request');
+      req0.cancel();
+
       wrapper.update();
-
-      const dialog = wrapper.find('OpenCommitDialog');
-      dialog.prop('didCancel')();
-
-      wrapper.update();
-      assert.lengthOf(wrapper.find('OpenCommitDialog'), 0);
-      assert.isFalse(openCommitDetails.called);
-      assert.isFalse(wrapper.state('openCommitDialogActive'));
-    });
-
-    describe('isValidCommit', function() {
-      it('returns true if commit exists in repo, false if not', async function() {
-        assert.isTrue(await wrapper.instance().isValidCommit('HEAD'));
-        assert.isFalse(await wrapper.instance().isValidCommit('invalidCommitRef'));
-      });
-
-      it('re-throws exceptions encountered during validation check', async function() {
-        sinon.stub(repository, 'getCommit').throws(new Error('Oh shit'));
-        await assert.isRejected(wrapper.instance().isValidCommit('HEAD'), 'Oh shit');
-      });
+      const req1 = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
     });
   });
 
