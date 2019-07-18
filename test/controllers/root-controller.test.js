@@ -296,9 +296,12 @@ describe('RootController', function() {
       const wrapper = shallow(app);
       wrapper.find('Command[command="github:initialize"]').prop('callback')();
 
-      const req = wrapper.find('DialogsController').prop('request');
-      await req.accept(path.join('/home/me/src'));
+      const req0 = wrapper.find('DialogsController').prop('request');
+      await req0.accept(path.join('/home/me/src'));
       assert.isTrue(initialize.calledWith(path.join('/home/me/src')));
+
+      const req1 = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
     });
 
     it('dismisses the dialog with its cancel callback', function() {
@@ -338,9 +341,12 @@ describe('RootController', function() {
       const wrapper = shallow(app);
       wrapper.find('Command[command="github:clone"]').prop('callback')();
 
-      const req = wrapper.find('DialogsController').prop('request');
-      await req.accept('git@github.com:atom/atom.git', path.join('/home/me/src'));
+      const req0 = wrapper.find('DialogsController').prop('request');
+      await req0.accept('git@github.com:atom/atom.git', path.join('/home/me/src'));
       assert.isTrue(clone.calledWith('git@github.com:atom/atom.git', path.join('/home/me/src')));
+
+      const req1 = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
     });
 
     it('dismisses the dialog with its cancel callback', function() {
@@ -378,10 +384,9 @@ describe('RootController', function() {
 
       const wrapper = shallow(React.cloneElement(app, {repository}));
       wrapper.find('Command[command="github:open-issue-or-pull-request"]').prop('callback')();
-      wrapper.update();
 
-      const request = wrapper.find('DialogsController').prop('request');
-      await request.accept('https://github.com/atom/github/pull/123');
+      const req0 = wrapper.find('DialogsController').prop('request');
+      await req0.accept('https://github.com/atom/github/pull/123');
 
       assert.isTrue(workspace.open.calledWith(
         IssueishDetailItem.buildURI({
@@ -396,6 +401,9 @@ describe('RootController', function() {
       assert.isTrue(reporterProxy.addEvent.calledWith(
         'open-issueish-in-pane', {package: 'github', from: 'dialog'}),
       );
+
+      const req1 = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
     });
 
     it('dismisses the OpenIssueish dialog on cancel', function() {
@@ -439,14 +447,17 @@ describe('RootController', function() {
       const wrapper = shallow(app);
       wrapper.find('Command[command="github:open-commit"]').prop('callback')();
 
-      const req = wrapper.find('DialogsController').prop('request');
-      await req.accept('abcd1234');
+      const req0 = wrapper.find('DialogsController').prop('request');
+      await req0.accept('abcd1234');
 
       assert.isTrue(workspace.open.calledWith(
         CommitDetailItem.buildURI(repository.getWorkingDirectoryPath(), 'abcd1234'),
         {searchAllPanes: true},
       ));
       assert.isTrue(reporterProxy.addEvent.called);
+
+      const req1 = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
     });
 
     it('dismisses the OpenCommitDialog on cancel', function() {
@@ -487,11 +498,13 @@ describe('RootController', function() {
         prompt: 'Speak "friend" and enter',
         includeUsername: false,
       });
-      wrapper.update();
 
-      const req = wrapper.find('DialogsController').prop('request');
-      req.accept({password: 'friend'});
+      const req0 = wrapper.find('DialogsController').prop('request');
+      req0.accept({password: 'friend'});
       assert.deepEqual(await credentialPromise, {password: 'friend'});
+
+      const req1 = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
     });
 
     it('rejects the promise on cancel', async function() {
