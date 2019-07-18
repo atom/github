@@ -315,7 +315,7 @@ describe('RootController', function() {
     });
   });
 
-  describe('clone', function() {
+  describe('openCloneDialog()', function() {
     let clone;
 
     beforeEach(function() {
@@ -353,6 +353,62 @@ describe('RootController', function() {
       req0.cancel();
 
       const req1 = wrapper.update().find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
+    });
+  });
+
+  describe('openIssueishDialog()', function() {
+    let repository, workdir;
+
+    beforeEach(async function() {
+      workdir = await cloneRepository('multiple-commits');
+      repository = await buildRepository(workdir);
+    });
+
+    it('renders the OpenIssueish dialog', function() {
+      const wrapper = shallow(app);
+      wrapper.find('Command[command="github:open-issue-or-pull-request"]').prop('callback')();
+      wrapper.update();
+
+      assert.strictEqual(wrapper.find('DialogsController').prop('request').identifier, 'issueish');
+    });
+
+    it('triggers the open callback on accept and fires `open-commit-in-pane` event', async function() {
+      sinon.stub(reporterProxy, 'addEvent');
+      sinon.stub(workspace, 'open').resolves();
+
+      const wrapper = shallow(React.cloneElement(app, {repository}));
+      wrapper.find('Command[command="github:open-issue-or-pull-request"]').prop('callback')();
+      wrapper.update();
+
+      const request = wrapper.find('DialogsController').prop('request');
+      await request.accept('https://github.com/atom/github/pull/123');
+
+      assert.isTrue(workspace.open.calledWith(
+        IssueishDetailItem.buildURI({
+          host: 'github.com',
+          owner: 'atom',
+          repo: 'github',
+          number: 123,
+          workdir,
+        }),
+        {searchAllPanes: true},
+      ));
+      assert.isTrue(reporterProxy.addEvent.calledWith(
+        'open-issueish-in-pane', {package: 'github', from: 'dialog'}),
+      );
+    });
+
+    it('dismisses the OpenIssueish dialog on cancel', function() {
+      const wrapper = shallow(app);
+      wrapper.find('Command[command="github:open-issue-or-pull-request"]').prop('callback')();
+      wrapper.update();
+
+      const req0 = wrapper.find('DialogsController').prop('request');
+      req0.cancel();
+
+      wrapper.update();
+      const req1 = wrapper.find('DialogsController').prop('request');
       assert.strictEqual(req1, dialogRequests.null);
     });
   });
@@ -421,68 +477,6 @@ describe('RootController', function() {
         sinon.stub(repository, 'getCommit').throws(new Error('Oh shit'));
         await assert.isRejected(wrapper.instance().isValidCommit('HEAD'), 'Oh shit');
       });
-    });
-  });
-
-  describe('github:open-issue-or-pull-request', function() {
-    let workdirPath, wrapper, openIssueishDetails, resolveOpenIssueish;
-
-    beforeEach(async function() {
-      openIssueishDetails = sinon.stub(atomEnv.workspace, 'open').returns(new Promise(resolve => {
-        resolveOpenIssueish = resolve;
-      }));
-
-      workdirPath = await cloneRepository('multiple-commits');
-      const repository = await buildRepository(workdirPath);
-
-      app = React.cloneElement(app, {repository});
-      wrapper = shallow(app);
-    });
-
-    it('renders the modal open-commit panel', function() {
-      wrapper.instance().showOpenIssueishDialog();
-      wrapper.update();
-
-      assert.lengthOf(wrapper.find('Panel').find({location: 'modal'}).find('OpenIssueishDialog'), 1);
-    });
-
-    it('triggers the open callback on accept and fires `open-commit-in-pane` event', async function() {
-      sinon.stub(reporterProxy, 'addEvent');
-      wrapper.instance().showOpenIssueishDialog();
-      wrapper.update();
-
-      const dialog = wrapper.find('OpenIssueishDialog');
-      const repoOwner = 'owner';
-      const repoName = 'name';
-      const issueishNumber = 1234;
-
-      const promise = dialog.prop('didAccept')({repoOwner, repoName, issueishNumber});
-      resolveOpenIssueish();
-      await promise;
-
-      const uri = IssueishDetailItem.buildURI({
-        host: 'github.com',
-        owner: repoOwner,
-        repo: repoName,
-        number: issueishNumber,
-      });
-
-      assert.isTrue(openIssueishDetails.calledWith(uri));
-
-      await assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-pane', {package: 'github', from: 'dialog'}));
-    });
-
-    it('dismisses the open-commit panel on cancel', function() {
-      wrapper.instance().showOpenIssueishDialog();
-      wrapper.update();
-
-      const dialog = wrapper.find('OpenIssueishDialog');
-      dialog.prop('didCancel')();
-
-      wrapper.update();
-      assert.lengthOf(wrapper.find('OpenIssueishDialog'), 0);
-      assert.isFalse(openIssueishDetails.called);
-      assert.isFalse(wrapper.state('openIssueishDialogActive'));
     });
   });
 
@@ -1182,16 +1176,6 @@ describe('RootController', function() {
       const item = await atomEnv.workspace.open(uri);
       assert.strictEqual(item.getTitle(), 'owner/repo#123');
       assert.lengthOf(wrapper.update().find('IssueishDetailItem'), 1);
-    });
-
-    describe('acceptOpenIssueish', function() {
-      it('records an event', async function() {
-        const wrapper = mount(app);
-        sinon.stub(reporterProxy, 'addEvent');
-        sinon.stub(workspace, 'open').returns(Promise.resolve());
-        await wrapper.instance().acceptOpenIssueish({repoOwner: 'owner', repoName: 'repo', issueishNumber: 123});
-        assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-pane', {package: 'github', from: 'dialog'}));
-      });
     });
   });
 
