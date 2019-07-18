@@ -4,6 +4,7 @@ import fs from 'fs-extra';
 import React from 'react';
 import {shallow, mount} from 'enzyme';
 import dedent from 'dedent-js';
+import temp from 'temp';
 
 import {cloneRepository, buildRepository} from '../helpers';
 import {multiFilePatchBuilder} from '../builder/patch';
@@ -268,24 +269,54 @@ describe('RootController', function() {
       app = React.cloneElement(app, {initialize});
     });
 
-    it('requests the init dialog with a command', function() {
+    it('requests the init dialog with a command', async function() {
       sinon.stub(config, 'get').returns(path.join('/home/me/src'));
 
       const wrapper = shallow(app);
 
-      wrapper.find('Command[command="github:initialize"]').prop('callback')();
+      await wrapper.find('Command[command="github:initialize"]').prop('callback')();
       const req = wrapper.find('DialogsController').prop('request');
       assert.strictEqual(req.identifier, 'init');
       assert.strictEqual(req.getParams().dirPath, path.join('/home/me/src'));
     });
 
-    it('requests the init dialog from the git tab', function() {
+    it('defaults to the project directory containing the open file if there is one', async function() {
+      const noRepo0 = await new Promise((resolve, reject) => temp.mkdir({}, (err, p) => (err ? reject(err) : resolve(p))));
+      const noRepo1 = await new Promise((resolve, reject) => temp.mkdir({}, (err, p) => (err ? reject(err) : resolve(p))));
+      const filePath = path.join(noRepo1, 'file.txt');
+      await fs.writeFile(filePath, 'stuff\n', {encoding: 'utf8'});
+
+      project.setPaths([noRepo0, noRepo1]);
+      await workspace.open(filePath);
+
+      const wrapper = shallow(app);
+      await wrapper.find('Command[command="github:initialize"]').prop('callback')();
+      const req = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req.identifier, 'init');
+      assert.strictEqual(req.getParams().dirPath, noRepo1);
+    });
+
+    it('defaults to the first project directory with no repository if one is present', async function() {
+      const withRepo = await cloneRepository();
+      const noRepo0 = await new Promise((resolve, reject) => temp.mkdir({}, (err, p) => (err ? reject(err) : resolve(p))));
+      const noRepo1 = await new Promise((resolve, reject) => temp.mkdir({}, (err, p) => (err ? reject(err) : resolve(p))));
+
+      project.setPaths([withRepo, noRepo0, noRepo1]);
+
+      const wrapper = shallow(app);
+      await wrapper.find('Command[command="github:initialize"]').prop('callback')();
+      const req = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req.identifier, 'init');
+      assert.strictEqual(req.getParams().dirPath, noRepo0);
+    });
+
+    it('requests the init dialog from the git tab', async function() {
       const wrapper = shallow(app);
       const gitTabWrapper = wrapper
         .find('PaneItem[className="github-Git-root"]')
         .renderProp('children')({itemHolder: new RefHolder()});
 
-      gitTabWrapper.find('GitTabItem').prop('openInitializeDialog')(path.join('/some/workdir'));
+      await gitTabWrapper.find('GitTabItem').prop('openInitializeDialog')(path.join('/some/workdir'));
 
       const req = wrapper.find('DialogsController').prop('request');
       assert.strictEqual(req.identifier, 'init');
@@ -294,7 +325,7 @@ describe('RootController', function() {
 
     it('triggers the initialize callback on accept', async function() {
       const wrapper = shallow(app);
-      wrapper.find('Command[command="github:initialize"]').prop('callback')();
+      await wrapper.find('Command[command="github:initialize"]').prop('callback')();
 
       const req0 = wrapper.find('DialogsController').prop('request');
       await req0.accept(path.join('/home/me/src'));
@@ -304,9 +335,9 @@ describe('RootController', function() {
       assert.strictEqual(req1, dialogRequests.null);
     });
 
-    it('dismisses the dialog with its cancel callback', function() {
+    it('dismisses the dialog with its cancel callback', async function() {
       const wrapper = shallow(app);
-      wrapper.find('Command[command="github:initialize"]').prop('callback')();
+      await wrapper.find('Command[command="github:initialize"]').prop('callback')();
 
       const req0 = wrapper.find('DialogsController').prop('request');
       assert.notStrictEqual(req0, dialogRequests.null);
