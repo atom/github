@@ -99,7 +99,7 @@ describe('CloneDialog', function() {
     wrapper.find('.github-Clone-sourceURL').prop('buffer').setText('git@github.com:atom/github.git');
 
     wrapper.find('button.icon-repo-clone').simulate('click');
-    assert.isTrue(accept.calledWith('git@github.com:atom/github.git', '/some/where'));
+    assert.isTrue(accept.calledWith('git@github.com:atom/github.git', path.join('/some/where')));
   });
 
   it('calls the cancellation callback', function() {
