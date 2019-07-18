@@ -151,9 +151,53 @@ describe('DialogsController', function() {
       assert.strictEqual(req.getParams().destPath, '/some/path');
     });
 
-    it('passes appropriate props to CredentialDialog');
+    it('passes appropriate props to CredentialDialog', function() {
+      const accept = sinon.spy();
+      const cancel = sinon.spy();
+      const request = dialogRequests.credential({
+        prompt: 'who the hell are you',
+        includeUsername: true,
+        includeRemember: true,
+      });
+      request.onAccept(accept);
+      request.onCancel(cancel);
 
-    it('passes appropriate props to OpenIssueishDialog');
+      const wrapper = shallow(buildApp({request}));
+      const dialog = wrapper.find('CredentialDialog');
+      assert.strictEqual(dialog.prop('commands'), atomEnv.commands);
+
+      const req = dialog.prop('request');
+
+      req.accept({username: 'me', password: 'whatever'});
+      assert.isTrue(accept.calledWith({username: 'me', password: 'whatever'}));
+
+      req.cancel();
+      assert.isTrue(cancel.called);
+
+      assert.strictEqual(req.getParams().prompt, 'who the hell are you');
+      assert.isTrue(req.getParams().includeUsername);
+      assert.isTrue(req.getParams().includeRemember);
+    });
+
+    it('passes appropriate props to OpenIssueishDialog', function() {
+      const accept = sinon.spy();
+      const cancel = sinon.spy();
+      const request = dialogRequests.issueish();
+      request.onAccept(accept);
+      request.onCancel(cancel);
+
+      const wrapper = shallow(buildApp({request}));
+      const dialog = wrapper.find('OpenIssueishDialog');
+      assert.strictEqual(dialog.prop('commands'), atomEnv.commands);
+
+      const req = dialog.prop('request');
+
+      req.accept('https://github.com/atom/github/issue/123');
+      assert.isTrue(accept.calledWith('https://github.com/atom/github/issue/123'));
+
+      req.cancel();
+      assert.isTrue(cancel.called);
+    });
 
     it('passes appropriate props to OpenCommitDialog');
   });
