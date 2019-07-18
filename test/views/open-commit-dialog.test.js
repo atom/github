@@ -1,8 +1,11 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import OpenCommitDialog from '../../lib/views/open-commit-dialog';
+import OpenCommitDialog, {openCommitDetailItem} from '../../lib/views/open-commit-dialog';
 import {dialogRequests} from '../../lib/controllers/dialogs-controller';
+import CommitDetailItem from '../../lib/items/commit-detail-item';
+import {GitError} from '../../lib/git-shell-out-strategy';
+import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('OpenCommitDialog', function() {
   let atomEnv;
@@ -69,5 +72,62 @@ describe('OpenCommitDialog', function() {
 
     wrapper.find('button.github-Dialog-cancelButton').simulate('click');
     assert.isTrue(cancel.called);
+  });
+
+  describe('openCommitDetailItem()', function() {
+    let repository;
+
+    beforeEach(function() {
+      sinon.stub(atomEnv.workspace, 'open').resolves('item');
+      sinon.stub(reporterProxy, 'addEvent');
+
+      repository = {
+        getWorkingDirectoryPath() {
+          return __dirname;
+        },
+        getCommit(ref) {
+          if (ref === 'abcd1234') {
+            return Promise.resolve('ok');
+          }
+
+          if (ref === 'bad') {
+            const e = new GitError('bad ref');
+            e.code = 128;
+            return Promise.reject(e);
+          }
+
+          return Promise.reject(new GitError('other error'));
+        },
+      };
+    });
+
+    it('opens a CommitDetailItem with the chosen valid ref and records an event', async function() {
+      assert.strictEqual(await openCommitDetailItem('abcd1234', {workspace: atomEnv.workspace, repository}), 'item');
+      assert.isTrue(atomEnv.workspace.open.calledWith(
+        CommitDetailItem.buildURI(__dirname, 'abcd1234'),
+        {searchAllPanes: true},
+      ));
+      assert.isTrue(reporterProxy.addEvent.calledWith(
+        'open-commit-in-pane',
+        {package: 'github', from: OpenCommitDialog.name},
+      ));
+    });
+
+    it('raises a friendly error if the ref is invalid', async function() {
+      const e = await openCommitDetailItem('bad', {workspace: atomEnv.workspace, repository}).then(
+        () => { throw new Error('unexpected success'); },
+        error => error,
+      );
+      assert.strictEqual(e.userMessage, 'There is no commit associated with that reference.');
+    });
+
+    it('passes other errors through directly', async function() {
+      const e = await openCommitDetailItem('nope', {workspace: atomEnv.workspace, repository}).then(
+        () => { throw new Error('unexpected success'); },
+        error => error,
+      );
+      assert.isUndefined(e.userMessage);
+      assert.strictEqual(e.message, 'other error');
+    });
   });
 });
