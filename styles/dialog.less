@@ -125,6 +125,9 @@
     }
   }
 
+  // A trick to trap keyboard focus within this DOM element.
+  // In JavaScript, attach an event handler to the onTransitionEnd event and reassign focus to the initial element
+  // within the dialog.
   &:not(:focus-within) {
     padding-bottom: 1px;
     transition: padding-bottom 0.01s;
