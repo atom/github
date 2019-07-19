@@ -531,7 +531,7 @@ describe('RootController', function() {
       });
 
       const req0 = wrapper.find('DialogsController').prop('request');
-      req0.accept({password: 'friend'});
+      await req0.accept({password: 'friend'});
       assert.deepEqual(await credentialPromise, {password: 'friend'});
 
       const req1 = wrapper.find('DialogsController').prop('request');
@@ -546,9 +546,12 @@ describe('RootController', function() {
       });
       wrapper.update();
 
-      const req = wrapper.find('DialogsController').prop('request');
-      req.cancel(new Error('cancelled'));
+      const req0 = wrapper.find('DialogsController').prop('request');
+      await req0.cancel(new Error('cancelled'));
       await assert.isRejected(credentialPromise);
+
+      const req1 = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
     });
   });
 
