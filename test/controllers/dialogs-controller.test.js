@@ -30,18 +30,14 @@ describe('DialogsController', function() {
     const wrapper = shallow(buildApp({
       request: dialogRequests.null,
     }));
-    assert.isTrue(wrapper.isEmptyRender());
+    assert.isTrue(wrapper.exists('NullDialog'));
   });
 
   it('renders a chosen dialog when the appropriate DialogRequest is provided', function() {
     const wrapper = shallow(buildApp({
       request: dialogRequests.init({dirPath: __dirname}),
     }));
-
-    const panel = wrapper.find('Panel');
-    assert.strictEqual(panel.prop('location'), 'modal');
-    assert.strictEqual(panel.prop('workspace'), atomEnv.workspace);
-    assert.isTrue(panel.exists('InitDialog'));
+    assert.isTrue(wrapper.exists('InitDialog'));
   });
 
   it('passes inProgress to the dialog when the accept callback is asynchronous', async function() {
