@@ -7,6 +7,7 @@
     margin: @component-padding;
     text-align: center;
     font-size: 1.2em;
+    user-select: none;
   }
 
   &Form {
@@ -21,17 +22,18 @@
     position: relative;
     line-height: 2;
 
-    &Button {
-      position: absolute;
-      background: transparent;
-      right: .3em;
-      bottom: 0;
-      border: none;
-      color: @text-color-subtle;
-      cursor: pointer;
+    &--horizontal {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+      align-items: center;
 
-      &:hover {
-        color: @text-color-highlight;
+      input {
+        margin: 0 @component-padding;
+      }
+
+      input[type="text"] , input[type="password"] {
+        width: 85%;
       }
     }
 
@@ -84,6 +86,26 @@
     }
   }
 
+  &--insetButton {
+    position: absolute;
+    background: transparent;
+    right: 1em;
+    top: 0;
+    bottom: 0;
+    border: none;
+    color: @text-color-subtle;
+    cursor: pointer;
+
+    &:hover {
+      color: @text-color-highlight;
+    }
+
+    &:focus {
+      border: solid 1px @button-background-color-selected;
+      border-radius: 4px;
+    }
+  }
+
   &Spinner {
     display: flex;
     align-items: center;
@@ -101,5 +123,10 @@
     &[readOnly] {
       color: @text-color-subtle;
     }
+  }
+
+  &:not(:focus-within) {
+    padding-bottom: 1px;
+    transition: padding-bottom 0.01s;
   }
 }
