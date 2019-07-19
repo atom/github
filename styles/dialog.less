@@ -3,7 +3,6 @@
 @github-dialog-spacing: @component-padding / 2;
 
 .github-Dialog {
-
   &Prompt {
     margin: @component-padding;
     text-align: center;
@@ -35,9 +34,34 @@
         color: @text-color-highlight;
       }
     }
+
+    .github-AtomTextEditor-container {
+      margin-top: @github-dialog-spacing;
+    }
+  }
+
+  &Info {
+    display: inline-block;
+
+    li {
+      display: inline-block;
+    }
+  }
+
+  &Footer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  &Info {
+    flex-grow: 1;
+    margin: @github-dialog-spacing;
+    padding: @github-dialog-spacing;
   }
 
   &Buttons {
+    flex-grow: 0;
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -73,5 +97,9 @@
 
   atom-text-editor[mini].editor {
     margin: 0;
+
+    &[readOnly] {
+      color: @text-color-subtle;
+    }
   }
 }
