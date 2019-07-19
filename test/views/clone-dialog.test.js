@@ -20,6 +20,7 @@ describe('CloneDialog', function() {
     return (
       <CloneDialog
         config={atomEnv.config}
+        workspace={atomEnv.workspace}
         commands={atomEnv.commands}
         request={dialogRequests.clone()}
         inProgress={false}
@@ -67,7 +68,7 @@ describe('CloneDialog', function() {
       wrapper.find('.github-Clone-sourceURL').prop('buffer').setText('');
       wrapper.update();
 
-      assert.isTrue(wrapper.find('button.icon-repo-clone').prop('disabled'));
+      assert.isFalse(wrapper.find('DialogView').prop('acceptEnabled'));
     });
 
     it('disables the clone button with no project path', function() {
@@ -76,7 +77,7 @@ describe('CloneDialog', function() {
       wrapper.find('.github-Clone-sourceURL').prop('buffer').setText('git@github.com:atom/github.git');
       wrapper.update();
 
-      assert.isTrue(wrapper.find('button.icon-repo-clone').prop('disabled'));
+      assert.isFalse(wrapper.find('DialogView').prop('acceptEnabled'));
     });
 
     it('enables the clone button when both text boxes are populated', function() {
@@ -85,7 +86,7 @@ describe('CloneDialog', function() {
       wrapper.find('.github-Clone-sourceURL').prop('buffer').setText('git@github.com:atom/github.git');
       wrapper.update();
 
-      assert.isFalse(wrapper.find('button.icon-repo-clone').prop('disabled'));
+      assert.isTrue(wrapper.find('DialogView').prop('acceptEnabled'));
     });
   });
 
@@ -98,7 +99,7 @@ describe('CloneDialog', function() {
     wrapper.find('.github-Clone-destinationPath').prop('buffer').setText(path.join('/some/where'));
     wrapper.find('.github-Clone-sourceURL').prop('buffer').setText('git@github.com:atom/github.git');
 
-    wrapper.find('button.icon-repo-clone').simulate('click');
+    wrapper.find('DialogView').prop('accept')();
     assert.isTrue(accept.calledWith('git@github.com:atom/github.git', path.join('/some/where')));
   });
 
@@ -108,7 +109,7 @@ describe('CloneDialog', function() {
     request.onCancel(cancel);
     const wrapper = shallow(buildApp({request}));
 
-    wrapper.find('button.github-Dialog-cancelButton').simulate('click');
+    wrapper.find('DialogView').prop('cancel')();
     assert.isTrue(cancel.called);
   });
 
@@ -118,12 +119,6 @@ describe('CloneDialog', function() {
 
       assert.isTrue(wrapper.find('.github-Clone-sourceURL').prop('readOnly'));
       assert.isTrue(wrapper.find('.github-Clone-destinationPath').prop('readOnly'));
-      assert.isTrue(wrapper.find('button.github-Dialog-acceptButton').prop('disabled'));
-    });
-
-    it('displays the progress spinner', function() {
-      const wrapper = shallow(buildApp({inProgress: true}));
-      assert.lengthOf(wrapper.find('.loading'), 1);
     });
   });
 });

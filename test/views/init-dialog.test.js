@@ -19,6 +19,7 @@ describe('InitDialog', function() {
   function buildApp(overrides = {}) {
     return (
       <InitDialog
+        workspace={atomEnv.workspace}
         commands={atomEnv.commands}
         request={dialogRequests.init({dirPath: __dirname})}
         inProgress={false}
@@ -37,11 +38,11 @@ describe('InitDialog', function() {
   it('disables the initialize button when the project path is empty', function() {
     const wrapper = shallow(buildApp({}));
 
-    assert.isFalse(wrapper.find('button.icon-repo-create').prop('disabled'));
+    assert.isTrue(wrapper.find('DialogView').prop('acceptEnabled'));
     wrapper.find('AtomTextEditor').prop('buffer').setText('');
-    assert.isTrue(wrapper.find('button.icon-repo-create').prop('disabled'));
+    assert.isFalse(wrapper.find('DialogView').prop('acceptEnabled'));
     wrapper.find('AtomTextEditor').prop('buffer').setText('/some/path');
-    assert.isFalse(wrapper.find('button.icon-repo-create').prop('disabled'));
+    assert.isTrue(wrapper.find('DialogView').prop('acceptEnabled'));
   });
 
   it('calls the request accept method with the chosen path', function() {
@@ -51,25 +52,9 @@ describe('InitDialog', function() {
 
     const wrapper = shallow(buildApp({request}));
     wrapper.find('AtomTextEditor').prop('buffer').setText('/some/path');
-    wrapper.find('button.icon-repo-create').simulate('click');
+    wrapper.find('DialogView').prop('accept')();
 
     assert.isTrue(accept.calledWith('/some/path'));
-  });
-
-  it('displays a spinner while initialization is in progress', function() {
-    const wrapper = shallow(buildApp({inProgress: true}));
-
-    assert.isTrue(wrapper.find('AtomTextEditor').prop('readOnly'));
-    assert.isTrue(wrapper.find('button.icon-repo-create').prop('disabled'));
-    assert.isTrue(wrapper.exists('span.loading-spinner-small'));
-  });
-
-  it('displays an error when the accept callback has failed', function() {
-    const e = new Error('unfriendly message');
-    e.userMessage = 'friendly message';
-
-    const wrapper = shallow(buildApp({error: e}));
-    assert.strictEqual(wrapper.find('.error-messages li').text(), 'friendly message');
   });
 
   it('calls the request cancel callback', function() {
@@ -79,7 +64,7 @@ describe('InitDialog', function() {
 
     const wrapper = shallow(buildApp({request}));
 
-    wrapper.find('button.github-Dialog-cancelButton').simulate('click');
+    wrapper.find('DialogView').prop('cancel')();
     assert.isTrue(cancel.called);
   });
 });

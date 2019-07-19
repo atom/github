@@ -34,7 +34,7 @@ describe('CredentialDialog', function() {
 
       wrapper.find('.github-Credential-username').simulate('change', {target: {value: 'someone'}});
       wrapper.find('.github-Credential-password').simulate('change', {target: {value: 'letmein'}});
-      wrapper.find('.btn-primary').simulate('click');
+      wrapper.find('DialogView').prop('accept')();
 
       assert.isTrue(accept.calledWith({
         username: 'someone',
@@ -50,7 +50,7 @@ describe('CredentialDialog', function() {
 
       assert.isFalse(wrapper.find('.github-Credential-username').exists());
       wrapper.find('.github-Credential-password').simulate('change', {target: {value: 'twowordsuppercase'}});
-      wrapper.find('.btn-primary').simulate('click');
+      wrapper.find('DialogView').prop('accept')();
 
       assert.isTrue(accept.calledWith({
         password: 'twowordsuppercase',
@@ -69,7 +69,7 @@ describe('CredentialDialog', function() {
 
       wrapper.find('.github-Credential-username').simulate('change', {target: {value: 'someone'}});
       wrapper.find('.github-Credential-password').simulate('change', {target: {value: 'letmein'}});
-      wrapper.find('.btn-primary').simulate('click');
+      wrapper.find('DialogView').prop('accept')();
 
       assert.isTrue(accept.calledWith({
         username: 'someone',
@@ -91,7 +91,7 @@ describe('CredentialDialog', function() {
     request.onCancel(cancel);
     const wrapper = shallow(buildApp({request}));
 
-    wrapper.find('.github-Dialog-cancelButton').simulate('click');
+    wrapper.find('DialogView').prop('cancel')();
     assert.isTrue(cancel.called);
   });
 
@@ -118,14 +118,14 @@ describe('CredentialDialog', function() {
       const request = dialogRequests.credential({includeUsername: false});
       const wrapper = shallow(buildApp({request}));
 
-      assert.isFalse(wrapper.find('.btn-primary').prop('disabled'));
+      assert.isTrue(wrapper.find('DialogView').prop('acceptEnabled'));
     });
 
     it('is disabled if includeUsername is true and the username is empty', function() {
       const request = dialogRequests.credential({includeUsername: true});
       const wrapper = shallow(buildApp({request}));
 
-      assert.isTrue(wrapper.find('.btn-primary').prop('disabled'));
+      assert.isFalse(wrapper.find('DialogView').prop('acceptEnabled'));
     });
 
     it('is enabled if includeUsername is true and the username is populated', function() {
@@ -133,7 +133,7 @@ describe('CredentialDialog', function() {
       const wrapper = shallow(buildApp({request}));
       wrapper.find('.github-Credential-username').simulate('change', {target: {value: 'nonempty'}});
 
-      assert.isFalse(wrapper.find('.btn-primary').prop('disabled'));
+      assert.isTrue(wrapper.find('DialogView').prop('acceptEnabled'));
     });
   });
 });

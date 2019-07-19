@@ -39,14 +39,14 @@ describe('OpenCommitDialog', function() {
     it('disables the open button with no commit ref', function() {
       const wrapper = shallow(buildApp());
 
-      assert.isTrue(wrapper.find('button.icon-commit').prop('disabled'));
+      assert.isFalse(wrapper.find('DialogView').prop('acceptEnabled'));
     });
 
     it('enables the open button when commit sha box is populated', function() {
       const wrapper = shallow(buildApp());
       wrapper.find('AtomTextEditor').prop('buffer').setText('abcd1234');
 
-      assert.isFalse(wrapper.find('button.icon-commit').prop('disabled'));
+      assert.isTrue(wrapper.find('DialogView').prop('acceptEnabled'));
     });
   });
 
@@ -57,7 +57,7 @@ describe('OpenCommitDialog', function() {
 
     const wrapper = shallow(buildApp({request}));
     wrapper.find('AtomTextEditor').prop('buffer').setText('abcd1234');
-    wrapper.find('button.icon-commit').simulate('click');
+    wrapper.find('DialogView').prop('accept')();
 
     assert.isTrue(accept.calledWith('abcd1234'));
     wrapper.unmount();
@@ -70,7 +70,7 @@ describe('OpenCommitDialog', function() {
 
     const wrapper = shallow(buildApp({request}));
 
-    wrapper.find('button.github-Dialog-cancelButton').simulate('click');
+    wrapper.find('DialogView').prop('cancel')();
     assert.isTrue(cancel.called);
   });
 

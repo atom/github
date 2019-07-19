@@ -24,6 +24,7 @@ describe('OpenIssueishDialog', function() {
     return (
       <OpenIssueishDialog
         request={request}
+        workspace={atomEnv.workspace}
         commands={atomEnv.commands}
         {...overrides}
       />
@@ -35,14 +36,14 @@ describe('OpenIssueishDialog', function() {
       const wrapper = shallow(buildApp());
 
       wrapper.find('.github-OpenIssueish-url').prop('buffer').setText('');
-      assert.isTrue(wrapper.update().find('button.icon-git-pull-request').prop('disabled'));
+      assert.isFalse(wrapper.find('DialogView').prop('acceptEnabled'));
     });
 
     it('enables the open button when issue url box is populated', function() {
       const wrapper = shallow(buildApp());
       wrapper.find('.github-OpenIssueish-url').prop('buffer').setText('https://github.com/atom/github/pull/1807');
 
-      assert.isFalse(wrapper.update().find('button.icon-git-pull-request').prop('disabled'));
+      assert.isTrue(wrapper.find('DialogView').prop('acceptEnabled'));
     });
   });
 
@@ -52,7 +53,7 @@ describe('OpenIssueishDialog', function() {
     request.onAccept(accept);
     const wrapper = shallow(buildApp({request}));
     wrapper.find('.github-OpenIssueish-url').prop('buffer').setText('https://github.com/atom/github/pull/1807');
-    wrapper.find('button.icon-git-pull-request').simulate('click');
+    wrapper.find('DialogView').prop('accept')();
 
     assert.isTrue(accept.calledWith('https://github.com/atom/github/pull/1807'));
   });
@@ -62,7 +63,7 @@ describe('OpenIssueishDialog', function() {
     const request = dialogRequests.issueish();
     request.onCancel(cancel);
     const wrapper = shallow(buildApp({request}));
-    wrapper.find('button.github-Dialog-cancelButton').simulate('click');
+    wrapper.find('DialogView').prop('cancel')();
 
     assert.isTrue(cancel.called);
   });
