@@ -51,7 +51,6 @@ describe('Panel', function() {
     assert.strictEqual(workspace.addLeftPanel.callCount, 1);
     const options = workspace.addLeftPanel.args[0][0];
     assert.strictEqual(options.some, 'option');
-    assert.isTrue(options.visible);
     assert.isDefined(options.item.getElement());
 
     const panel = wrapper.instance().getPanel();
@@ -68,23 +67,5 @@ describe('Panel', function() {
     );
     wrapper.instance().getPanel().destroy();
     assert.strictEqual(onDidClosePanel.callCount, 1);
-  });
-
-  describe('when updating the visible prop', function() {
-    it('shows or hides the panel', function() {
-      const wrapper = mount(
-        <Panel workspace={workspace} location="left" visible={true}>
-          <Component text="hello" />
-        </Panel>,
-      );
-
-      const panel = wrapper.instance().getPanel();
-
-      wrapper.setProps({visible: false});
-      assert.strictEqual(panel.hide.callCount, 1);
-
-      wrapper.setProps({visible: true});
-      assert.strictEqual(panel.show.callCount, 1);
-    });
   });
 });
