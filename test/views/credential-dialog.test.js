@@ -112,4 +112,28 @@ describe('CredentialDialog', function() {
       assert.strictEqual(passwordInput.prop('type'), 'password');
     });
   });
+
+  describe('sign in button enablement', function() {
+    it('is always enabled when includeUsername is false', function() {
+      const request = dialogRequests.credential({includeUsername: false});
+      const wrapper = shallow(buildApp({request}));
+
+      assert.isFalse(wrapper.find('.btn-primary').prop('disabled'));
+    });
+
+    it('is disabled if includeUsername is true and the username is empty', function() {
+      const request = dialogRequests.credential({includeUsername: true});
+      const wrapper = shallow(buildApp({request}));
+
+      assert.isTrue(wrapper.find('.btn-primary').prop('disabled'));
+    });
+
+    it('is enabled if includeUsername is true and the username is populated', function() {
+      const request = dialogRequests.credential({includeUsername: true});
+      const wrapper = shallow(buildApp({request}));
+      wrapper.find('.github-Credential-username').simulate('change', {target: {value: 'nonempty'}});
+
+      assert.isFalse(wrapper.find('.btn-primary').prop('disabled'));
+    });
+  });
 });
