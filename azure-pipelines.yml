@@ -2,7 +2,7 @@ trigger:
   branches:
     include:
     - master
-    - *-releases
+    - '*-releases'
 pr:
   branches:
     include:
