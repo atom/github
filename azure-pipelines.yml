@@ -12,13 +12,10 @@ jobs:
 - job: Linux
   pool:
     vmImage: ubuntu-16.04
-  strategy:
-    matrix:
-      dev:
-        atom_channel: dev
-        atom_name: atom-dev
   variables:
     display: ":99"
+    atom_channel: dev
+    atom_name: atom-dev
   steps:
   - template: script/azure-pipelines/linux-install.yml
     parameters:
@@ -61,11 +58,9 @@ jobs:
 - job: MacOS
   pool:
     vmImage: macos-10.13
-  strategy:
-    matrix:
-      dev:
-        atom_channel: dev
-        atom_app: Atom Dev.app
+  variables:
+    atom_channel: dev
+    atom_app: Atom Dev.app
   steps:
   - template: script/azure-pipelines/macos-install.yml
     parameters:
@@ -106,11 +101,9 @@ jobs:
 - job: Windows
   pool:
     vmImage: vs2015-win2012r2
-  strategy:
-    matrix:
-      dev:
-        atom_channel: dev
-        atom_directory: Atom Dev
+  variables:
+    atom_channel: dev
+    atom_directory: Atom Dev
   steps:
   - template: script/azure-pipelines/windows-install.yml
     parameters:
