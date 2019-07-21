@@ -1,3 +1,13 @@
+trigger:
+  branches:
+    include:
+    - master
+    - *-releases
+pr:
+  branches:
+    include:
+    - '*'
+
 jobs:
 - job: Linux
   pool:
