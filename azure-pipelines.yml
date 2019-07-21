@@ -89,15 +89,12 @@ jobs:
   - bash: npm run report:coverage
     displayName: generate code coverage reports
     condition: succeededOrFailed()
-  - bash: bash <(curl -s https://codecov.io/bash) -n "MacOS $(atom_channel)"
+  - bash: bash <(curl -s https://codecov.io/bash) -n "MacOS $(atom_channel)" -P "${VCS_PULL_REQUEST}" -B "${VCS_BRANCH_NAME}"
     displayName: publish code coverage to CodeCov
     env:
       CODECOV_TOKEN: $(codecov.token)
-      VCS_COMMIT_ID: $(Build.SourceVersion)
       VCS_BRANCH_NAME: $[coalesce(variables.System.PullRequest.SourceBranch, variables.Build.SourceBranch)]
       VCS_PULL_REQUEST: $(System.PullRequest.PullRequestNumber)
-      CI_JOB_ID: $(Agent.JobName)
-      CI_BUILD_ID: $(Build.BuildID)
     condition: succeededOrFailed()
   - task: PublishCodeCoverageResults@1
     inputs:
@@ -157,15 +154,12 @@ jobs:
   - powershell: npm run report:coverage
     displayName: generate code coverage reports
     condition: succeededOrFailed()
-  - bash: bash <(curl -s https://codecov.io/bash) -n "Windows $(atom_channel)"
+  - bash: bash <(curl -s https://codecov.io/bash) -n "Windows $(atom_channel)"  -P "${VCS_PULL_REQUEST}" -B "${VCS_BRANCH_NAME}"
     displayName: publish code coverage to CodeCov
     env:
       CODECOV_TOKEN: $(codecov.token)
-      VCS_COMMIT_ID: $(Build.SourceVersion)
       VCS_BRANCH_NAME: $[coalesce(variables.System.PullRequest.SourceBranch, variables.Build.SourceBranch)]
       VCS_PULL_REQUEST: $(System.PullRequest.PullRequestNumber)
-      CI_JOB_ID: $(Agent.JobName)
-      CI_BUILD_ID: $(Build.BuildID)
     condition: succeededOrFailed()
   - task: PublishCodeCoverageResults@1
     inputs:
