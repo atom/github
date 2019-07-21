@@ -861,6 +861,17 @@ describe('Repository', function() {
         await assert.isRejected(repo.commit('Commit yo!'));
         assert.isFalse(reporterProxy.addEvent.called);
       });
+
+      it('emits did-commit with the last commit sha', async function() {
+        const workingDirPath = await cloneRepository('three-files');
+        const repo = new Repository(workingDirPath);
+        await repo.getLoadPromise();
+
+        sinon.spy(repo, 'didCommit');
+        await repo.commit('Regular commit', {allowEmpty: true});
+        const lastCommitSha = (await repo.git.exec(['rev-parse', 'HEAD'])).trim();
+        assert.isTrue(repo.didCommit.calledWith(lastCommitSha));
+      });
     });
   });
 
