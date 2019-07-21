@@ -1,6 +1,6 @@
 import {getEndpoint} from '../../lib/models/endpoint';
 
-describe.only('Endpoint', function() {
+describe('Endpoint', function() {
   describe('on dotcom', function() {
     let dotcom;
 
