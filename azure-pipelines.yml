@@ -42,7 +42,9 @@ jobs:
   - bash: npm run report:coverage
     displayName: generate code coverage reports
     condition: succeededOrFailed()
-  - bash: bash <(curl -s https://codecov.io/bash) -n "Linux $(atom_channel)" -v
+  - bash: |
+      env
+      bash <(curl -s https://codecov.io/bash) -n "Linux $(atom_channel)"
     displayName: publish code coverage to CodeCov
     env:
       CODECOV_TOKEN: $(codecov.token)
@@ -90,7 +92,7 @@ jobs:
   - bash: npm run report:coverage
     displayName: generate code coverage reports
     condition: succeededOrFailed()
-  - bash: bash <(curl -s https://codecov.io/bash) -n "MacOS $(atom_channel)" -v
+  - bash: bash <(curl -s https://codecov.io/bash) -n "MacOS $(atom_channel)"
     displayName: publish code coverage to CodeCov
     env:
       CODECOV_TOKEN: $(codecov.token)
@@ -158,7 +160,7 @@ jobs:
   - powershell: npm run report:coverage
     displayName: generate code coverage reports
     condition: succeededOrFailed()
-  - bash: bash <(curl -s https://codecov.io/bash) -n "Windows $(atom_channel)" -v
+  - bash: bash <(curl -s https://codecov.io/bash) -n "Windows $(atom_channel)"
     displayName: publish code coverage to CodeCov
     env:
       CODECOV_TOKEN: $(codecov.token)
