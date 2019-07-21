@@ -44,7 +44,7 @@ jobs:
     condition: succeededOrFailed()
   - bash: |
       env
-      bash <(curl -s https://codecov.io/bash) -n "Linux $(atom_channel)" -p "${VCS_PULL_REQUEST}" -B "${VCS_BRANCH_NAME}"
+      bash <(curl -s https://codecov.io/bash) -n "Linux $(atom_channel)" -P "${VCS_PULL_REQUEST}" -B "${VCS_BRANCH_NAME}"
     displayName: publish code coverage to CodeCov
     env:
       CODECOV_TOKEN: $(codecov.token)
