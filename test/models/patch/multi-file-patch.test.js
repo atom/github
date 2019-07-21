@@ -2,7 +2,7 @@ import dedent from 'dedent-js';
 
 import {multiFilePatchBuilder, filePatchBuilder} from '../../builder/patch';
 
-import {TOO_LARGE, COLLAPSED, EXPANDED} from '../../../lib/models/patch/patch';
+import {DEFERRED, COLLAPSED, EXPANDED} from '../../../lib/models/patch/patch';
 import MultiFilePatch from '../../../lib/models/patch/multi-file-patch';
 import PatchBuffer from '../../../lib/models/patch/patch-buffer';
 
@@ -646,7 +646,7 @@ describe('MultiFilePatch', function() {
       const multiFilePatch = multiFilePatchBuilder()
         .addFilePatch(fp => {
           fp.setOldFile(f => f.path('file-0'));
-          fp.renderStatus(TOO_LARGE);
+          fp.renderStatus(DEFERRED);
         })
         .build()
         .multiFilePatch;
@@ -683,7 +683,7 @@ describe('MultiFilePatch', function() {
         })
         .addFilePatch(fp => {
           fp.setOldFile(f => f.path('too-large-file'));
-          fp.renderStatus(TOO_LARGE);
+          fp.renderStatus(DEFERRED);
         })
         .addFilePatch(fp => {
           fp.setOldFile(f => f.path('collapsed-file'));
@@ -885,7 +885,7 @@ describe('MultiFilePatch', function() {
           fp.addHunk(h => h.unchanged('0 (1)').added('1 (2)', '2 (3)').deleted('3 (4)').unchanged('4 (5)'));
           fp.addHunk(h => h.unchanged('5 (7)').added('6 (8)', '7 (9)', '8 (10)').unchanged('9 (11)'));
           fp.addHunk(h => h.unchanged('10 (13)').deleted('11 (14)').unchanged('12 (15)'));
-          fp.renderStatus(TOO_LARGE);
+          fp.renderStatus(DEFERRED);
         })
         .build();
       assert.isTrue(multiFilePatch.isDiffRowOffsetIndexEmpty('1.txt'));

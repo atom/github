@@ -7,6 +7,7 @@ import CommentGutterDecorationController from '../../lib/controllers/comment-gut
 import Marker from '../../lib/atom/marker';
 import Decoration from '../../lib/atom/decoration';
 import {getEndpoint} from '../../lib/models/endpoint';
+import ReviewsItem from '../../lib/items/reviews-item';
 
 describe('EditorCommentDecorationsController', function() {
   let atomEnv, workspace, editor, wrapper;
@@ -34,6 +35,7 @@ describe('EditorCommentDecorationsController', function() {
       threadsForPath: [],
       commentTranslationsForPath: {
         diffToFilePosition: new Map(),
+        removed: false,
       },
 
       ...opts,
@@ -60,6 +62,7 @@ describe('EditorCommentDecorationsController', function() {
         [4, 7],
         [10, 13],
       ]),
+      removed: false,
     };
 
     wrapper = shallow(buildApp({threadsForPath, commentTranslationsForPath}));
@@ -85,6 +88,7 @@ describe('EditorCommentDecorationsController', function() {
         [4, 5],
         [10, 11],
       ]),
+      removed: false,
     };
 
     wrapper = shallow(buildApp({threadsForPath, commentTranslationsForPath}));
@@ -100,6 +104,7 @@ describe('EditorCommentDecorationsController', function() {
 
     const commentTranslationsForPath = {
       diffToFilePosition: new Map([[4, 4]]),
+      removed: false,
       digest: '1111',
     };
 
@@ -119,5 +124,46 @@ describe('EditorCommentDecorationsController', function() {
     });
 
     assert.isTrue(wrapper.find(Marker).prop('bufferRange').isEqual([[5, 0], [5, 3]]));
+  });
+
+  it('creates a block decoration if the diff was too large to parse', async function() {
+    const threadsForPath = [
+      {rootCommentID: 'comment0', position: 4, threadID: 'thread0'},
+      {rootCommentID: 'comment1', position: 10, threadID: 'thread1'},
+    ];
+    const commentTranslationsForPath = {
+      diffToFilePosition: new Map(),
+      removed: true,
+    };
+
+    wrapper = shallow(buildApp({
+      threadsForPath,
+      commentTranslationsForPath,
+      endpoint: getEndpoint('github.enterprise.horse'),
+      owner: 'some-owner',
+      repo: 'a-repo',
+      number: 400,
+      workdir: __dirname,
+    }));
+
+    const decorations = wrapper.find(Decoration);
+    assert.lengthOf(decorations.findWhere(decoration => decoration.prop('type') === 'line'), 0);
+    assert.lengthOf(decorations.findWhere(decoration => decoration.prop('type') === 'block'), 1);
+
+    const reviewsItem = {jumpToThread: sinon.spy()};
+    sinon.stub(workspace, 'open').resolves(reviewsItem);
+
+    await wrapper.find('button').prop('onClick')();
+    assert.isTrue(workspace.open.calledWith(
+      ReviewsItem.buildURI({
+        host: 'github.enterprise.horse',
+        owner: 'some-owner',
+        repo: 'a-repo',
+        number: 400,
+        workdir: __dirname,
+      }),
+      {searchAllPanes: true},
+    ));
+    assert.isTrue(reviewsItem.jumpToThread.calledWith('thread0'));
   });
 });
