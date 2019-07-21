@@ -17,12 +17,6 @@ jobs:
       dev:
         atom_channel: dev
         atom_name: atom-dev
-      beta:
-        atom_channel: beta
-        atom_name: atom-beta
-      stable:
-        atom_channel: stable
-        atom_name: atom
   variables:
     display: ":99"
   steps:
@@ -73,12 +67,6 @@ jobs:
       dev:
         atom_channel: dev
         atom_app: Atom Dev.app
-      beta:
-        atom_channel: beta
-        atom_app: Atom Beta.app
-      stable:
-        atom_channel: stable
-        atom_app: Atom.app
   steps:
   - template: script/azure-pipelines/macos-install.yml
     parameters:
@@ -127,12 +115,6 @@ jobs:
       dev:
         atom_channel: dev
         atom_directory: Atom Dev
-      beta:
-        atom_channel: beta
-        atom_directory: Atom Beta
-      stable:
-        atom_channel: stable
-        atom_directory: Atom
   steps:
   - template: script/azure-pipelines/windows-install.yml
     parameters:
