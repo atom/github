@@ -44,15 +44,12 @@ jobs:
     condition: succeededOrFailed()
   - bash: |
       env
-      bash <(curl -s https://codecov.io/bash) -n "Linux $(atom_channel)" -v
+      bash <(curl -s https://codecov.io/bash) -n "Linux $(atom_channel)" -p "${VCS_PULL_REQUEST}" -B "${VCS_BRANCH_NAME}"
     displayName: publish code coverage to CodeCov
     env:
       CODECOV_TOKEN: $(codecov.token)
-      VCS_COMMIT_ID: $(Build.SourceVersion)
       VCS_BRANCH_NAME: $[coalesce(variables.System.PullRequest.SourceBranch, variables.Build.SourceBranch)]
       VCS_PULL_REQUEST: $(System.PullRequest.PullRequestNumber)
-      CI_JOB_ID: $(Agent.JobName)
-      CI_BUILD_ID: $(Build.BuildID)
     condition: succeededOrFailed()
   - task: PublishCodeCoverageResults@1
     inputs:
