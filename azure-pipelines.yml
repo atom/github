@@ -44,7 +44,7 @@ jobs:
     condition: succeededOrFailed()
   - bash: |
       env
-      bash <(curl -s https://codecov.io/bash) -n "Linux $(atom_channel)"
+      bash <(curl -s https://codecov.io/bash) -n "Linux $(atom_channel)" -v
     displayName: publish code coverage to CodeCov
     env:
       CODECOV_TOKEN: $(codecov.token)
