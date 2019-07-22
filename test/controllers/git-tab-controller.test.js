@@ -13,13 +13,13 @@ import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import {GitError} from '../../lib/git-shell-out-strategy';
 
 describe('GitTabController', function() {
-  let atomEnvironment, workspace, workspaceElement, commandRegistry, notificationManager;
+  let atomEnvironment, workspace, workspaceElement, commands, notificationManager;
   let resolutionProgress, refreshResolutionProgress;
 
   beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
     workspace = atomEnvironment.workspace;
-    commandRegistry = atomEnvironment.commands;
+    commands = atomEnvironment.commands;
     notificationManager = atomEnvironment.notifications;
 
     workspaceElement = atomEnvironment.views.getView(workspace);
@@ -488,7 +488,7 @@ describe('GitTabController', function() {
             '',
           );
 
-          commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
+          commands.dispatch(workspaceElement, 'github:amend-last-commit');
           await assert.async.deepEqual(
             repository.commit.args[0][1],
             {amend: true, coAuthors: [], verbatim: true},
@@ -513,7 +513,7 @@ describe('GitTabController', function() {
           // no staged changes
           assert.lengthOf(wrapper.find('GitTabView').prop('stagedChanges'), 0);
 
-          commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
+          commands.dispatch(workspaceElement, 'github:amend-last-commit');
           await assert.async.deepEqual(
             repository.commit.args[0][1],
             {amend: true, coAuthors: [], verbatim: true},
@@ -538,7 +538,7 @@ describe('GitTabController', function() {
           commitView.onSelectedCoAuthorsChanged([author]);
           await updateWrapper(repository, wrapper);
 
-          commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
+          commands.dispatch(workspaceElement, 'github:amend-last-commit');
           // verify that coAuthor was passed
           await assert.async.deepEqual(
             repository.commit.args[0][1],
@@ -563,7 +563,7 @@ describe('GitTabController', function() {
           commitView.onSelectedCoAuthorsChanged([author]);
           const newMessage = 'Star Wars: A New Message';
           commitView.refEditorModel.map(e => e.setText(newMessage));
-          commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
+          commands.dispatch(workspaceElement, 'github:amend-last-commit');
 
           // verify that coAuthor was passed
           await assert.async.deepEqual(
@@ -600,7 +600,7 @@ describe('GitTabController', function() {
           commitView.onSelectedCoAuthorsChanged([]);
 
           // amend again
-          commandRegistry.dispatch(workspaceElement, 'github:amend-last-commit');
+          commands.dispatch(workspaceElement, 'github:amend-last-commit');
           // verify that NO coAuthor was passed
           await assert.async.deepEqual(
             repository.commit.args[0][1],

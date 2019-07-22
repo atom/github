@@ -11,12 +11,12 @@ import {assertEqualSets} from '../helpers';
 
 describe('StagingView', function() {
   const workingDirectoryPath = '/not/real/';
-  let atomEnv, commandRegistry, workspace, notificationManager;
+  let atomEnv, commands, workspace, notificationManager;
   let app;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
-    commandRegistry = atomEnv.commands;
+    commands = atomEnv.commands;
     workspace = atomEnv.workspace;
     notificationManager = atomEnv.notifications;
 
@@ -31,7 +31,7 @@ describe('StagingView', function() {
         stagedChanges={[]}
         workingDirectoryPath={workingDirectoryPath}
         hasUndoHistory={false}
-        commandRegistry={commandRegistry}
+        commands={commands}
         notificationManager={notificationManager}
         workspace={workspace}
         openFiles={noop}
@@ -98,7 +98,7 @@ describe('StagingView', function() {
           .simulate('mousedown', {button: 0});
         await wrapper.instance().mouseup();
 
-        commandRegistry.dispatch(wrapper.getDOMNode(), 'core:confirm');
+        commands.dispatch(wrapper.getDOMNode(), 'core:confirm');
 
         await assert.async.isTrue(attemptFileStageOperation.calledWith(['b.txt'], 'unstaged'));
       });
@@ -113,7 +113,7 @@ describe('StagingView', function() {
           .simulate('mousedown', {button: 0});
         await wrapper.instance().mouseup();
 
-        commandRegistry.dispatch(wrapper.getDOMNode(), 'core:confirm');
+        commands.dispatch(wrapper.getDOMNode(), 'core:confirm');
 
         await assert.async.isTrue(attemptFileStageOperation.calledWith(['b.txt'], 'staged'));
       });
@@ -683,7 +683,7 @@ describe('StagingView', function() {
     it('invokes a callback only when a single file is selected', async function() {
       await wrapper.instance().selectFirst();
 
-      commandRegistry.dispatch(wrapper.getDOMNode(), 'core:move-left');
+      commands.dispatch(wrapper.getDOMNode(), 'core:move-left');
 
       assert.isTrue(showFilePatchItem.calledWith('unstaged-1.txt'), 'Callback invoked with unstaged-1.txt');
 
@@ -693,7 +693,7 @@ describe('StagingView', function() {
       const selectedFilePaths = wrapper.instance().getSelectedItems().map(item => item.filePath).sort();
       assert.deepEqual(selectedFilePaths, ['unstaged-1.txt', 'unstaged-2.txt']);
 
-      commandRegistry.dispatch(wrapper.getDOMNode(), 'core:move-left');
+      commands.dispatch(wrapper.getDOMNode(), 'core:move-left');
 
       assert.equal(showFilePatchItem.callCount, 0);
     });
@@ -702,7 +702,7 @@ describe('StagingView', function() {
       await wrapper.instance().activateNextList();
       await wrapper.instance().selectFirst();
 
-      commandRegistry.dispatch(wrapper.getDOMNode(), 'core:move-left');
+      commands.dispatch(wrapper.getDOMNode(), 'core:move-left');
 
       assert.isTrue(showMergeConflictFileForPath.calledWith('conflict-1.txt'), 'Callback invoked with conflict-1.txt');
 
@@ -711,7 +711,7 @@ describe('StagingView', function() {
       const selectedFilePaths = wrapper.instance().getSelectedItems().map(item => item.filePath).sort();
       assert.deepEqual(selectedFilePaths, ['conflict-1.txt', 'conflict-2.txt']);
 
-      commandRegistry.dispatch(wrapper.getDOMNode(), 'core:move-left');
+      commands.dispatch(wrapper.getDOMNode(), 'core:move-left');
 
       assert.equal(showMergeConflictFileForPath.callCount, 0);
     });

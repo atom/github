@@ -85,6 +85,25 @@ describe('AtomTextEditor', function() {
     assert.strictEqual(editor.getText(), 'changed');
   });
 
+  it('mount with all text preselected on request', function() {
+    const buffer = new TextBuffer();
+    buffer.setText('precreated\ntwo lines\n');
+
+    mount(
+      <AtomTextEditor
+        workspace={workspace}
+        refModel={refModel}
+        buffer={buffer}
+        preselect={true}
+      />,
+    );
+
+    const editor = refModel.get();
+
+    assert.strictEqual(editor.getText(), 'precreated\ntwo lines\n');
+    assert.strictEqual(editor.getSelectedText(), 'precreated\ntwo lines\n');
+  });
+
   it('updates changed attributes on re-render', function() {
     const app = mount(
       <AtomTextEditor
