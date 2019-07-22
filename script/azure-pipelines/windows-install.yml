@@ -42,4 +42,4 @@ steps:
   displayName: install dependencies
   env:
     ATOM_DIRECTORY: ${{ parameters.atom_directory }}
-  condition: $[ ne(variables.apmCacheRestored, 'true') $]
+  condition: ne(variables.apmCacheRestored, 'true')
