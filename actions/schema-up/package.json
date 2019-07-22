@@ -6,9 +6,9 @@
     "start": "node ./index.js"
   },
   "dependencies": {
-    "actions-toolkit": "^2.0.0",
-    "graphql": "14.2.1",
-    "node-fetch": "2.4.1",
-    "relay-compiler": "3.0.0"
+    "actions-toolkit": "2.1.0",
+    "graphql": "14.4.2",
+    "node-fetch": "2.6.0",
+    "relay-compiler": "5.0.0"
   }
 }
