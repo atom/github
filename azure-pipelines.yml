@@ -46,7 +46,7 @@ jobs:
     env:
       CODECOV_TOKEN: $(codecov.token)
       VCS_BRANCH_NAME: $[coalesce(variables.System.PullRequest.SourceBranch, variables.Build.SourceBranch)]
-      VCS_PULL_REQUEST: $(System.PullRequest.PullRequestNumber)
+      VCS_PULL_REQUEST: $[coalesce(variables.System.PullRequest.PullRequestNumber, '')]
     condition: succeededOrFailed()
   - task: PublishCodeCoverageResults@1
     inputs:
@@ -89,7 +89,7 @@ jobs:
     env:
       CODECOV_TOKEN: $(codecov.token)
       VCS_BRANCH_NAME: $[coalesce(variables.System.PullRequest.SourceBranch, variables.Build.SourceBranch)]
-      VCS_PULL_REQUEST: $(System.PullRequest.PullRequestNumber)
+      VCS_PULL_REQUEST: $[coalesce(variables.System.PullRequest.PullRequestNumber, '')]
     condition: succeededOrFailed()
   - task: PublishCodeCoverageResults@1
     inputs:
@@ -152,7 +152,7 @@ jobs:
     env:
       CODECOV_TOKEN: $(codecov.token)
       VCS_BRANCH_NAME: $[coalesce(variables.System.PullRequest.SourceBranch, variables.Build.SourceBranch)]
-      VCS_PULL_REQUEST: $(System.PullRequest.PullRequestNumber)
+      VCS_PULL_REQUEST: $[coalesce(variables.System.PullRequest.PullRequestNumber, '')]
     condition: succeededOrFailed()
   - task: PublishCodeCoverageResults@1
     inputs:
