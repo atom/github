@@ -9,11 +9,24 @@ steps:
       -o "atom.zip"
     mkdir -p /tmp/atom
     unzip -q atom.zip -d /tmp/atom
+    ELECTRON_VERSION=$("/tmp/atom/${ATOM_APP}/Contents/Resources/app/atom.sh" --version | grep Electron)
+    echo "##vso[task.setvariable variable=electronVersion]${ELECTRON_VERSION}"
   displayName: install Atom
   env:
     ATOM_CHANNEL: ${{ parameters.atom_channel }}
+- task: CacheBeta@0
+  inputs:
+    key: |
+      apm
+      $(Agent.OS)
+      $(electronVersion)
+      $(Build.SourcesDirectory)/package-lock.json
+    path: $(Build.SourcesDirectory)/node_modules
+    cacheHitVar: apmCacheRestored
+  displayName: Cache package dependencies
 - bash: |
     "/tmp/atom/${ATOM_APP}/Contents/Resources/app/apm/bin/apm" ci
   displayName: install dependencies
   env:
     ATOM_APP: ${{ parameters.atom_app }}
+  condition: $[ ne(variables.apmCacheRestored, 'true') $]

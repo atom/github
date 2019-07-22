@@ -13,9 +13,21 @@ steps:
 
     (New-Object System.Net.WebClient).DownloadFile($source, $destination)
     Expand-Archive -Path "atom.zip" -DestinationPath $script:ATOMROOT
+    $electronVersion = & "$script:ATOMROOT\$env:ATOM_DIRECTORY\resources\cli\atom.cmd" --version | Out-String -stream | Select-String Electron
+    Write-Output "##vso[task.setvariable variable=electronVersion]$electronVersion"
   displayName: install Atom
   env:
     ATOM_CHANNEL: ${{ parameters.atom_channel }}
+- task: CacheBeta@0
+  inputs:
+    key: |
+      apm
+      $(Agent.OS)
+      $(electronVersion)
+      $(Build.SourcesDirectory)/package-lock.json
+    path: $(Build.SourcesDirectory)/node_modules
+    cacheHitVar: apmCacheRestored
+  displayName: Cache package dependencies
 - powershell: |
     Set-StrictMode -Version Latest
     $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
@@ -30,3 +42,4 @@ steps:
   displayName: install dependencies
   env:
     ATOM_DIRECTORY: ${{ parameters.atom_directory }}
+  condition: $[ ne(variables.apmCacheRestored, 'true') $]

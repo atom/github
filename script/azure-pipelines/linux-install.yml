@@ -10,11 +10,24 @@ steps:
     /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -ac -screen 0 1280x1024x16
     sudo apt-get update && sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev
     dpkg-deb -x atom-amd64.deb /tmp/atom
+    ELECTRON_VERSION=$("/tmp/atom/usr/bin/${ATOM_NAME}" --version | grep Electron)
+    echo "##vso[task.setvariable variable=electronVersion]${ELECTRON_VERSION}"
   displayName: install Atom
   env:
     ATOM_CHANNEL: ${{ parameters.atom_channel }}
+- task: CacheBeta@0
+  inputs:
+    key: |
+      apm
+      $(Agent.OS)
+      $(electronVersion)
+      $(Build.SourcesDirectory)/package-lock.json
+    path: $(Build.SourcesDirectory)/node_modules
+    cacheHitVar: apmCacheRestored
+  displayName: Cache package dependencies
 - bash: |
     "/tmp/atom/usr/share/${ATOM_NAME}/resources/app/apm/bin/apm" ci
   displayName: install dependencies
   env:
     ATOM_NAME: ${{ parameters.atom_name }}
+  condition: $[ ne(variables.apmCacheRestored, 'true') $]
