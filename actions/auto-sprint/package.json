@@ -6,6 +6,6 @@
     "start": "node ./index.js"
   },
   "dependencies": {
-    "actions-toolkit": "^2.0.0"
+    "actions-toolkit": "2.1.0"
   }
 }
