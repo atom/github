@@ -9,6 +9,7 @@ import {aggregatedReviewsBuilder} from '../builder/graphql/aggregated-reviews-bu
 import {multiFilePatchBuilder} from '../builder/patch';
 import {checkoutStates} from '../../lib/controllers/pr-checkout-controller';
 import * as reporterProxy from '../../lib/reporter-proxy';
+import {GHOST_USER} from '../../lib/helpers';
 
 describe('ReviewsView', function() {
   let atomEnv;
@@ -35,6 +36,7 @@ describe('ReviewsView', function() {
       summarySectionOpen: true,
       commentSectionOpen: true,
       threadIDsOpen: new Set(),
+      highlightedThreadIDs: new Set(),
 
       number: 100,
       repo: 'github',
@@ -61,7 +63,7 @@ describe('ReviewsView', function() {
       resolveThread: () => {},
       unresolveThread: () => {},
       addSingleComment: () => {},
-      reportMutationErrors: () => {},
+      reportRelayError: () => {},
       refetch: () => {},
       ...override,
     };
@@ -113,6 +115,24 @@ describe('ReviewsView', function() {
     assert.lengthOf(wrapper.find('details.github-Review'), 2);
   });
 
+  it('displays ghost user information in review summary if author is null', function() {
+    const {summaries, commentThreads} = aggregatedReviewsBuilder()
+      .addReviewSummary(r => r.id(0))
+      .addReviewThread(t => t.addComment().addComment())
+      .build();
+
+    const wrapper = shallow(buildApp({summaries, commentThreads}));
+
+    const showActionMenu = () => {};
+    const summary = wrapper.find('.github-ReviewSummary').find('ActionableReviewView').renderProp('render')(showActionMenu);
+
+    // summary
+    assert.strictEqual(summary.find('.github-ReviewSummary-username').text(), GHOST_USER.login);
+    assert.strictEqual(summary.find('.github-ReviewSummary-username').prop('href'), GHOST_USER.url);
+    assert.strictEqual(summary.find('.github-ReviewSummary-avatar').prop('src'), GHOST_USER.avatarUrl);
+    assert.strictEqual(summary.find('.github-ReviewSummary-avatar').prop('alt'), GHOST_USER.login);
+  });
+
   it('displays an author association badge for review summaries', function() {
     const {summaries, commentThreads} = aggregatedReviewsBuilder()
       .addReviewSummary(r => r.id(0).authorAssociation('MEMBER'))
@@ -124,46 +144,20 @@ describe('ReviewsView', function() {
       .addReviewSummary(r => r.id(6).authorAssociation('NONE'))
       .build();
 
+    const showActionMenu = () => {};
     const wrapper = shallow(buildApp({summaries, commentThreads}));
+    assert.lengthOf(wrapper.find('.github-ReviewSummary'), 7);
+    const reviews = wrapper.find('.github-ReviewSummary').map(review =>
+      review.find('ActionableReviewView').renderProp('render')(showActionMenu),
+    );
 
-
-    const reviews = wrapper.find('.github-ReviewSummary');
-    assert.lengthOf(reviews, 7);
-    assert.strictEqual(reviews.at(0).find('.github-Review-authorAssociationBadge').text(), 'Member');
-    assert.strictEqual(reviews.at(1).find('.github-Review-authorAssociationBadge').text(), 'Owner');
-    assert.strictEqual(reviews.at(2).find('.github-Review-authorAssociationBadge').text(), 'Collaborator');
-    assert.strictEqual(reviews.at(3).find('.github-Review-authorAssociationBadge').text(), 'Contributor');
-    assert.strictEqual(reviews.at(4).find('.github-Review-authorAssociationBadge').text(), 'First-time contributor');
-    assert.strictEqual(reviews.at(5).find('.github-Review-authorAssociationBadge').text(), 'First-timer');
-    assert.isFalse(reviews.at(6).exists('.github-Review-authorAssociationBadge'));
-  });
-
-  it('displays an author association badge for review thread comments', function() {
-    const {summaries, commentThreads} = aggregatedReviewsBuilder()
-      .addReviewSummary(r => r.id(0))
-      .addReviewThread(t => {
-        t.thread(t0 => t0.id('abcd'));
-        t.addComment(c => c.id(0).authorAssociation('MEMBER'));
-        t.addComment(c => c.id(1).authorAssociation('OWNER'));
-        t.addComment(c => c.id(2).authorAssociation('COLLABORATOR'));
-        t.addComment(c => c.id(3).authorAssociation('CONTRIBUTOR'));
-        t.addComment(c => c.id(4).authorAssociation('FIRST_TIME_CONTRIBUTOR'));
-        t.addComment(c => c.id(5).authorAssociation('FIRST_TIMER'));
-        t.addComment(c => c.id(6).authorAssociation('NONE'));
-      })
-      .build();
-
-    const wrapper = shallow(buildApp({summaries, commentThreads}));
-
-    const comments = wrapper.find('.github-Review-comment');
-    assert.lengthOf(comments, 7);
-    assert.strictEqual(comments.at(0).find('.github-Review-authorAssociationBadge').text(), 'Member');
-    assert.strictEqual(comments.at(1).find('.github-Review-authorAssociationBadge').text(), 'Owner');
-    assert.strictEqual(comments.at(2).find('.github-Review-authorAssociationBadge').text(), 'Collaborator');
-    assert.strictEqual(comments.at(3).find('.github-Review-authorAssociationBadge').text(), 'Contributor');
-    assert.strictEqual(comments.at(4).find('.github-Review-authorAssociationBadge').text(), 'First-time contributor');
-    assert.strictEqual(comments.at(5).find('.github-Review-authorAssociationBadge').text(), 'First-timer');
-    assert.isFalse(comments.at(6).exists('.github-Review-authorAssociationBadge'));
+    assert.strictEqual(reviews[0].find('.github-Review-authorAssociationBadge').text(), 'Member');
+    assert.strictEqual(reviews[1].find('.github-Review-authorAssociationBadge').text(), 'Owner');
+    assert.strictEqual(reviews[2].find('.github-Review-authorAssociationBadge').text(), 'Collaborator');
+    assert.strictEqual(reviews[3].find('.github-Review-authorAssociationBadge').text(), 'Contributor');
+    assert.strictEqual(reviews[4].find('.github-Review-authorAssociationBadge').text(), 'First-time contributor');
+    assert.strictEqual(reviews[5].find('.github-Review-authorAssociationBadge').text(), 'First-timer');
+    assert.isFalse(reviews[6].exists('.github-Review-authorAssociationBadge'));
   });
 
   it('calls openIssueish when clicking on an issueish link in a review summary', function() {
@@ -176,11 +170,13 @@ describe('ReviewsView', function() {
       .build();
 
     const wrapper = shallow(buildApp({openIssueish, summaries}));
+    const showActionMenu = () => {};
+    const review = wrapper.find('ActionableReviewView').renderProp('render')(showActionMenu);
 
-    wrapper.find('GithubDotcomMarkdown').prop('switchToIssueish')('aaa', 'bbb', 123);
+    review.find('GithubDotcomMarkdown').prop('switchToIssueish')('aaa', 'bbb', 123);
     assert.isTrue(openIssueish.calledWith('aaa', 'bbb', 123));
 
-    wrapper.find('GithubDotcomMarkdown').prop('openIssueishLinkInNewTab')({
+    review.find('GithubDotcomMarkdown').prop('openIssueishLinkInNewTab')({
       target: {dataset: {url: 'https://github.com/ccc/ddd/issues/654'}},
     });
     assert.isTrue(openIssueish.calledWith('ccc', 'ddd', 654));
@@ -280,15 +276,16 @@ describe('ReviewsView', function() {
     it('renders threads with comments', function() {
       const threads = wrapper.find('details.github-Review');
       assert.lengthOf(threads, 3);
-      assert.lengthOf(threads.at(0).find('.github-Review-comment'), 2);
-      assert.lengthOf(threads.at(1).find('.github-Review-comment'), 2);
-      assert.lengthOf(threads.at(2).find('.github-Review-comment'), 1);
+      assert.lengthOf(threads.at(0).find('ReviewCommentView'), 2);
+      assert.lengthOf(threads.at(1).find('ReviewCommentView'), 2);
+      assert.lengthOf(threads.at(2).find('ReviewCommentView'), 1);
     });
 
-    it('hides minimized comment content', function() {
-      const thread = wrapper.find('details.github-Review').at(0);
-      const comment = thread.find('.github-Review-comment--hidden');
-      assert.strictEqual(comment.find('em').text(), 'This comment was hidden');
+    it('groups comments by their resolved status', function() {
+      const unresolvedThreads = wrapper.find('.github-Reviews-section.comments').find('.github-Review');
+      const resolvedThreads = wrapper.find('.github-Reviews-section.resolved-comments').find('.github-Review');
+      assert.lengthOf(resolvedThreads, 1);
+      assert.lengthOf(unresolvedThreads, 3);
     });
 
     describe('indication that a comment has been edited', function() {
@@ -303,41 +300,15 @@ describe('ReviewsView', function() {
           .build();
 
         wrapper.setProps({...updatedProps});
+        const showActionMenu = () => {};
 
-        const updatedSummary = wrapper.find('.github-ReviewSummary').at(0);
+        const updatedSummary = wrapper.find('.github-ReviewSummary').at(0).find('ActionableReviewView').renderProp('render')(showActionMenu);
         assert.isTrue(updatedSummary.exists('.github-Review-edited'));
         const editedWrapper = updatedSummary.find('a.github-Review-edited');
         assert.strictEqual(editedWrapper.text(), 'edited');
         assert.strictEqual(editedWrapper.prop('href'), commentUrl);
       });
 
-      it('indicates that a thread comment has been edited', function() {
-        const comment = wrapper.find('details.github-Review').at(0).find('.github-Review-comment').at(0);
-        assert.isFalse(comment.exists('.github-Review-edited'));
-
-        const commentUrl = 'https://github.com/atom/github/pull/1995#discussion_r272475592';
-        const updatedProps = aggregatedReviewsBuilder()
-          .addReviewSummary(r => r.id(0))
-          .addReviewThread(t => {
-            t.thread(t0 => t0.id('abcd'));
-            t.addComment(c =>
-              c.id(0).path('dir/file0').position(10).bodyHTML('i have opinions.').author(a => a.login('user0').avatarUrl('user0.jpg'))
-                .lastEditedAt('2018-12-27T17:51:17Z').url(commentUrl),
-            );
-            t.addComment(c =>
-              c.id(1).path('file0').position(10).bodyHTML('i disagree.').author(a => a.login('user1').avatarUrl('user1.jpg')).isMinimized(true),
-            );
-          })
-          .build();
-
-        wrapper.setProps({...updatedProps});
-
-        const updatedComment = wrapper.find('details.github-Review').at(0).find('.github-Review-comment').at(0);
-        assert.isTrue(updatedComment.exists('.github-Review-edited'));
-        const editedWrapper = updatedComment.find('a.github-Review-edited');
-        assert.strictEqual(editedWrapper.text(), 'edited');
-        assert.strictEqual(editedWrapper.prop('href'), commentUrl);
-      });
     });
 
     describe('each thread', function() {
@@ -368,18 +339,6 @@ describe('ReviewsView', function() {
         assert.isFalse(unresolveThread.called);
         button.simulate('click');
         assert.isTrue(unresolveThread.called);
-      });
-
-      it('displays a pending badge when the comment is part of a pending review', function() {
-        const thread = wrapper.find('details.github-Review').at(1);
-
-        const comment0 = thread.find('.github-Review-comment').at(0);
-        assert.isFalse(comment0.hasClass('github-Review-comment--pending'));
-        assert.isFalse(comment0.exists('.github-Review-pendingBadge'));
-
-        const comment1 = thread.find('.github-Review-comment').at(1);
-        assert.isTrue(comment1.hasClass('github-Review-comment--pending'));
-        assert.isTrue(comment1.exists('.github-Review-pendingBadge'));
       });
 
       it('omits the / when there is no directory', function() {
@@ -454,15 +413,6 @@ describe('ReviewsView', function() {
       });
     });
 
-    it('each comment displays correct data', function() {
-      const comment = wrapper.find('.github-Review-comment').at(0);
-      assert.strictEqual(comment.find('.github-Review-avatar').prop('src'), 'user0.jpg');
-      assert.strictEqual(comment.find('.github-Review-avatar').prop('alt'), 'user0');
-      assert.strictEqual(comment.find('.github-Review-username').prop('href'), 'https://github.com/user0');
-      assert.strictEqual(comment.find('.github-Review-username').text(), 'user0');
-      assert.strictEqual(comment.find('GithubDotcomMarkdown').prop('html'), 'i have opinions.');
-    });
-
     it('each comment displays reply button', function() {
       const submitSpy = sinon.spy(wrapper.instance(), 'submitReply');
       const buttons = wrapper.find('.github-Review-replyButton');
@@ -501,18 +451,6 @@ describe('ReviewsView', function() {
       assert.isTrue(addSingleComment.calledWith(
         'content', 'abcd', 1, 'file0', 10, {didSubmitComment: sinon.match.func, didFailComment: sinon.match.func},
       ));
-    });
-
-    it('handles issueish link clicks on comment bodies', function() {
-      const comment = wrapper.find('.github-Review-comment').at(2);
-
-      comment.find('GithubDotcomMarkdown').prop('switchToIssueish')('aaa', 'bbb', 100);
-      assert.isTrue(openIssueish.calledWith('aaa', 'bbb', 100));
-
-      comment.find('GithubDotcomMarkdown').prop('openIssueishLinkInNewTab')({
-        target: {dataset: {url: 'https://github.com/ccc/ddd/pulls/1'}},
-      });
-      assert.isTrue(openIssueish.calledWith('ccc', 'ddd', 1));
     });
 
     it('renders progress bar', function() {

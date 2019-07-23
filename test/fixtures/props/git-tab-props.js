@@ -11,7 +11,7 @@ export function gitTabItemProps(atomEnv, repository, overrides = {}) {
     repository,
     loginModel: new GithubLoginModel(InMemoryStrategy),
     workspace: atomEnv.workspace,
-    commandRegistry: atomEnv.commands,
+    commands: atomEnv.commands,
     grammars: atomEnv.grammars,
     resolutionProgress: new ResolutionProgress(),
     notificationManager: atomEnv.notifications,
@@ -24,7 +24,7 @@ export function gitTabItemProps(atomEnv, repository, overrides = {}) {
     undoLastDiscard: noop,
     discardWorkDirChangesForPaths: noop,
     openFiles: noop,
-    initializeRepo: noop,
+    openInitializeDialog: noop,
     ...overrides
   };
 }
@@ -78,14 +78,14 @@ export async function gitTabViewProps(atomEnv, repository, overrides = {}) {
     resolutionProgress: new ResolutionProgress(),
 
     workspace: atomEnv.workspace,
-    commandRegistry: atomEnv.commands,
+    commands: atomEnv.commands,
     grammars: atomEnv.grammars,
     notificationManager: atomEnv.notifications,
     config: atomEnv.config,
     project: atomEnv.project,
     tooltips: atomEnv.tooltips,
 
-    initializeRepo: () => {},
+    openInitializeDialog: () => {},
     abortMerge: () => {},
     commit: () => {},
     undoLastCommit: () => {},

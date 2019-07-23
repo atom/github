@@ -27,6 +27,8 @@ import deletePrReviewMutation from '../../lib/mutations/__generated__/deletePrRe
 import submitPrReviewMutation from '../../lib/mutations/__generated__/submitPrReviewMutation.graphql';
 import resolveThreadMutation from '../../lib/mutations/__generated__/resolveReviewThreadMutation.graphql';
 import unresolveThreadMutation from '../../lib/mutations/__generated__/unresolveReviewThreadMutation.graphql';
+import updateReviewCommentMutation from '../../lib/mutations/__generated__/updatePrReviewCommentMutation.graphql';
+import updatePrReviewMutation from '../../lib/mutations/__generated__/updatePrReviewSummaryMutation.graphql';
 
 describe('ReviewsController', function() {
   let atomEnv, relayEnv, localRepository, noop, clock;
@@ -79,7 +81,8 @@ describe('ReviewsController', function() {
       config: atomEnv.config,
       commands: atomEnv.commands,
       tooltips: atomEnv.tooltips,
-      reportMutationErrors: () => {},
+      confirm: () => {},
+      reportRelayError: () => {},
 
       ...override,
     };
@@ -95,20 +98,22 @@ describe('ReviewsController', function() {
     assert.strictEqual(opWrapper.find(ReviewsView).prop('extra'), extra);
   });
 
-  it('scrolls to a specific thread on mount', function() {
+  it('scrolls to and highlight a specific thread on mount', function() {
     clock = sinon.useFakeTimers();
     const wrapper = shallow(buildApp({initThreadID: 'thread0'}));
     let opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
 
     assert.include(opWrapper.find(ReviewsView).prop('threadIDsOpen'), 'thread0');
+    assert.include(opWrapper.find(ReviewsView).prop('highlightedThreadIDs'), 'thread0');
     assert.strictEqual(opWrapper.find(ReviewsView).prop('scrollToThreadID'), 'thread0');
 
     clock.tick(2000);
     opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
+    assert.notInclude(opWrapper.find(ReviewsView).prop('highlightedThreadIDs'), 'thread0');
     assert.isNull(opWrapper.find(ReviewsView).prop('scrollToThreadID'));
   });
 
-  it('scrolls to a specific thread on update', function() {
+  it('scrolls to and highlight a specific thread on update', function() {
     clock = sinon.useFakeTimers();
     const wrapper = shallow(buildApp());
     let opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
@@ -118,12 +123,58 @@ describe('ReviewsController', function() {
     opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
 
     assert.include(opWrapper.find(ReviewsView).prop('threadIDsOpen'), 'hang-by-a-thread');
+    assert.include(opWrapper.find(ReviewsView).prop('highlightedThreadIDs'), 'hang-by-a-thread');
     assert.isTrue(opWrapper.find(ReviewsView).prop('commentSectionOpen'));
     assert.strictEqual(opWrapper.find(ReviewsView).prop('scrollToThreadID'), 'hang-by-a-thread');
 
     clock.tick(2000);
     opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
+    assert.notInclude(opWrapper.find(ReviewsView).prop('highlightedThreadIDs'), 'hang-by-a-thread');
     assert.isNull(opWrapper.find(ReviewsView).prop('scrollToThreadID'));
+  });
+
+  it('does not unset a different scrollToThreadID if two highlight actions collide', function() {
+    clock = sinon.useFakeTimers();
+    const wrapper = shallow(buildApp());
+    let opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
+
+    assert.deepEqual(opWrapper.find(ReviewsView).prop('threadIDsOpen'), new Set([]));
+    wrapper.setProps({initThreadID: 'hang-by-a-thread'});
+    opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
+
+    assert.deepEqual(
+      Array.from(opWrapper.find(ReviewsView).prop('threadIDsOpen')),
+      ['hang-by-a-thread'],
+    );
+    assert.deepEqual(
+      Array.from(opWrapper.find(ReviewsView).prop('highlightedThreadIDs')),
+      ['hang-by-a-thread'],
+    );
+    assert.isTrue(opWrapper.find(ReviewsView).prop('commentSectionOpen'));
+    assert.strictEqual(opWrapper.find(ReviewsView).prop('scrollToThreadID'), 'hang-by-a-thread');
+
+    clock.tick(1000);
+    wrapper.setProps({initThreadID: 'caught-in-a-web'});
+    opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
+
+    assert.deepEqual(
+      Array.from(opWrapper.find(ReviewsView).prop('threadIDsOpen')),
+      ['hang-by-a-thread', 'caught-in-a-web'],
+    );
+    assert.deepEqual(
+      Array.from(opWrapper.find(ReviewsView).prop('highlightedThreadIDs')),
+      ['hang-by-a-thread', 'caught-in-a-web'],
+    );
+    assert.isTrue(opWrapper.find(ReviewsView).prop('commentSectionOpen'));
+    assert.strictEqual(opWrapper.find(ReviewsView).prop('scrollToThreadID'), 'caught-in-a-web');
+
+    clock.tick(1000);
+    opWrapper = wrapper.find(PullRequestCheckoutController).renderProp('children')(noop);
+    assert.deepEqual(
+      Array.from(opWrapper.find(ReviewsView).prop('highlightedThreadIDs')),
+      ['caught-in-a-web'],
+    );
+    assert.strictEqual(opWrapper.find(ReviewsView).prop('scrollToThreadID'), 'caught-in-a-web');
   });
 
   describe('openIssueish', function() {
@@ -296,7 +347,7 @@ describe('ReviewsController', function() {
     });
 
     it('creates a notification when the review cannot be created', async function() {
-      const reportMutationErrors = sinon.spy();
+      const reportRelayError = sinon.spy();
 
       expectRelayQuery({
         name: addPrReviewMutation.operation.name,
@@ -310,7 +361,7 @@ describe('ReviewsController', function() {
       }).resolve();
 
       const pullRequest = pullRequestBuilder(pullRequestQuery).id('pr0').build();
-      const wrapper = shallow(buildApp({pullRequest, reportMutationErrors}))
+      const wrapper = shallow(buildApp({pullRequest, reportRelayError}))
         .find(PullRequestCheckoutController)
         .renderProp('children')(noop);
 
@@ -321,13 +372,13 @@ describe('ReviewsController', function() {
         'body', 'thread0', 'comment1', 'file1.txt', 20, {didSubmitComment, didFailComment},
       );
 
-      assert.isTrue(reportMutationErrors.calledWith('Unable to submit your comment'));
+      assert.isTrue(reportRelayError.calledWith('Unable to submit your comment'));
       assert.isFalse(didSubmitComment.called);
       assert.isTrue(didFailComment.called);
     });
 
     it('creates a notification and deletes the review when the comment cannot be added', async function() {
-      const reportMutationErrors = sinon.spy();
+      const reportRelayError = sinon.spy();
 
       expectRelayQuery({
         name: addPrReviewMutation.operation.name,
@@ -364,7 +415,7 @@ describe('ReviewsController', function() {
       }).resolve();
 
       const pullRequest = pullRequestBuilder(pullRequestQuery).id('pr0').build();
-      const wrapper = shallow(buildApp({pullRequest, reportMutationErrors}))
+      const wrapper = shallow(buildApp({pullRequest, reportRelayError}))
         .find(PullRequestCheckoutController)
         .renderProp('children')(noop);
 
@@ -375,13 +426,13 @@ describe('ReviewsController', function() {
         'body', 'thread0', 'comment1', 'file2.txt', 5, {didSubmitComment, didFailComment},
       );
 
-      assert.isTrue(reportMutationErrors.calledWith('Unable to submit your comment'));
+      assert.isTrue(reportRelayError.calledWith('Unable to submit your comment'));
       assert.isTrue(didSubmitComment.called);
       assert.isTrue(didFailComment.called);
     });
 
     it('includes errors from the review deletion', async function() {
-      const reportMutationErrors = sinon.spy();
+      const reportRelayError = sinon.spy();
 
       expectRelayQuery({
         name: addPrReviewMutation.operation.name,
@@ -420,7 +471,7 @@ describe('ReviewsController', function() {
       }).resolve();
 
       const pullRequest = pullRequestBuilder(pullRequestQuery).id('pr0').build();
-      const wrapper = shallow(buildApp({pullRequest, reportMutationErrors}))
+      const wrapper = shallow(buildApp({pullRequest, reportRelayError}))
         .find(PullRequestCheckoutController)
         .renderProp('children')(noop);
 
@@ -430,7 +481,7 @@ describe('ReviewsController', function() {
     });
 
     it('creates a notification when the review cannot be submitted', async function() {
-      const reportMutationErrors = sinon.spy();
+      const reportRelayError = sinon.spy();
 
       expectRelayQuery({
         name: addPrReviewMutation.operation.name,
@@ -470,7 +521,7 @@ describe('ReviewsController', function() {
       }).resolve();
 
       const pullRequest = pullRequestBuilder(pullRequestQuery).id('pr0').build();
-      const wrapper = shallow(buildApp({pullRequest, reportMutationErrors}))
+      const wrapper = shallow(buildApp({pullRequest, reportRelayError}))
         .find(PullRequestCheckoutController)
         .renderProp('children')(noop);
 
@@ -481,7 +532,7 @@ describe('ReviewsController', function() {
         'body', 'thread0', 'comment1', 'file1.txt', 10, {didSubmitComment, didFailComment},
       );
 
-      assert.isTrue(reportMutationErrors.calledWith('Unable to submit your comment'));
+      assert.isTrue(reportRelayError.calledWith('Unable to submit your comment'));
       assert.isTrue(didSubmitComment.called);
       assert.isTrue(didFailComment.called);
     });
@@ -489,7 +540,7 @@ describe('ReviewsController', function() {
 
   describe('resolving threads', function() {
     it('hides the thread, then fires the mutation', async function() {
-      const reportMutationErrors = sinon.spy();
+      const reportRelayError = sinon.spy();
 
       expectRelayQuery({
         name: resolveThreadMutation.operation.name,
@@ -498,7 +549,7 @@ describe('ReviewsController', function() {
         },
       }, op => relayResponseBuilder(op).build()).resolve();
 
-      const wrapper = shallow(buildApp({reportMutationErrors}))
+      const wrapper = shallow(buildApp({reportRelayError}))
         .find(PullRequestCheckoutController)
         .renderProp('children')(noop);
       await wrapper.find(ReviewsView).prop('showThreadID')('thread0');
@@ -508,13 +559,13 @@ describe('ReviewsController', function() {
       await wrapper.find(ReviewsView).prop('resolveThread')({id: 'thread0', viewerCanResolve: true});
 
       assert.isFalse(wrapper.find(ReviewsView).prop('threadIDsOpen').has('thread0'));
-      assert.isFalse(reportMutationErrors.called);
+      assert.isFalse(reportRelayError.called);
     });
 
     it('is a no-op if the viewer cannot resolve the thread', async function() {
-      const reportMutationErrors = sinon.spy();
+      const reportRelayError = sinon.spy();
 
-      const wrapper = shallow(buildApp({reportMutationErrors}))
+      const wrapper = shallow(buildApp({reportRelayError}))
         .find(PullRequestCheckoutController)
         .renderProp('children')(noop);
       await wrapper.find(ReviewsView).prop('showThreadID')('thread0');
@@ -522,11 +573,11 @@ describe('ReviewsController', function() {
       await wrapper.find(ReviewsView).prop('resolveThread')({id: 'thread0', viewerCanResolve: false});
 
       assert.isTrue(wrapper.find(ReviewsView).prop('threadIDsOpen').has('thread0'));
-      assert.isFalse(reportMutationErrors.called);
+      assert.isFalse(reportRelayError.called);
     });
 
     it('re-shows the thread and creates a notification when the thread cannot be resolved', async function() {
-      const reportMutationErrors = sinon.spy();
+      const reportRelayError = sinon.spy();
 
       expectRelayQuery({
         name: resolveThreadMutation.operation.name,
@@ -535,7 +586,7 @@ describe('ReviewsController', function() {
         },
       }, op => relayResponseBuilder(op).addError('boom').build()).resolve();
 
-      const wrapper = shallow(buildApp({reportMutationErrors}))
+      const wrapper = shallow(buildApp({reportRelayError}))
         .find(PullRequestCheckoutController)
         .renderProp('children')(noop);
       await wrapper.find(ReviewsView).prop('showThreadID')('thread0');
@@ -543,7 +594,7 @@ describe('ReviewsController', function() {
       await wrapper.find(ReviewsView).prop('resolveThread')({id: 'thread0', viewerCanResolve: true});
 
       assert.isTrue(wrapper.find(ReviewsView).prop('threadIDsOpen').has('thread0'));
-      assert.isTrue(reportMutationErrors.calledWith('Unable to resolve the comment thread'));
+      assert.isTrue(reportRelayError.calledWith('Unable to resolve the comment thread'));
     });
   });
 
@@ -568,19 +619,19 @@ describe('ReviewsController', function() {
     });
 
     it("is a no-op if the viewer can't unresolve the thread", async function() {
-      const reportMutationErrors = sinon.spy();
+      const reportRelayError = sinon.spy();
 
-      const wrapper = shallow(buildApp({reportMutationErrors}))
+      const wrapper = shallow(buildApp({reportRelayError}))
         .find(PullRequestCheckoutController)
         .renderProp('children')(noop);
 
       await wrapper.find(ReviewsView).prop('unresolveThread')({id: 'thread1', viewerCanUnresolve: false});
 
-      assert.isFalse(reportMutationErrors.called);
+      assert.isFalse(reportRelayError.called);
     });
 
     it('creates a notification if the thread cannot be unresolved', async function() {
-      const reportMutationErrors = sinon.spy();
+      const reportRelayError = sinon.spy();
 
       expectRelayQuery({
         name: unresolveThreadMutation.operation.name,
@@ -589,13 +640,105 @@ describe('ReviewsController', function() {
         },
       }, op => relayResponseBuilder(op).addError('ow').build()).resolve();
 
-      const wrapper = shallow(buildApp({reportMutationErrors}))
+      const wrapper = shallow(buildApp({reportRelayError}))
         .find(PullRequestCheckoutController)
         .renderProp('children')(noop);
 
       await wrapper.find(ReviewsView).prop('unresolveThread')({id: 'thread1', viewerCanUnresolve: true});
 
-      assert.isTrue(reportMutationErrors.calledWith('Unable to unresolve the comment thread'));
+      assert.isTrue(reportRelayError.calledWith('Unable to unresolve the comment thread'));
+    });
+  });
+
+  describe('editing review comments', function() {
+    it('calls the review comment update mutation and increments a metric', async function() {
+      const reportRelayError = sinon.spy();
+      sinon.stub(reporterProxy, 'addEvent');
+
+      expectRelayQuery({
+        name: updateReviewCommentMutation.operation.name,
+        variables: {
+          input: {pullRequestReviewCommentId: 'comment-0', body: 'new text'},
+        },
+      }, op => relayResponseBuilder(op).build()).resolve();
+
+      const wrapper = shallow(buildApp({reportRelayError}))
+        .find(PullRequestCheckoutController)
+        .renderProp('children')(noop);
+
+      await wrapper.find(ReviewsView).prop('updateComment')('comment-0', 'new text');
+
+      assert.isFalse(reportRelayError.called);
+      assert.isTrue(reporterProxy.addEvent.calledWith('update-review-comment', {package: 'github'}));
+    });
+
+    it('creates a notification and and re-throws the error if the comment cannot be updated', async function() {
+      const reportRelayError = sinon.spy();
+      sinon.stub(reporterProxy, 'addEvent');
+
+      expectRelayQuery({
+        name: updateReviewCommentMutation.operation.name,
+        variables: {
+          input: {pullRequestReviewCommentId: 'comment-0', body: 'new text'},
+        },
+      }, op => relayResponseBuilder(op).addError('not right now').build()).resolve();
+
+      const wrapper = shallow(buildApp({reportRelayError}))
+        .find(PullRequestCheckoutController)
+        .renderProp('children')(noop);
+
+      await assert.isRejected(
+        wrapper.find(ReviewsView).prop('updateComment')('comment-0', 'new text'),
+      );
+
+      assert.isTrue(reportRelayError.calledWith('Unable to update comment'));
+      assert.isFalse(reporterProxy.addEvent.called);
+    });
+  });
+
+  describe('editing review summaries', function() {
+    it('calls the review summary update mutation and increments a metric', async function() {
+      const reportRelayError = sinon.spy();
+      sinon.stub(reporterProxy, 'addEvent');
+
+      expectRelayQuery({
+        name: updatePrReviewMutation.operation.name,
+        variables: {
+          input: {pullRequestReviewId: 'review-0', body: 'stuff'},
+        },
+      }, op => relayResponseBuilder(op).build()).resolve();
+
+      const wrapper = shallow(buildApp({reportRelayError}))
+        .find(PullRequestCheckoutController)
+        .renderProp('children')(noop);
+
+      await wrapper.find(ReviewsView).prop('updateSummary')('review-0', 'stuff');
+
+      assert.isFalse(reportRelayError.called);
+      assert.isTrue(reporterProxy.addEvent.calledWith('update-review-summary', {package: 'github'}));
+    });
+
+    it('creates a notification and and re-throws the error if the summary cannot be updated', async function() {
+      const reportRelayError = sinon.spy();
+      sinon.stub(reporterProxy, 'addEvent');
+
+      expectRelayQuery({
+        name: updatePrReviewMutation.operation.name,
+        variables: {
+          input: {pullRequestReviewId: 'review-0', body: 'stuff'},
+        },
+      }, op => relayResponseBuilder(op).addError('not right now').build()).resolve();
+
+      const wrapper = shallow(buildApp({reportRelayError}))
+        .find(PullRequestCheckoutController)
+        .renderProp('children')(noop);
+
+      await assert.isRejected(
+        wrapper.find(ReviewsView).prop('updateSummary')('review-0', 'stuff'),
+      );
+
+      assert.isTrue(reportRelayError.calledWith('Unable to update review summary'));
+      assert.isFalse(reporterProxy.addEvent.called);
     });
   });
 

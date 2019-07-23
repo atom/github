@@ -40,6 +40,9 @@ describe('CommentDecorationsContainer', function() {
         workspace={workspace}
         localRepository={localRepository}
         loginModel={loginModel}
+        reportRelayError={() => {}}
+        commands={atomEnv.commands}
+        children={() => <div />}
         {...overrideProps}
       />
     );
@@ -216,7 +219,7 @@ describe('CommentDecorationsContainer', function() {
       assert.isTrue(resultWrapper.isEmptyRender());
     });
 
-    it('renders the PullRequestPatchContainer if result includes repository and ref', function() {
+    it('renders the AggregatedReviewsContainerContainer if result includes repository and ref', function() {
       const props = queryBuilder(rootQuery)
         .repository(r => {
           r.ref(r0 => {
@@ -232,7 +235,87 @@ describe('CommentDecorationsContainer', function() {
       const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({
         error: null, props, retry: () => {},
       });
-      assert.lengthOf(resultWrapper.find(PullRequestPatchContainer), 1);
+      assert.lengthOf(resultWrapper.find(AggregatedReviewsContainer), 1);
+    });
+
+    it("renders nothing if there's an error aggregating reviews", function() {
+      const props = queryBuilder(rootQuery)
+        .repository(r => {
+          r.ref(r0 => {
+            r0.associatedPullRequests(conn => {
+              conn.totalCount(1);
+              conn.addNode();
+            });
+          });
+        })
+        .build();
+
+      const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')('1234');
+      const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({
+        error: null, props, retry: () => {},
+      });
+      const reviewsWrapper = resultWrapper.find(AggregatedReviewsContainer).renderProp('children')({
+        errors: [new Error('ahhhh')],
+        summaries: [],
+        commentThreads: [],
+      });
+
+      assert.isTrue(reviewsWrapper.isEmptyRender());
+    });
+
+    it('renders nothing if there are no review comment threads', function() {
+      const props = queryBuilder(rootQuery)
+        .repository(r => {
+          r.ref(r0 => {
+            r0.associatedPullRequests(conn => {
+              conn.totalCount(1);
+              conn.addNode();
+            });
+          });
+        })
+        .build();
+
+      const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')('1234');
+      const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({
+        error: null, props, retry: () => {},
+      });
+      const reviewsWrapper = resultWrapper.find(AggregatedReviewsContainer).renderProp('children')({
+        errors: [],
+        summaries: [],
+        commentThreads: [],
+      });
+
+      assert.isTrue(reviewsWrapper.isEmptyRender());
+    });
+
+    it('loads the patch once there is at least one loaded review comment thread', function() {
+      const props = queryBuilder(rootQuery)
+        .repository(r => {
+          r.ref(r0 => {
+            r0.associatedPullRequests(conn => {
+              conn.totalCount(1);
+              conn.addNode();
+            });
+          });
+        })
+        .build();
+
+      const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')('1234');
+      const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({
+        error: null, props, retry: () => {},
+      });
+      const reviewsWrapper = resultWrapper.find(AggregatedReviewsContainer).renderProp('children')({
+        errors: [],
+        summaries: [],
+        commentThreads: [
+          {thread: {id: 'thread0'}, comments: [{id: 'comment0', path: 'a.txt'}, {id: 'comment1', path: 'a.txt'}]},
+        ],
+      });
+      const patchWrapper = reviewsWrapper.find(PullRequestPatchContainer).renderProp('children')(
+        null, null,
+      );
+
+      assert.isTrue(patchWrapper.isEmptyRender());
     });
 
     it('renders nothing if patch cannot be fetched', function() {
@@ -251,65 +334,17 @@ describe('CommentDecorationsContainer', function() {
       const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({
         error: null, props, retry: () => {},
       });
-      const patchWrapper = resultWrapper.find(PullRequestPatchContainer).renderProp('children')(
+      const reviewsWrapper = resultWrapper.find(AggregatedReviewsContainer).renderProp('children')({
+        errors: [],
+        summaries: [],
+        commentThreads: [
+          {thread: {id: 'thread0'}, comments: [{id: 'comment0', path: 'a.txt'}, {id: 'comment1', path: 'a.txt'}]},
+        ],
+      });
+      const patchWrapper = reviewsWrapper.find(PullRequestPatchContainer).renderProp('children')(
         new Error('oops'), null,
       );
       assert.isTrue(patchWrapper.isEmptyRender());
-    });
-
-    it('aggregates reviews while the patch is loading', function() {
-      const props = queryBuilder(rootQuery)
-        .repository(r => {
-          r.ref(r0 => {
-            r0.associatedPullRequests(conn => {
-              conn.totalCount(1);
-              conn.addNode();
-            });
-          });
-        })
-        .build();
-
-      const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')('1234');
-      const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({
-        error: null, props, retry: () => {},
-      });
-      const patchWrapper = resultWrapper.find(PullRequestPatchContainer).renderProp('children')(
-        null, null,
-      );
-      const reviewsWrapper = patchWrapper.find(AggregatedReviewsContainer).renderProp('children')({
-        errors: [],
-        summaries: [],
-        commentThreads: [],
-      });
-
-      assert.isTrue(reviewsWrapper.isEmptyRender());
-    });
-
-    it("renders nothing if there's an error aggregating reviews", function() {
-      const props = queryBuilder(rootQuery)
-        .repository(r => {
-          r.ref(r0 => {
-            r0.associatedPullRequests(conn => {
-              conn.totalCount(1);
-              conn.addNode();
-            });
-          });
-        })
-        .build();
-      const patch = multiFilePatchBuilder().build();
-
-      const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')('1234');
-      const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({
-        error: null, props, retry: () => {},
-      });
-      const patchWrapper = resultWrapper.find(PullRequestPatchContainer).renderProp('children')(null, patch);
-      const reviewsWrapper = patchWrapper.find(AggregatedReviewsContainer).renderProp('children')({
-        errors: [new Error('ahhhh')],
-        summaries: [],
-        commentThreads: [],
-      });
-
-      assert.isTrue(reviewsWrapper.isEmptyRender());
     });
 
     it('renders a CommentPositioningContainer when the patch and reviews arrive', function() {
@@ -329,14 +364,16 @@ describe('CommentDecorationsContainer', function() {
       const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({
         error: null, props, retry: () => {},
       });
-      const patchWrapper = resultWrapper.find(PullRequestPatchContainer).renderProp('children')(null, patch);
-      const reviewsWrapper = patchWrapper.find(AggregatedReviewsContainer).renderProp('children')({
+      const reviewsWrapper = resultWrapper.find(AggregatedReviewsContainer).renderProp('children')({
         errors: [],
         summaries: [],
-        commentThreads: [],
+        commentThreads: [
+          {thread: {id: 'thread0'}, comments: [{id: 'comment0', path: 'a.txt'}, {id: 'comment1', path: 'a.txt'}]},
+        ],
       });
+      const patchWrapper = reviewsWrapper.find(PullRequestPatchContainer).renderProp('children')(null, patch);
 
-      assert.isTrue(reviewsWrapper.find(CommentPositioningContainer).exists());
+      assert.isTrue(patchWrapper.find(CommentPositioningContainer).exists());
     });
 
     it('renders nothing while the comment positions are being calculated', function() {
@@ -356,14 +393,16 @@ describe('CommentDecorationsContainer', function() {
       const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({
         error: null, props, retry: () => {},
       });
-      const patchWrapper = resultWrapper.find(PullRequestPatchContainer).renderProp('children')(null, patch);
-      const reviewsWrapper = patchWrapper.find(AggregatedReviewsContainer).renderProp('children')({
+      const reviewsWrapper = resultWrapper.find(AggregatedReviewsContainer).renderProp('children')({
         errors: [],
         summaries: [],
-        commentThreads: [],
+        commentThreads: [
+          {thread: {id: 'thread0'}, comments: [{id: 'comment0', path: 'a.txt'}, {id: 'comment1', path: 'a.txt'}]},
+        ],
       });
+      const patchWrapper = reviewsWrapper.find(PullRequestPatchContainer).renderProp('children')(null, patch);
 
-      const positionedWrapper = reviewsWrapper.find(CommentPositioningContainer).renderProp('children')(null);
+      const positionedWrapper = patchWrapper.find(CommentPositioningContainer).renderProp('children')(null);
       assert.isTrue(positionedWrapper.isEmptyRender());
     });
 
@@ -384,15 +423,17 @@ describe('CommentDecorationsContainer', function() {
       const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({
         error: null, props, retry: () => {},
       });
-      const patchWrapper = resultWrapper.find(PullRequestPatchContainer).renderProp('children')(null, patch);
-      const reviewsWrapper = patchWrapper.find(AggregatedReviewsContainer).renderProp('children')({
+      const reviewsWrapper = resultWrapper.find(AggregatedReviewsContainer).renderProp('children')({
         errors: [],
         summaries: [],
-        commentThreads: [],
+        commentThreads: [
+          {thread: {id: 'thread0'}, comments: [{id: 'comment0', path: 'a.txt'}, {id: 'comment1', path: 'a.txt'}]},
+        ],
       });
+      const patchWrapper = reviewsWrapper.find(PullRequestPatchContainer).renderProp('children')(null, patch);
 
       const translations = new Map();
-      const positionedWrapper = reviewsWrapper.find(CommentPositioningContainer).renderProp('children')(translations);
+      const positionedWrapper = patchWrapper.find(CommentPositioningContainer).renderProp('children')(translations);
 
       const controller = positionedWrapper.find(CommentDecorationsController);
       assert.strictEqual(controller.prop('commentTranslations'), translations);

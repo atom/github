@@ -4,34 +4,35 @@ import fs from 'fs-extra';
 import React from 'react';
 import {shallow, mount} from 'enzyme';
 import dedent from 'dedent-js';
+import temp from 'temp';
 
 import {cloneRepository, buildRepository} from '../helpers';
 import {multiFilePatchBuilder} from '../builder/patch';
-import {GitError} from '../../lib/git-shell-out-strategy';
 import Repository from '../../lib/models/repository';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
+import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
+import RefHolder from '../../lib/models/ref-holder';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
+import {dialogRequests} from '../../lib/controllers/dialogs-controller';
 import GitTabItem from '../../lib/items/git-tab-item';
 import GitHubTabItem from '../../lib/items/github-tab-item';
-import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import IssueishDetailItem from '../../lib/items/issueish-detail-item';
 import CommitPreviewItem from '../../lib/items/commit-preview-item';
 import CommitDetailItem from '../../lib/items/commit-detail-item';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 import RootController from '../../lib/controllers/root-controller';
-import OpenCommitDialog from '../../lib/views/open-commit-dialog';
 
 describe('RootController', function() {
   let atomEnv, app;
-  let workspace, commandRegistry, notificationManager, tooltips, config, confirm, deserializers, grammars, project;
+  let workspace, commands, notificationManager, tooltips, config, confirm, deserializers, grammars, project;
   let workdirContextPool;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
-    commandRegistry = atomEnv.commands;
+    commands = atomEnv.commands;
     deserializers = atomEnv.deserializers;
     grammars = atomEnv.grammars;
     notificationManager = atomEnv.notifications;
@@ -49,7 +50,7 @@ describe('RootController', function() {
     app = (
       <RootController
         workspace={workspace}
-        commandRegistry={commandRegistry}
+        commands={commands}
         deserializers={deserializers}
         grammars={grammars}
         notificationManager={notificationManager}
@@ -58,12 +59,17 @@ describe('RootController', function() {
         confirm={confirm}
         project={project}
         keymaps={atomEnv.keymaps}
+
         loginModel={loginModel}
+        workdirContextPool={workdirContextPool}
         repository={absentRepository}
         resolutionProgress={emptyResolutionProgress}
+
+        initialize={() => {}}
+        clone={() => {}}
+
         startOpen={false}
         startRevealed={false}
-        workdirContextPool={workdirContextPool}
       />
     );
   });
@@ -255,342 +261,297 @@ describe('RootController', function() {
     });
   });
 
-  describe('initializeRepo', function() {
-    let createRepositoryForProjectPath, resolveInit, rejectInit;
+  describe('initialize', function() {
+    let initialize;
 
     beforeEach(function() {
-      createRepositoryForProjectPath = sinon.stub().returns(new Promise((resolve, reject) => {
-        resolveInit = resolve;
-        rejectInit = reject;
-      }));
+      initialize = sinon.stub().resolves();
+      app = React.cloneElement(app, {initialize});
     });
 
-    it('renders the modal init panel', function() {
-      app = React.cloneElement(app, {createRepositoryForProjectPath});
+    it('requests the init dialog with a command', async function() {
+      sinon.stub(config, 'get').returns(path.join('/home/me/src'));
+
       const wrapper = shallow(app);
 
-      wrapper.instance().initializeRepo();
-      wrapper.update();
-
-      assert.lengthOf(wrapper.find('Panel').find({location: 'modal'}).find('InitDialog'), 1);
+      await wrapper.find('Command[command="github:initialize"]').prop('callback')();
+      const req = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req.identifier, 'init');
+      assert.strictEqual(req.getParams().dirPath, path.join('/home/me/src'));
     });
 
-    it('triggers the init callback on accept', function() {
-      app = React.cloneElement(app, {createRepositoryForProjectPath});
+    it('defaults to the project directory containing the open file if there is one', async function() {
+      const noRepo0 = await new Promise((resolve, reject) => temp.mkdir({}, (err, p) => (err ? reject(err) : resolve(p))));
+      const noRepo1 = await new Promise((resolve, reject) => temp.mkdir({}, (err, p) => (err ? reject(err) : resolve(p))));
+      const filePath = path.join(noRepo1, 'file.txt');
+      await fs.writeFile(filePath, 'stuff\n', {encoding: 'utf8'});
+
+      project.setPaths([noRepo0, noRepo1]);
+      await workspace.open(filePath);
+
       const wrapper = shallow(app);
-
-      wrapper.instance().initializeRepo();
-      wrapper.update();
-      const dialog = wrapper.find('InitDialog');
-      dialog.prop('didAccept')('/a/path');
-      resolveInit();
-
-      assert.isTrue(createRepositoryForProjectPath.calledWith('/a/path'));
+      await wrapper.find('Command[command="github:initialize"]').prop('callback')();
+      const req = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req.identifier, 'init');
+      assert.strictEqual(req.getParams().dirPath, noRepo1);
     });
 
-    it('dismisses the init callback on cancel', function() {
-      app = React.cloneElement(app, {createRepositoryForProjectPath});
+    it('defaults to the first project directory with no repository if one is present', async function() {
+      const withRepo = await cloneRepository();
+      const noRepo0 = await new Promise((resolve, reject) => temp.mkdir({}, (err, p) => (err ? reject(err) : resolve(p))));
+      const noRepo1 = await new Promise((resolve, reject) => temp.mkdir({}, (err, p) => (err ? reject(err) : resolve(p))));
+
+      project.setPaths([withRepo, noRepo0, noRepo1]);
+
       const wrapper = shallow(app);
-
-      wrapper.instance().initializeRepo();
-      wrapper.update();
-      const dialog = wrapper.find('InitDialog');
-      dialog.prop('didCancel')();
-
-      wrapper.update();
-      assert.isFalse(wrapper.find('InitDialog').exists());
+      await wrapper.find('Command[command="github:initialize"]').prop('callback')();
+      const req = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req.identifier, 'init');
+      assert.strictEqual(req.getParams().dirPath, noRepo0);
     });
 
-    it('creates a notification if the init fails', async function() {
-      sinon.stub(notificationManager, 'addError');
-
-      app = React.cloneElement(app, {createRepositoryForProjectPath});
+    it('requests the init dialog from the git tab', async function() {
       const wrapper = shallow(app);
+      const gitTabWrapper = wrapper
+        .find('PaneItem[className="github-Git-root"]')
+        .renderProp('children')({itemHolder: new RefHolder()});
 
-      wrapper.instance().initializeRepo();
-      wrapper.update();
-      const dialog = wrapper.find('InitDialog');
-      const acceptPromise = dialog.prop('didAccept')('/a/path');
-      const err = new GitError('git init exited with status 1');
-      err.stdErr = 'this is stderr';
-      rejectInit(err);
-      await acceptPromise;
+      await gitTabWrapper.find('GitTabItem').prop('openInitializeDialog')(path.join('/some/workdir'));
 
-      wrapper.update();
-      assert.isFalse(wrapper.find('InitDialog').exists());
-      assert.isTrue(notificationManager.addError.calledWith(
-        'Unable to initialize git repository in /a/path',
-        sinon.match({detail: sinon.match(/this is stderr/)}),
-      ));
+      const req = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req.identifier, 'init');
+      assert.strictEqual(req.getParams().dirPath, path.join('/some/workdir'));
+    });
+
+    it('triggers the initialize callback on accept', async function() {
+      const wrapper = shallow(app);
+      await wrapper.find('Command[command="github:initialize"]').prop('callback')();
+
+      const req0 = wrapper.find('DialogsController').prop('request');
+      await req0.accept(path.join('/home/me/src'));
+      assert.isTrue(initialize.calledWith(path.join('/home/me/src')));
+
+      const req1 = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
+    });
+
+    it('dismisses the dialog with its cancel callback', async function() {
+      const wrapper = shallow(app);
+      await wrapper.find('Command[command="github:initialize"]').prop('callback')();
+
+      const req0 = wrapper.find('DialogsController').prop('request');
+      assert.notStrictEqual(req0, dialogRequests.null);
+      req0.cancel();
+
+      const req1 = wrapper.update().find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
     });
   });
 
-  describe('github:open-commit', function() {
-    let workdirPath, wrapper, openCommitDetails, resolveOpenCommit, repository;
+  describe('openCloneDialog()', function() {
+    let clone;
+
+    beforeEach(function() {
+      clone = sinon.stub().resolves();
+      app = React.cloneElement(app, {clone});
+    });
+
+    it('requests the clone dialog with a command', function() {
+      sinon.stub(config, 'get').returns(path.join('/home/me/src'));
+
+      const wrapper = shallow(app);
+
+      wrapper.find('Command[command="github:clone"]').prop('callback')();
+      const req = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req.identifier, 'clone');
+      assert.strictEqual(req.getParams().sourceURL, '');
+      assert.strictEqual(req.getParams().destPath, '');
+    });
+
+    it('triggers the clone callback on accept', async function() {
+      const wrapper = shallow(app);
+      wrapper.find('Command[command="github:clone"]').prop('callback')();
+
+      const req0 = wrapper.find('DialogsController').prop('request');
+      await req0.accept('git@github.com:atom/atom.git', path.join('/home/me/src'));
+      assert.isTrue(clone.calledWith('git@github.com:atom/atom.git', path.join('/home/me/src')));
+
+      const req1 = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
+    });
+
+    it('dismisses the dialog with its cancel callback', function() {
+      const wrapper = shallow(app);
+      wrapper.find('Command[command="github:clone"]').prop('callback')();
+
+      const req0 = wrapper.find('DialogsController').prop('request');
+      assert.notStrictEqual(req0, dialogRequests.null);
+      req0.cancel();
+
+      const req1 = wrapper.update().find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
+    });
+  });
+
+  describe('openIssueishDialog()', function() {
+    let repository, workdir;
 
     beforeEach(async function() {
-      openCommitDetails = sinon.stub(atomEnv.workspace, 'open').returns(new Promise(resolve => {
-        resolveOpenCommit = resolve;
-      }));
+      workdir = await cloneRepository('multiple-commits');
+      repository = await buildRepository(workdir);
+    });
+
+    it('renders the OpenIssueish dialog', function() {
+      const wrapper = shallow(app);
+      wrapper.find('Command[command="github:open-issue-or-pull-request"]').prop('callback')();
+      wrapper.update();
+
+      assert.strictEqual(wrapper.find('DialogsController').prop('request').identifier, 'issueish');
+    });
+
+    it('triggers the open callback on accept and fires `open-commit-in-pane` event', async function() {
+      sinon.stub(reporterProxy, 'addEvent');
+      sinon.stub(workspace, 'open').resolves();
+
+      const wrapper = shallow(React.cloneElement(app, {repository}));
+      wrapper.find('Command[command="github:open-issue-or-pull-request"]').prop('callback')();
+
+      const req0 = wrapper.find('DialogsController').prop('request');
+      await req0.accept('https://github.com/atom/github/pull/123');
+
+      assert.isTrue(workspace.open.calledWith(
+        IssueishDetailItem.buildURI({
+          host: 'github.com',
+          owner: 'atom',
+          repo: 'github',
+          number: 123,
+          workdir,
+        }),
+        {searchAllPanes: true},
+      ));
+      assert.isTrue(reporterProxy.addEvent.calledWith(
+        'open-issueish-in-pane', {package: 'github', from: 'dialog'}),
+      );
+
+      const req1 = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
+    });
+
+    it('dismisses the OpenIssueish dialog on cancel', function() {
+      const wrapper = shallow(app);
+      wrapper.find('Command[command="github:open-issue-or-pull-request"]').prop('callback')();
+      wrapper.update();
+
+      const req0 = wrapper.find('DialogsController').prop('request');
+      req0.cancel();
+
+      wrapper.update();
+      const req1 = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
+    });
+  });
+
+  describe('openCommitDialog()', function() {
+    let workdirPath, repository;
+
+    beforeEach(async function() {
+      sinon.stub(reporterProxy, 'addEvent');
+      sinon.stub(atomEnv.workspace, 'open').resolves('item');
 
       workdirPath = await cloneRepository('multiple-commits');
       repository = await buildRepository(workdirPath);
+      sinon.stub(repository, 'getCommit').callsFake(ref => {
+        return ref === 'abcd1234' ? Promise.resolve('ok') : Promise.reject(new Error('nah'));
+      });
 
       app = React.cloneElement(app, {repository});
-      wrapper = shallow(app);
     });
 
-    it('renders the modal open-commit panel', function() {
-      wrapper.instance().showOpenCommitDialog();
-      wrapper.update();
+    it('renders the OpenCommitDialog', function() {
+      const wrapper = shallow(app);
 
-      assert.lengthOf(wrapper.find('Panel').find({location: 'modal'}).find('OpenCommitDialog'), 1);
+      wrapper.find('Command[command="github:open-commit"]').prop('callback')();
+      assert.strictEqual(wrapper.find('DialogsController').prop('request').identifier, 'commit');
     });
 
-    it('triggers the open callback on accept and fires `open-commit-in-pane` event', async function() {
-      sinon.stub(reporterProxy, 'addEvent');
-      wrapper.instance().showOpenCommitDialog();
-      wrapper.update();
+    it('triggers the open callback on accept', async function() {
+      const wrapper = shallow(app);
+      wrapper.find('Command[command="github:open-commit"]').prop('callback')();
 
-      const dialog = wrapper.find('OpenCommitDialog');
-      const ref = 'asdf1234';
+      const req0 = wrapper.find('DialogsController').prop('request');
+      await req0.accept('abcd1234');
 
-      const promise = dialog.prop('didAccept')({ref});
-      resolveOpenCommit();
-      await promise;
-
-      const uri = CommitDetailItem.buildURI(workdirPath, ref);
-
-      assert.isTrue(openCommitDetails.calledWith(uri));
-
-      await assert.isTrue(reporterProxy.addEvent.calledWith('open-commit-in-pane', {package: 'github', from: OpenCommitDialog.name}));
-    });
-
-    it('dismisses the open-commit panel on cancel', function() {
-      wrapper.instance().showOpenCommitDialog();
-      wrapper.update();
-
-      const dialog = wrapper.find('OpenCommitDialog');
-      dialog.prop('didCancel')();
-
-      wrapper.update();
-      assert.lengthOf(wrapper.find('OpenCommitDialog'), 0);
-      assert.isFalse(openCommitDetails.called);
-      assert.isFalse(wrapper.state('openCommitDialogActive'));
-    });
-
-    describe('isValidCommit', function() {
-      it('returns true if commit exists in repo, false if not', async function() {
-        assert.isTrue(await wrapper.instance().isValidCommit('HEAD'));
-        assert.isFalse(await wrapper.instance().isValidCommit('invalidCommitRef'));
-      });
-
-      it('re-throws exceptions encountered during validation check', async function() {
-        sinon.stub(repository, 'getCommit').throws(new Error('Oh shit'));
-        await assert.isRejected(wrapper.instance().isValidCommit('HEAD'), 'Oh shit');
-      });
-    });
-  });
-
-  describe('github:open-issue-or-pull-request', function() {
-    let workdirPath, wrapper, openIssueishDetails, resolveOpenIssueish;
-
-    beforeEach(async function() {
-      openIssueishDetails = sinon.stub(atomEnv.workspace, 'open').returns(new Promise(resolve => {
-        resolveOpenIssueish = resolve;
-      }));
-
-      workdirPath = await cloneRepository('multiple-commits');
-      const repository = await buildRepository(workdirPath);
-
-      app = React.cloneElement(app, {repository});
-      wrapper = shallow(app);
-    });
-
-    it('renders the modal open-commit panel', function() {
-      wrapper.instance().showOpenIssueishDialog();
-      wrapper.update();
-
-      assert.lengthOf(wrapper.find('Panel').find({location: 'modal'}).find('OpenIssueishDialog'), 1);
-    });
-
-    it('triggers the open callback on accept and fires `open-commit-in-pane` event', async function() {
-      sinon.stub(reporterProxy, 'addEvent');
-      wrapper.instance().showOpenIssueishDialog();
-      wrapper.update();
-
-      const dialog = wrapper.find('OpenIssueishDialog');
-      const repoOwner = 'owner';
-      const repoName = 'name';
-      const issueishNumber = 1234;
-
-      const promise = dialog.prop('didAccept')({repoOwner, repoName, issueishNumber});
-      resolveOpenIssueish();
-      await promise;
-
-      const uri = IssueishDetailItem.buildURI({
-        host: 'github.com',
-        owner: repoOwner,
-        repo: repoName,
-        number: issueishNumber,
-      });
-
-      assert.isTrue(openIssueishDetails.calledWith(uri));
-
-      await assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-pane', {package: 'github', from: 'dialog'}));
-    });
-
-    it('dismisses the open-commit panel on cancel', function() {
-      wrapper.instance().showOpenIssueishDialog();
-      wrapper.update();
-
-      const dialog = wrapper.find('OpenIssueishDialog');
-      dialog.prop('didCancel')();
-
-      wrapper.update();
-      assert.lengthOf(wrapper.find('OpenIssueishDialog'), 0);
-      assert.isFalse(openIssueishDetails.called);
-      assert.isFalse(wrapper.state('openIssueishDialogActive'));
-    });
-  });
-
-  describe('github:clone', function() {
-    let wrapper, cloneRepositoryForProjectPath, resolveClone, rejectClone;
-
-    beforeEach(function() {
-      cloneRepositoryForProjectPath = sinon.stub().returns(new Promise((resolve, reject) => {
-        resolveClone = resolve;
-        rejectClone = reject;
-      }));
-
-      app = React.cloneElement(app, {cloneRepositoryForProjectPath});
-      wrapper = shallow(app);
-    });
-
-    it('renders the modal clone panel', function() {
-      wrapper.instance().openCloneDialog();
-      wrapper.update();
-
-      assert.lengthOf(wrapper.find('Panel').find({location: 'modal'}).find('CloneDialog'), 1);
-    });
-
-    it('triggers the clone callback on accept and fires `clone-repo` event', async function() {
-      sinon.stub(reporterProxy, 'addEvent');
-      wrapper.instance().openCloneDialog();
-      wrapper.update();
-
-      const dialog = wrapper.find('CloneDialog');
-      const promise = dialog.prop('didAccept')('git@github.com:atom/github.git', '/home/me/github');
-      resolveClone();
-      await promise;
-
-      assert.isTrue(cloneRepositoryForProjectPath.calledWith('git@github.com:atom/github.git', '/home/me/github'));
-      await assert.isTrue(reporterProxy.addEvent.calledWith('clone-repo', {package: 'github'}));
-    });
-
-    it('marks the clone dialog as in progress during clone', async function() {
-      wrapper.instance().openCloneDialog();
-      wrapper.update();
-
-      const dialog = wrapper.find('CloneDialog');
-      assert.isFalse(dialog.prop('inProgress'));
-
-      const acceptPromise = dialog.prop('didAccept')('git@github.com:atom/github.git', '/home/me/github');
-      wrapper.update();
-
-      assert.isTrue(wrapper.find('CloneDialog').prop('inProgress'));
-
-      resolveClone();
-      await acceptPromise;
-
-      wrapper.update();
-      assert.isFalse(wrapper.find('CloneDialog').exists());
-    });
-
-    it('creates a notification if the clone fails and does not fire `clone-repo` event', async function() {
-      sinon.stub(notificationManager, 'addError');
-      sinon.stub(reporterProxy, 'addEvent');
-
-      wrapper.instance().openCloneDialog();
-      wrapper.update();
-
-      const dialog = wrapper.find('CloneDialog');
-      assert.isFalse(dialog.prop('inProgress'));
-
-      const acceptPromise = dialog.prop('didAccept')('git@github.com:nope/nope.git', '/home/me/github');
-      const err = new GitError('git clone exited with status 1');
-      err.stdErr = 'this is stderr';
-      rejectClone(err);
-      await acceptPromise;
-
-      wrapper.update();
-      assert.isFalse(wrapper.find('CloneDialog').exists());
-      assert.isTrue(notificationManager.addError.calledWith(
-        'Unable to clone git@github.com:nope/nope.git',
-        sinon.match({detail: sinon.match(/this is stderr/)}),
+      assert.isTrue(workspace.open.calledWith(
+        CommitDetailItem.buildURI(repository.getWorkingDirectoryPath(), 'abcd1234'),
+        {searchAllPanes: true},
       ));
-      assert.isFalse(reporterProxy.addEvent.called);
+      assert.isTrue(reporterProxy.addEvent.called);
+
+      const req1 = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
     });
 
-    it('dismisses the clone panel on cancel', function() {
-      wrapper.instance().openCloneDialog();
-      wrapper.update();
+    it('dismisses the OpenCommitDialog on cancel', function() {
+      const wrapper = shallow(app);
+      wrapper.find('Command[command="github:open-commit"]').prop('callback')();
 
-      const dialog = wrapper.find('CloneDialog');
-      dialog.prop('didCancel')();
+      const req0 = wrapper.find('DialogsController').prop('request');
+      req0.cancel();
 
       wrapper.update();
-      assert.lengthOf(wrapper.find('CloneDialog'), 0);
-      assert.isFalse(cloneRepositoryForProjectPath.called);
+      const req1 = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
     });
   });
 
-  describe('promptForCredentials()', function() {
-    let wrapper;
-
-    beforeEach(function() {
-      wrapper = shallow(app);
-    });
-
+  describe('openCredentialsDialog()', function() {
     it('renders the modal credentials dialog', function() {
-      wrapper.instance().promptForCredentials({
+      const wrapper = shallow(app);
+
+      wrapper.instance().openCredentialsDialog({
         prompt: 'Password plz',
         includeUsername: true,
       });
       wrapper.update();
 
-      const dialog = wrapper.find('Panel').find({location: 'modal'}).find('CredentialDialog');
-      assert.isTrue(dialog.exists());
-      assert.equal(dialog.prop('prompt'), 'Password plz');
-      assert.isTrue(dialog.prop('includeUsername'));
+      const req = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req.identifier, 'credential');
+      assert.deepEqual(req.getParams(), {
+        prompt: 'Password plz',
+        includeUsername: true,
+        includeRemember: false,
+      });
     });
 
     it('resolves the promise with credentials on accept', async function() {
-      const credentialPromise = wrapper.instance().promptForCredentials({
+      const wrapper = shallow(app);
+      const credentialPromise = wrapper.instance().openCredentialsDialog({
         prompt: 'Speak "friend" and enter',
         includeUsername: false,
       });
-      wrapper.update();
 
-      wrapper.find('CredentialDialog').prop('onSubmit')({password: 'friend'});
+      const req0 = wrapper.find('DialogsController').prop('request');
+      await req0.accept({password: 'friend'});
       assert.deepEqual(await credentialPromise, {password: 'friend'});
 
-      wrapper.update();
-      assert.isFalse(wrapper.find('CredentialDialog').exists());
+      const req1 = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
     });
 
     it('rejects the promise on cancel', async function() {
-      const credentialPromise = wrapper.instance().promptForCredentials({
+      const wrapper = shallow(app);
+      const credentialPromise = wrapper.instance().openCredentialsDialog({
         prompt: 'Enter the square root of 1244313452349528345',
         includeUsername: false,
       });
       wrapper.update();
 
-      wrapper.find('CredentialDialog').prop('onCancel')();
+      const req0 = wrapper.find('DialogsController').prop('request');
+      await req0.cancel(new Error('cancelled'));
       await assert.isRejected(credentialPromise);
 
-      wrapper.update();
-      assert.isFalse(wrapper.find('CredentialDialog').exists());
+      const req1 = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
     });
   });
 
@@ -1245,16 +1206,6 @@ describe('RootController', function() {
       assert.strictEqual(item.getTitle(), 'owner/repo#123');
       assert.lengthOf(wrapper.update().find('IssueishDetailItem'), 1);
     });
-
-    describe('acceptOpenIssueish', function() {
-      it('records an event', async function() {
-        const wrapper = mount(app);
-        sinon.stub(reporterProxy, 'addEvent');
-        sinon.stub(workspace, 'open').returns(Promise.resolve());
-        await wrapper.instance().acceptOpenIssueish({repoOwner: 'owner', repoName: 'repo', issueishNumber: 123});
-        assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-pane', {package: 'github', from: 'dialog'}));
-      });
-    });
   });
 
   describe('opening a CommitPreviewItem', function() {
@@ -1297,7 +1248,7 @@ describe('RootController', function() {
     });
 
     it('sends an event when a command is triggered via a context menu', function() {
-      commandRegistry.dispatch(
+      commands.dispatch(
         wrapper.find('CommitView').getDOMNode(),
         'github:toggle-expanded-commit-message-editor',
         [{contextCommand: true}],
@@ -1310,7 +1261,7 @@ describe('RootController', function() {
     });
 
     it('does not send an event when a command is triggered in other ways', function() {
-      commandRegistry.dispatch(
+      commands.dispatch(
         wrapper.find('CommitView').getDOMNode(),
         'github:toggle-expanded-commit-message-editor',
       );
@@ -1318,7 +1269,7 @@ describe('RootController', function() {
     });
 
     it('does not send an event when a command not starting with github: is triggered via a context menu', function() {
-      commandRegistry.dispatch(
+      commands.dispatch(
         wrapper.find('CommitView').getDOMNode(),
         'core:copy',
         [{contextCommand: true}],
@@ -1372,4 +1323,64 @@ describe('RootController', function() {
     });
   });
 
+  describe('reportRelayError', function() {
+    let instance;
+
+    beforeEach(function() {
+      instance = shallow(app).instance();
+      sinon.stub(notificationManager, 'addError');
+    });
+
+    it('creates a notification for a network error', function() {
+      const error = new Error('cat tripped over the ethernet cable');
+      error.network = true;
+
+      instance.reportRelayError('friendly message', error);
+
+      assert.isTrue(notificationManager.addError.calledWith('friendly message', {
+        dismissable: true,
+        icon: 'alignment-unalign',
+        description: "It looks like you're offline right now.",
+      }));
+    });
+
+    it('creates a notification for an API HTTP error', function() {
+      const error = new Error('GitHub is down');
+      error.responseText = "I just don't feel like it";
+
+      instance.reportRelayError('friendly message', error);
+
+      assert.isTrue(notificationManager.addError.calledWith('friendly message', {
+        dismissable: true,
+        description: 'The GitHub API reported a problem.',
+        detail: "I just don't feel like it",
+      }));
+    });
+
+    it('creates a notification for GraphQL errors', function() {
+      const error = new Error("Your query wasn't good enough");
+      error.errors = [
+        {message: 'First of all'},
+        {message: 'and another thing'},
+      ];
+
+      instance.reportRelayError('friendly message', error);
+
+      assert.isTrue(notificationManager.addError.calledWith('friendly message', {
+        dismissable: true,
+        detail: 'First of all\nand another thing',
+      }));
+    });
+
+    it('falls back to a stack-trace error', function() {
+      const error = new Error('idk');
+
+      instance.reportRelayError('friendly message', error);
+
+      assert.isTrue(notificationManager.addError.calledWith('friendly message', {
+        dismissable: true,
+        detail: error.stack,
+      }));
+    });
+  });
 });

@@ -3,14 +3,14 @@
 @github-dialog-spacing: @component-padding / 2;
 
 .github-Dialog {
-
   &Prompt {
     margin: @component-padding;
     text-align: center;
     font-size: 1.2em;
+    user-select: none;
   }
 
-  &Inputs {
+  &Form {
     display: flex;
     flex-direction: column;
     padding: @github-dialog-spacing;
@@ -22,22 +22,48 @@
     position: relative;
     line-height: 2;
 
-    &Button {
-      position: absolute;
-      background: transparent;
-      right: .3em;
-      bottom: 0;
-      border: none;
-      color: @text-color-subtle;
-      cursor: pointer;
+    &--horizontal {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+      align-items: center;
 
-      &:hover {
-        color: @text-color-highlight;
+      input {
+        margin: 0 @component-padding;
       }
+
+      input[type="text"] , input[type="password"] {
+        width: 85%;
+      }
+    }
+
+    .github-AtomTextEditor-container {
+      margin-top: @github-dialog-spacing;
     }
   }
 
+  &Info {
+    display: inline-block;
+
+    li {
+      display: inline-block;
+    }
+  }
+
+  &Footer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  &Info {
+    flex-grow: 1;
+    margin: @github-dialog-spacing;
+    padding: @github-dialog-spacing;
+  }
+
   &Buttons {
+    flex-grow: 0;
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -60,6 +86,26 @@
     }
   }
 
+  &--insetButton {
+    position: absolute;
+    background: transparent;
+    right: 1em;
+    top: 0;
+    bottom: 0;
+    border: none;
+    color: @text-color-subtle;
+    cursor: pointer;
+
+    &:hover {
+      color: @text-color-highlight;
+    }
+
+    &:focus {
+      border: solid 1px @button-background-color-selected;
+      border-radius: 4px;
+    }
+  }
+
   &Spinner {
     display: flex;
     align-items: center;
@@ -73,5 +119,17 @@
 
   atom-text-editor[mini].editor {
     margin: 0;
+
+    &[readOnly] {
+      color: @text-color-subtle;
+    }
+  }
+
+  // A trick to trap keyboard focus within this DOM element.
+  // In JavaScript, attach an event handler to the onTransitionEnd event and reassign focus to the initial element
+  // within the dialog.
+  &:not(:focus-within) {
+    padding-bottom: 1px;
+    transition: padding-bottom 0.01s;
   }
 }

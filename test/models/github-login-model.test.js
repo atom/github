@@ -89,13 +89,20 @@ describe('GithubLoginModel', function() {
       assert.strictEqual(loginModel.getScopes.callCount, 1);
     });
 
-    it('does not cache network errors', async function() {
-      sinon.stub(loginModel, 'getScopes').rejects(new Error('You unplugged your ethernet cable'));
+    it('detects and reports network errors', async function() {
+      const e = new Error('You unplugged your ethernet cable');
+      sinon.stub(loginModel, 'getScopes').rejects(e);
+      assert.strictEqual(await loginModel.getToken('https://api.github.com'), e);
+    });
 
-      assert.strictEqual(await loginModel.getToken('https://api.github.com'), UNAUTHENTICATED);
+    it('does not cache network errors', async function() {
+      const e = new Error('You unplugged your ethernet cable');
+      sinon.stub(loginModel, 'getScopes').rejects(e);
+
+      assert.strictEqual(await loginModel.getToken('https://api.github.com'), e);
       assert.strictEqual(loginModel.getScopes.callCount, 1);
 
-      assert.strictEqual(await loginModel.getToken('https://api.github.com'), UNAUTHENTICATED);
+      assert.strictEqual(await loginModel.getToken('https://api.github.com'), e);
       assert.strictEqual(loginModel.getScopes.callCount, 2);
     });
   });

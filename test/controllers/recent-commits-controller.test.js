@@ -22,7 +22,7 @@ describe('RecentCommitsController', function() {
         isLoading={false}
         undoLastCommit={() => { }}
         workspace={atomEnv.workspace}
-        commandRegistry={atomEnv.commands}
+        commands={atomEnv.commands}
         repository={repository}
       />
     );

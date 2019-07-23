@@ -31,14 +31,14 @@ More of your changes
 Stuff at the very end.`;
 
 describe('EditorConflictController', function() {
-  let atomEnv, workspace, commandRegistry, app, wrapper, editor, editorView;
+  let atomEnv, workspace, commands, app, wrapper, editor, editorView;
   let resolutionProgress, refreshResolutionProgress;
   let fixtureFile;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     workspace = atomEnv.workspace;
-    commandRegistry = atomEnv.commands;
+    commands = atomEnv.commands;
 
     refreshResolutionProgress = sinon.spy();
     resolutionProgress = new ResolutionProgress();
@@ -61,7 +61,7 @@ describe('EditorConflictController', function() {
     app = (
       <EditorConflictController
         workspace={workspace}
-        commandRegistry={commandRegistry}
+        commands={commands}
         editor={editor}
         resolutionProgress={resolutionProgress}
         refreshResolutionProgress={refreshResolutionProgress}
@@ -118,7 +118,7 @@ describe('EditorConflictController', function() {
       assert.isFalse(conflict.isResolved());
 
       editor.setCursorBufferPosition([16, 6]); // On "Your middle changes"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-ours');
+      commands.dispatch(editorView, 'github:resolve-as-ours');
 
       assert.isTrue(conflict.isResolved());
       assert.strictEqual(conflict.getChosenSide(), conflict.getSide(OURS));
@@ -131,7 +131,7 @@ describe('EditorConflictController', function() {
       const conflict = conflicts[1];
 
       editor.setCursorBufferPosition([14, 1]); // On "My middle changes"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-theirs');
+      commands.dispatch(editorView, 'github:resolve-as-theirs');
 
       assert.isTrue(conflict.isResolved());
       assert.strictEqual(conflict.getChosenSide(), conflict.getSide(THEIRS));
@@ -144,7 +144,7 @@ describe('EditorConflictController', function() {
       const conflict = conflicts[1];
 
       editor.setCursorBufferPosition([14, 1]); // On "My middle changes"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-current');
+      commands.dispatch(editorView, 'github:resolve-as-current');
 
       assert.isTrue(conflict.isResolved());
       assert.strictEqual(conflict.getChosenSide(), conflict.getSide(OURS));
@@ -157,7 +157,7 @@ describe('EditorConflictController', function() {
       editor.setCursorBufferPosition([14, 1]); // On "My middle changes"
       editor.addCursorAtBufferPosition([24, 3]); // On "More of your changes"
 
-      commandRegistry.dispatch(editorView, 'github:resolve-as-current');
+      commands.dispatch(editorView, 'github:resolve-as-current');
 
       assert.isFalse(conflicts[0].isResolved());
       assert.isTrue(conflicts[1].isResolved());
@@ -175,7 +175,7 @@ describe('EditorConflictController', function() {
       editor.addCursorAtBufferPosition([11, 2]); // On "Text in between 0 and 1."
       editor.addCursorAtBufferPosition([14, 5]); // On "My middle changes"
       editor.addCursorAtBufferPosition([15, 0]); // On "======="
-      commandRegistry.dispatch(editorView, 'github:resolve-as-ours');
+      commands.dispatch(editorView, 'github:resolve-as-ours');
 
       assert.isTrue(conflicts[0].isResolved());
       assert.strictEqual(conflicts[0].getChosenSide(), conflicts[0].getSide(OURS));
@@ -196,7 +196,7 @@ describe('EditorConflictController', function() {
       editor.setCursorBufferPosition([8, 3]); // On "Your changes"
       editor.addCursorAtBufferPosition([11, 2]); // On "Text in between 0 and 1."
       editor.addCursorAtBufferPosition([22, 5]); // On "More of my changes"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-theirs');
+      commands.dispatch(editorView, 'github:resolve-as-theirs');
 
       assert.isTrue(conflicts[0].isResolved());
       assert.strictEqual(conflicts[0].getChosenSide(), conflicts[0].getSide(THEIRS));
@@ -214,7 +214,7 @@ describe('EditorConflictController', function() {
       editor.addCursorAtBufferPosition([14, 1]); // On "My middle changes"
       editor.addCursorAtBufferPosition([16, 0]); // On "Your middle changes"
 
-      commandRegistry.dispatch(editorView, 'github:resolve-as-current');
+      commands.dispatch(editorView, 'github:resolve-as-current');
 
       assert.isTrue(conflicts[0].isResolved());
       assert.strictEqual(conflicts[0].getChosenSide(), conflicts[0].getSide(OURS));
@@ -226,7 +226,7 @@ describe('EditorConflictController', function() {
       const conflict = conflicts[1];
 
       editor.setCursorBufferPosition([14, 1]); // On "My middle changes"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-ours-then-theirs');
+      commands.dispatch(editorView, 'github:resolve-as-ours-then-theirs');
 
       assert.isTrue(conflict.isResolved());
       assert.include(editor.getText(), 'Text in between 0 and 1.' +
@@ -237,7 +237,7 @@ describe('EditorConflictController', function() {
       const conflict = conflicts[1];
 
       editor.setCursorBufferPosition([14, 1]); // On "My middle changes"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-theirs-then-ours');
+      commands.dispatch(editorView, 'github:resolve-as-theirs-then-ours');
 
       assert.isTrue(conflict.isResolved());
       assert.include(editor.getText(), 'Text in between 0 and 1.' +
@@ -250,7 +250,7 @@ describe('EditorConflictController', function() {
       editor.setTextInBufferRange(range, 'Actually it should be this\n');
 
       editor.setCursorBufferPosition([16, 6]); // On "Your middle changes"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-ours');
+      commands.dispatch(editorView, 'github:resolve-as-ours');
 
       assert.isTrue(conflict.isResolved());
       assert.strictEqual(conflict.getChosenSide(), conflict.getSide(OURS));
@@ -265,7 +265,7 @@ describe('EditorConflictController', function() {
       editor.setTextInBufferRange(range, 'Actually it should be this\n');
 
       editor.setCursorBufferPosition([14, 3]); // On "Actually it should be this"
-      commandRegistry.dispatch(editorView, 'github:revert-conflict-modifications');
+      commands.dispatch(editorView, 'github:revert-conflict-modifications');
 
       assert.isFalse(conflict.getSide(OURS).isModified());
       assert.include(editor.getText(), 'Text in between 0 and 1.\n\n' +
@@ -285,7 +285,7 @@ describe('EditorConflictController', function() {
       assert.isTrue(conflict.getSide(OURS).isBannerModified());
 
       editor.setCursorBufferPosition([16, 6]); // On "Your middle changes"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-ours');
+      commands.dispatch(editorView, 'github:resolve-as-ours');
 
       assert.isTrue(conflict.isResolved());
       assert.strictEqual(conflict.getChosenSide(), conflict.getSide(OURS));
@@ -304,7 +304,7 @@ describe('EditorConflictController', function() {
       assert.isTrue(conflict.getSeparator().isModified());
 
       editor.setCursorBufferPosition([16, 6]); // On "Your middle changes"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-ours');
+      commands.dispatch(editorView, 'github:resolve-as-ours');
 
       assert.include(editor.getText(), 'Text in between 0 and 1.\n\n' +
         'My middle changes\n' +
@@ -316,7 +316,7 @@ describe('EditorConflictController', function() {
       assert.equal(resolutionProgress.getRemaining(editor.getPath()), 3);
 
       editor.setCursorBufferPosition([16, 6]); // On "Your middle changes"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-ours');
+      commands.dispatch(editorView, 'github:resolve-as-ours');
 
       assert.equal(resolutionProgress.getRemaining(editor.getPath()), 2);
     });
@@ -326,7 +326,7 @@ describe('EditorConflictController', function() {
       assert.equal(resolutionProgress.getRemaining(editor.getPath()), 3);
 
       editor.setCursorBufferPosition([16, 6]); // On "Your middle changes"
-      commandRegistry.dispatch(editorView, 'github:dismiss-conflict');
+      commands.dispatch(editorView, 'github:dismiss-conflict');
       wrapper.update();
 
       assert.equal(resolutionProgress.getRemaining(editor.getPath()), 2);
@@ -353,7 +353,7 @@ describe('EditorConflictController', function() {
 
     it('triggers an offline resolution progress refresh when the editor is closed', async function() {
       editor.setCursorBufferPosition([16, 6]); // On "Your middle changes"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-ours');
+      commands.dispatch(editorView, 'github:resolve-as-ours');
 
       editor.destroy();
 
@@ -400,7 +400,7 @@ describe('EditorConflictController', function() {
       assert.isFalse(conflict.isResolved());
 
       editor.setCursorBufferPosition([3, 4]); // On "These are original texts"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-ours');
+      commands.dispatch(editorView, 'github:resolve-as-ours');
 
       assert.isTrue(conflict.isResolved());
       assert.strictEqual(conflict.getChosenSide(), conflict.getSide(OURS));
@@ -411,7 +411,7 @@ describe('EditorConflictController', function() {
 
     it('resolves a conflict as "theirs"', function() {
       editor.setCursorBufferPosition([3, 4]); // On "These are original texts"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-theirs');
+      commands.dispatch(editorView, 'github:resolve-as-theirs');
 
       assert.isTrue(conflict.isResolved());
       assert.strictEqual(conflict.getChosenSide(), conflict.getSide(THEIRS));
@@ -422,7 +422,7 @@ describe('EditorConflictController', function() {
 
     it('resolves a conflict as "base"', function() {
       editor.setCursorBufferPosition([1, 0]); // On "These are my changes"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-base');
+      commands.dispatch(editorView, 'github:resolve-as-base');
 
       assert.isTrue(conflict.isResolved());
       assert.strictEqual(conflict.getChosenSide(), conflict.getSide(BASE));
@@ -433,7 +433,7 @@ describe('EditorConflictController', function() {
 
     it('resolves a conflict as "ours then theirs"', function() {
       editor.setCursorBufferPosition([3, 4]); // On "These are original texts"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-ours-then-theirs');
+      commands.dispatch(editorView, 'github:resolve-as-ours-then-theirs');
 
       assert.isTrue(conflict.isResolved());
       assert.include(editor.getText(), 'These are my changes\nThese are your changes\n\nPast the end\n');
@@ -441,7 +441,7 @@ describe('EditorConflictController', function() {
 
     it('resolves a conflict as "theirs then ours"', function() {
       editor.setCursorBufferPosition([3, 4]); // On "These are original texts"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-theirs-then-ours');
+      commands.dispatch(editorView, 'github:resolve-as-theirs-then-ours');
 
       assert.isTrue(conflict.isResolved());
       assert.include(editor.getText(), 'These are your changes\nThese are my changes\n\nPast the end\n');
@@ -458,7 +458,7 @@ describe('EditorConflictController', function() {
 
     it('resolves a conflict as "ours"', function() {
       editor.setCursorBufferPosition([3, 3]); // On "these are original texts"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-ours');
+      commands.dispatch(editorView, 'github:resolve-as-ours');
 
       assert.isTrue(conflict.isResolved());
       assert.strictEqual(conflict.getChosenSide(), conflict.getSide(OURS));
@@ -469,7 +469,7 @@ describe('EditorConflictController', function() {
 
     it('resolves a conflict as "theirs"', function() {
       editor.setCursorBufferPosition([3, 3]); // On "these are original texts"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-theirs');
+      commands.dispatch(editorView, 'github:resolve-as-theirs');
 
       assert.isTrue(conflict.isResolved());
       assert.strictEqual(conflict.getChosenSide(), conflict.getSide(THEIRS));
@@ -480,7 +480,7 @@ describe('EditorConflictController', function() {
 
     it('resolves a conflict as "base"', function() {
       editor.setCursorBufferPosition([3, 3]); // On "these are original texts"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-base');
+      commands.dispatch(editorView, 'github:resolve-as-base');
 
       assert.isTrue(conflict.isResolved());
       assert.strictEqual(conflict.getChosenSide(), conflict.getSide(BASE));
@@ -491,7 +491,7 @@ describe('EditorConflictController', function() {
 
     it('resolves a conflict as "ours then theirs"', function() {
       editor.setCursorBufferPosition([3, 3]); // On "these are original texts"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-ours-then-theirs');
+      commands.dispatch(editorView, 'github:resolve-as-ours-then-theirs');
 
       assert.isTrue(conflict.isResolved());
       assert.equal(editor.getText(), 'These are your changes\nThese are my changes\n\nPast the end\n');
@@ -499,7 +499,7 @@ describe('EditorConflictController', function() {
 
     it('resolves a conflict as "theirs then ours"', function() {
       editor.setCursorBufferPosition([3, 3]); // On "these are original texts"
-      commandRegistry.dispatch(editorView, 'github:resolve-as-theirs-then-ours');
+      commands.dispatch(editorView, 'github:resolve-as-theirs-then-ours');
 
       assert.isTrue(conflict.isResolved());
       assert.equal(editor.getText(), 'These are my changes\nThese are your changes\n\nPast the end\n');

@@ -96,6 +96,7 @@ export function pullRequestDetailViewProps(opts, overrides = {}) {
     pullRequestTitle: 'title',
     pullRequestBodyHTML: '<p>body</p>',
     pullRequestBaseRef: 'master',
+    includeAuthor: true,
     pullRequestAuthorLogin: 'author',
     pullRequestAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/000?v=4',
     issueishNumber: 1,
@@ -122,7 +123,7 @@ export function pullRequestDetailViewProps(opts, overrides = {}) {
     };
   };
 
-  return {
+  const props = {
     relay: {
       refetch: o.relayRefetch,
     },
@@ -158,11 +159,7 @@ export function pullRequestDetailViewProps(opts, overrides = {}) {
         url: `https://github.com/${o.pullRequestHeadRepoOwner}/${o.pullRequestHeadRepoName}`,
         sshUrl: `git@github.com:${o.pullRequestHeadRepoOwner}/${o.pullRequestHeadRepoName}.git`,
       },
-      author: {
-        login: o.pullRequestAuthorLogin,
-        avatarUrl: o.pullRequestAuthorAvatarURL,
-        url: `https://github.com/${o.pullRequestAuthorLogin}`,
-      },
+      author: null,
       reactionGroups: o.pullRequestReactions.map(buildReaction),
     },
 
@@ -197,6 +194,16 @@ export function pullRequestDetailViewProps(opts, overrides = {}) {
 
     ...overrides,
   };
+
+  if (o.includeAuthor) {
+    props.pullRequest.author = {
+      login: o.pullRequestAuthorLogin,
+      avatarUrl: o.pullRequestAuthorAvatarURL,
+      url: `https://github.com/${o.pullRequestAuthorLogin}`,
+    };
+  }
+
+  return props;
 }
 
 export function issueDetailViewProps(opts, overrides = {}) {
@@ -208,6 +215,7 @@ export function issueDetailViewProps(opts, overrides = {}) {
     issueTitle: 'title',
     issueBodyHTML: '<p>body</p>',
     issueBaseRef: 'master',
+    includeAuthor: true,
     issueAuthorLogin: 'author',
     issueAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/000?v=4',
     issueishNumber: 1,
@@ -230,7 +238,7 @@ export function issueDetailViewProps(opts, overrides = {}) {
     };
   };
 
-  return {
+  const props = {
     relay: {
       refetch: o.relayRefetch,
     },
@@ -259,17 +267,23 @@ export function issueDetailViewProps(opts, overrides = {}) {
         url: `https://github.com/${o.issueHeadRepoOwner}/${o.issueHeadRepoName}`,
         sshUrl: `git@github.com:${o.issueHeadRepoOwner}/${o.issueHeadRepoName}.git`,
       },
-      author: {
-        login: o.issueAuthorLogin,
-        avatarUrl: o.issueAuthorAvatarURL,
-        url: `https://github.com/${o.issueAuthorLogin}`,
-      },
+      author: null,
       reactionGroups: o.issueReactions.map(buildReaction),
     },
 
     switchToIssueish: () => {},
-    reportMutationErrors: () => {},
+    reportRelayError: () => {},
 
     ...overrides,
   };
+
+  if (o.includeAuthor) {
+    props.issue.author = {
+      login: o.issueAuthorLogin,
+      avatarUrl: o.issueAuthorAvatarURL,
+      url: `https://github.com/${o.issueAuthorLogin}`,
+    };
+  }
+
+  return props;
 }

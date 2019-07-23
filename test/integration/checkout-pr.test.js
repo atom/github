@@ -2,7 +2,7 @@ import hock from 'hock';
 import http from 'http';
 
 import {setup, teardown} from './helpers';
-import {PAGE_SIZE} from '../../lib/helpers';
+import {PAGE_SIZE, CHECK_SUITE_PAGE_SIZE, CHECK_RUN_PAGE_SIZE} from '../../lib/helpers';
 import {expectRelayQuery} from '../../lib/relay-network-layer-manager';
 import GitShellOutStrategy from '../../lib/git-shell-out-strategy';
 import {relayResponseBuilder} from '../builder/graphql/query';
@@ -33,6 +33,10 @@ describe('integration: check out a pull request', function() {
         headName: 'repo',
         headRef: 'refs/heads/pr-head',
         first: 5,
+        checkSuiteCount: CHECK_SUITE_PAGE_SIZE,
+        checkSuiteCursor: null,
+        checkRunCount: CHECK_RUN_PAGE_SIZE,
+        checkRunCursor: null,
       },
     }, op => {
       return relayResponseBuilder(op)
@@ -50,13 +54,20 @@ describe('integration: check out a pull request', function() {
       variables: {
         query: 'repo:owner/repo type:pr state:open',
         first: 20,
+        checkSuiteCount: CHECK_SUITE_PAGE_SIZE,
+        checkSuiteCursor: null,
+        checkRunCount: CHECK_RUN_PAGE_SIZE,
+        checkRunCursor: null,
       },
     }, op => {
       return relayResponseBuilder(op)
         .search(s => {
           s.issueCount(10);
           for (const n of [0, 1, 2]) {
-            s.addNode(r => r.bePullRequest(pr => pr.number(n)));
+            s.addNode(r => r.bePullRequest(pr => {
+              pr.number(n);
+              pr.commits(conn => conn.addNode());
+            }));
           }
         })
         .build();
@@ -80,6 +91,10 @@ describe('integration: check out a pull request', function() {
         threadCursor: null,
         commentCount: PAGE_SIZE,
         commentCursor: null,
+        checkSuiteCount: CHECK_SUITE_PAGE_SIZE,
+        checkSuiteCursor: null,
+        checkRunCount: CHECK_RUN_PAGE_SIZE,
+        checkRunCursor: null,
       },
     }, op => {
       return relayResponseBuilder(op)

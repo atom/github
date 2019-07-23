@@ -2,7 +2,7 @@ import {TextBuffer} from 'atom';
 
 import FilePatch from '../../../lib/models/patch/file-patch';
 import File, {nullFile} from '../../../lib/models/patch/file';
-import Patch, {TOO_LARGE, COLLAPSED, EXPANDED} from '../../../lib/models/patch/patch';
+import Patch, {DEFERRED, COLLAPSED, EXPANDED} from '../../../lib/models/patch/patch';
 import PatchBuffer from '../../../lib/models/patch/patch-buffer';
 import Hunk from '../../../lib/models/patch/hunk';
 import {Unchanged, Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
@@ -700,7 +700,7 @@ describe('FilePatch', function() {
     it('triggerCollapseIn returns false if patch is not visible', function() {
       const {multiFilePatch} = multiFilePatchBuilder()
         .addFilePatch(fp => {
-          fp.renderStatus(TOO_LARGE);
+          fp.renderStatus(DEFERRED);
         }).build();
       const filePatch = multiFilePatch.getFilePatches()[0];
       assert.isFalse(filePatch.triggerCollapseIn(new PatchBuffer(), {before: [], after: []}));

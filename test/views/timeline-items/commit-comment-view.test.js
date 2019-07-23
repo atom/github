@@ -3,6 +3,7 @@ import {shallow} from 'enzyme';
 
 import {BareCommitCommentView} from '../../../lib/views/timeline-items/commit-comment-view';
 import {createCommitComment} from '../../fixtures/factories/commit-comment-thread-results';
+import {GHOST_USER} from '../../../lib/helpers';
 
 describe('CommitCommentView', function() {
   function buildApp(opts, overloadProps = {}) {
@@ -37,6 +38,14 @@ describe('CommitCommentView', function() {
     assert.strictEqual(wrapper.find('Timeago').prop('time'), '2018-06-28T15:04:05Z');
 
     assert.strictEqual(wrapper.find('GithubDotcomMarkdown').prop('html'), '<p>text here</p>');
+  });
+
+  it('shows ghost user when author is null', function() {
+    const wrapper = shallow(buildApp({includeAuthor: false}));
+
+    assert.match(wrapper.find('.comment-message-header').text(), new RegExp(`^${GHOST_USER.login}`));
+    assert.strictEqual(wrapper.find('.author-avatar').prop('src'), GHOST_USER.avatarUrl);
+    assert.strictEqual(wrapper.find('.author-avatar').prop('alt'), GHOST_USER.login);
   });
 
   it('renders a reply comment', function() {

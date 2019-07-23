@@ -79,7 +79,7 @@ export async function setup(options = {}) {
   const githubPackage = new GithubPackage({
     workspace: atomEnv.workspace,
     project: atomEnv.project,
-    commandRegistry: atomEnv.commands,
+    commands: atomEnv.commands,
     notificationManager: atomEnv.notifications,
     tooltips: atomEnv.tooltips,
     styles: atomEnv.styles,

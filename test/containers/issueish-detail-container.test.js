@@ -92,6 +92,19 @@ describe('IssueishDetailContainer', function() {
     assert.match(tokenWrapper.find('p').text(), /re-authenticate/);
   });
 
+  it('renders an offline message if the user cannot connect to the Internet', function() {
+    sinon.spy(loginModel, 'didUpdate');
+
+    const wrapper = shallow(buildApp());
+    const e = new Error('wat');
+    const tokenWrapper = wrapper.find(ObserveModel).renderProp('children')({token: e});
+
+    assert.isTrue(tokenWrapper.exists('QueryErrorView'));
+
+    tokenWrapper.find('QueryErrorView').prop('retry')();
+    assert.isTrue(loginModel.didUpdate.called);
+  });
+
   it('passes the token to the login model on login', async function() {
     sinon.stub(loginModel, 'setToken').resolves();
 
@@ -102,6 +115,15 @@ describe('IssueishDetailContainer', function() {
 
     await tokenWrapper.find('GithubLoginView').prop('onLogin')('4321');
     assert.isTrue(loginModel.setToken.calledWith('https://github.enterprise.horse', '4321'));
+  });
+
+  it('passes an existing token from the login model', async function() {
+    sinon.stub(loginModel, 'getToken').resolves('1234');
+
+    const wrapper = shallow(buildApp({
+      endpoint: getEndpoint('github.enterprise.horse'),
+    }));
+    assert.deepEqual(await wrapper.find(ObserveModel).prop('fetchData')(loginModel), {token: '1234'});
   });
 
   it('renders a spinner while repository data is being fetched', function() {

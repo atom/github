@@ -36,7 +36,7 @@ describe('ReviewsItem', function() {
       config: atomEnv.config,
       commands: atomEnv.commands,
       tooltips: atomEnv.tooltips,
-      reportMutationErrors: () => {},
+      reportRelayError: () => {},
 
       ...override,
     };

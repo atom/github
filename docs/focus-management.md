@@ -29,7 +29,7 @@ We move focus around by registering Atom commands.
 For example, in `GitTabView`:
 
 ```
-      this.props.commandRegistry.add(this.refRoot, {
+      this.props.commands.add(this.refRoot, {
         'tool-panel:unfocus': this.blur,
         'core:focus-next': this.advanceFocus,
         'core:focus-previous': this.retreatFocus,

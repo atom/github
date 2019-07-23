@@ -15,6 +15,13 @@
   overflow-y: hidden;
   height: 100%;
 
+  atom-text-editor {
+    padding: @component-padding/2;
+    border-top: 1px solid @base-border-color;
+    border-bottom: 1px solid @base-border-color;
+    border-radius: @component-border-radius;
+  }
+
   // Top Header ------------------------------------------
 
   &-topHeader {
@@ -74,6 +81,20 @@
 
   &-section {
     border-bottom: 1px solid @base-border-color;
+
+    &.resolved-comments {
+      border-bottom: 0;
+      padding-left: @component-padding;
+      .github-Reviews {
+        &-title {
+          color: @text-color-subtle;
+        }
+        &-header {
+          color: @text-color-subtle;
+          padding-top: @component-padding * 0.5;
+        }
+      }
+    }
   }
 
   &-header {
@@ -319,12 +340,6 @@
 
   // Diff ------------------
 
-  atom-text-editor {
-    padding: @component-padding/2;
-    border-top: 1px solid @base-border-color;
-    border-bottom: 1px solid @base-border-color;
-  }
-
   &-diffLine {
     padding: 0 @component-padding/2;
     line-height: 1.75;
@@ -398,8 +413,13 @@
     font-weight: 500;
   }
 
-  &-timeAgo, &-reportAbuseLink, &-edited {
+  &-timeAgo, &-actionsMenu, &-edited {
     color: @text-color-subtle;
+  }
+
+  &-actionsMenu::before {
+    margin-right: 0;
+    margin-left: @component-padding/2;
   }
 
   &-pendingBadge {
@@ -418,7 +438,7 @@
     }
   }
 
-  &-reply {
+  &-reply, &-editable {
     margin-top: @component-padding;
 
     atom-text-editor {
@@ -442,6 +462,16 @@
     text-align: center;
     margin-bottom: @component-padding;
     padding: 0 2*@component-padding;
+  }
+
+  &-editable-footer {
+    margin: @component-padding/2 0 @component-padding 0;
+    display: flex;
+    justify-content: flex-end;
+
+    .btn {
+      margin-left: @component-padding/2;
+    }
   }
 
 

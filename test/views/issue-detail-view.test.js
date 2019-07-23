@@ -5,6 +5,7 @@ import {BareIssueDetailView} from '../../lib/views/issue-detail-view';
 import EmojiReactionsController from '../../lib/controllers/emoji-reactions-controller';
 import {issueDetailViewProps} from '../fixtures/props/issueish-pane-props';
 import * as reporterProxy from '../../lib/reporter-proxy';
+import {GHOST_USER} from '../../lib/helpers';
 
 describe('IssueDetailView', function() {
   function buildApp(opts, overrideProps = {}) {
@@ -53,6 +54,14 @@ describe('IssueDetailView', function() {
     assert.notOk(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('pullRequest'));
   });
 
+  it('displays ghost author if author is null', function() {
+    const wrapper = shallow(buildApp({includeAuthor: false}));
+
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-avatar').prop('href'), GHOST_USER.url);
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-avatarImage').prop('src'), GHOST_USER.avatarUrl);
+    assert.strictEqual(wrapper.find('.github-IssueishDetailView-avatarImage').prop('alt'), GHOST_USER.login);
+  });
+
   it('renders a placeholder issue body', function() {
     const wrapper = shallow(buildApp({issueBodyHTML: null}));
     assert.isTrue(wrapper.find('GithubDotcomMarkdown').someWhere(n => /No description/.test(n.prop('html'))));
@@ -71,6 +80,24 @@ describe('IssueDetailView', function() {
     callback();
     wrapper.update();
 
+    assert.isFalse(wrapper.find('Octicon[icon="repo-sync"]').hasClass('refreshing'));
+  });
+
+  it('reports errors encountered during refresh', function() {
+    let callback = null;
+    const relayRefetch = sinon.stub().callsFake((_0, _1, cb) => {
+      callback = cb;
+    });
+    const reportRelayError = sinon.spy();
+    const wrapper = shallow(buildApp({relayRefetch}, {reportRelayError}));
+
+    wrapper.find('Octicon[icon="repo-sync"]').simulate('click', {preventDefault: () => {}});
+
+    const e = new Error('ouch');
+    callback(e);
+    assert.isTrue(reportRelayError.calledWith(sinon.match.string, e));
+
+    wrapper.update();
     assert.isFalse(wrapper.find('Octicon[icon="repo-sync"]').hasClass('refreshing'));
   });
 

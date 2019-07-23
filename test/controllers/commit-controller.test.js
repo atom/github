@@ -13,13 +13,13 @@ import {cloneRepository, buildRepository, buildRepositoryWithPipeline, registerG
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('CommitController', function() {
-  let atomEnvironment, workspace, commandRegistry, notificationManager, lastCommit, config, confirm, tooltips;
+  let atomEnvironment, workspace, commands, notificationManager, lastCommit, config, confirm, tooltips;
   let app;
 
   beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
     workspace = atomEnvironment.workspace;
-    commandRegistry = atomEnvironment.commands;
+    commands = atomEnvironment.commands;
     notificationManager = atomEnvironment.notifications;
     config = atomEnvironment.config;
     tooltips = atomEnvironment.tooltips;
@@ -35,7 +35,7 @@ describe('CommitController', function() {
       <CommitController
         workspace={workspace}
         grammars={atomEnvironment.grammars}
-        commandRegistry={commandRegistry}
+        commands={commands}
         tooltips={tooltips}
         config={config}
         notificationManager={notificationManager}

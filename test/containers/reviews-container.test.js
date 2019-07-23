@@ -65,7 +65,9 @@ describe('ReviewsContainer', function() {
       config: atomEnv.config,
       commands: atomEnv.commands,
       tooltips: atomEnv.tooltips,
-      reportMutationErrors: () => {},
+      confirm: () => {},
+
+      reportRelayError: () => {},
 
       ...override,
     };
@@ -91,6 +93,18 @@ describe('ReviewsContainer', function() {
 
     assert.isTrue(tokenWrapper.exists('GithubLoginView'));
     assert.match(tokenWrapper.find('GithubLoginView > p').text(), /re-authenticate/);
+  });
+
+  it('shows a message if the network is unavailable', function() {
+    sinon.spy(loginModel, 'didUpdate');
+
+    const wrapper = shallow(buildApp());
+    const e = new Error('er');
+    const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')(e);
+
+    assert.isTrue(tokenWrapper.exists('QueryErrorView'));
+    tokenWrapper.find('QueryErrorView').prop('retry')();
+    assert.isTrue(loginModel.didUpdate.called);
   });
 
   it('gets the token from the login model', async function() {
@@ -133,6 +147,32 @@ describe('ReviewsContainer', function() {
     const resultWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({error: null, props: null, retry: () => {}});
 
     assert.isTrue(resultWrapper.exists('LoadingView'));
+  });
+
+  it('shows an error view if the review comment aggregation fails', function() {
+    const {multiFilePatch} = multiFilePatchBuilder().build();
+
+    const wrapper = shallow(buildApp());
+    const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')('shhh');
+    const patchWrapper = tokenWrapper.find('PullRequestPatchContainer').renderProp('children')(null, multiFilePatch);
+
+    const repoWrapper = patchWrapper.find('ObserveModel').renderProp('children')(repoData);
+    const relayWrapper = repoWrapper.find(QueryRenderer).renderProp('render')({
+      error: null,
+      props: queryData,
+      retry: () => {},
+    });
+
+    const e0 = new Error('oh shit');
+    const e1 = new Error('not again');
+    const reviewsWrapper = relayWrapper.find(AggregatedReviewsContainer).renderProp('children')({
+      errors: [e0, e1],
+      summaries: [],
+      commentThreads: [],
+      refetch: () => {},
+    });
+
+    assert.deepEqual(reviewsWrapper.find('ErrorView').map(w => w.prop('descriptions')), [[e0.stack], [e1.stack]]);
   });
 
   it('passes the patch to the controller', function() {

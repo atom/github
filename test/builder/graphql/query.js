@@ -8,7 +8,9 @@ import {PullRequestBuilder} from './pr';
 import {
   AddPullRequestReviewPayloadBuilder,
   AddPullRequestReviewCommentPayloadBuilder,
+  UpdatePullRequestReviewCommentPayloadBuilder,
   SubmitPullRequestReviewPayloadBuilder,
+  UpdatePullRequestReviewPayloadBuilder,
   DeletePullRequestReviewPayloadBuilder,
   ResolveReviewThreadPayloadBuilder,
   UnresolveReviewThreadPayloadBuilder,
@@ -46,9 +48,11 @@ const QueryBuilder = createSpecBuilderClass('Query', {
 
   // Mutations
   addPullRequestReview: {linked: AddPullRequestReviewPayloadBuilder},
-  addPullRequestReviewComment: {linked: AddPullRequestReviewCommentPayloadBuilder},
   submitPullRequestReview: {linked: SubmitPullRequestReviewPayloadBuilder},
+  updatePullRequestReview: {linked: UpdatePullRequestReviewPayloadBuilder},
   deletePullRequestReview: {linked: DeletePullRequestReviewPayloadBuilder},
+  addPullRequestReviewComment: {linked: AddPullRequestReviewCommentPayloadBuilder},
+  updatePullRequestReviewComment: {linked: UpdatePullRequestReviewCommentPayloadBuilder},
   resolveReviewThread: {linked: ResolveReviewThreadPayloadBuilder},
   unresolveReviewThread: {linked: UnresolveReviewThreadPayloadBuilder},
   addReaction: {linked: AddReactionPayloadBuilder},
@@ -79,6 +83,7 @@ class RelayResponseBuilder extends QueryBuilder {
   build() {
     if (this._errors.length > 0) {
       const error = new Error('Pre-recorded GraphQL failure');
+      error.rawStack = error.stack;
       error.errors = this._errors;
       throw error;
     }
