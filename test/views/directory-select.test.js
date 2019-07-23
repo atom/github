@@ -20,6 +20,7 @@ describe('DirectorySelect', function() {
 
     return (
       <DirectorySelect
+        currentWindow={atomEnv.getCurrentWindow()}
         buffer={buffer}
         showOpenDialog={() => {}}
         {...override}
@@ -32,6 +33,13 @@ describe('DirectorySelect', function() {
     const wrapper = shallow(buildApp({buffer}));
 
     assert.strictEqual(wrapper.find('AtomTextEditor.github-DirectorySelect-destinationPath').prop('buffer'), buffer);
+  });
+
+  it('disables both controls', function() {
+    const wrapper = shallow(buildApp({disabled: true}));
+
+    assert.isTrue(wrapper.find('AtomTextEditor').prop('readOnly'));
+    assert.isTrue(wrapper.find('.btn.icon-file-directory').prop('disabled'));
   });
 
   describe('clicking the directory button', function() {
