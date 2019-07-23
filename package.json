@@ -51,7 +51,7 @@
     "bytes": "3.1.0",
     "classnames": "2.2.6",
     "compare-sets": "1.0.1",
-    "dompurify": "1.0.10",
+    "dompurify": "1.0.11",
     "dugite": "1.87.0",
     "event-kit": "2.5.3",
     "fs-extra": "4.0.3",
