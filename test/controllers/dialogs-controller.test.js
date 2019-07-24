@@ -214,5 +214,9 @@ describe('DialogsController', function() {
       req.cancel();
       assert.isTrue(cancel.called);
     });
+
+    it('passes appropriate props to the CreateDialog when creating');
+
+    it('passes appropriate props to the CreateDialog when publishing');
   });
 });
