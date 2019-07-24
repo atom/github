@@ -24,8 +24,8 @@ describe('RepositoryHomeSelectionView', function() {
       <BareRepositoryHomeSelectionView
         isLoading={false}
         nameBuffer={nameBuffer}
-        selectedOwner={'user0'}
-        didChooseOwner={() => {}}
+        selectedOwnerID={''}
+        didChangeOwnerID={() => {}}
         {...override}
       />
     );
@@ -137,7 +137,7 @@ describe('RepositoryHomeSelectionView', function() {
       })
       .build();
 
-    const wrapper = shallow(buildApp({user, selectedOwner: 'user0'}));
+    const wrapper = shallow(buildApp({user, selectedOwnerID: 'user0'}));
 
     assert.deepEqual(wrapper.find('Select').prop('value'), {
       id: 'user0',
@@ -146,7 +146,7 @@ describe('RepositoryHomeSelectionView', function() {
       disabled: false,
     });
 
-    wrapper.setProps({selectedOwner: 'org1'});
+    wrapper.setProps({selectedOwnerID: 'org1'});
 
     assert.deepEqual(wrapper.find('Select').prop('value'), {
       id: 'org1',
@@ -157,7 +157,7 @@ describe('RepositoryHomeSelectionView', function() {
   });
 
   it('triggers a callback when a new owner is selected', function() {
-    const didChooseOwner = sinon.spy();
+    const didChangeOwnerID = sinon.spy();
 
     const user = userBuilder(userQuery)
       .organizations(conn => {
@@ -170,9 +170,9 @@ describe('RepositoryHomeSelectionView', function() {
       .build();
     const org = user.organizations.edges[0].node;
 
-    const wrapper = shallow(buildApp({user, didChooseOwner}));
+    const wrapper = shallow(buildApp({user, didChangeOwnerID}));
 
     wrapper.find('Select').prop('onChange')(org);
-    assert.isTrue(didChooseOwner.calledWith('org0'));
+    assert.isTrue(didChangeOwnerID.calledWith('org0'));
   });
 });
