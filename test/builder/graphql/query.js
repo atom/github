@@ -4,6 +4,7 @@ import {createSpecBuilderClass} from './base';
 
 import {RepositoryBuilder} from './repository';
 import {PullRequestBuilder} from './pr';
+import {UserBuilder} from './user';
 
 import {
   AddPullRequestReviewPayloadBuilder,
@@ -45,6 +46,7 @@ const SearchResultBuilder = createSpecBuilderClass('SearchResultItemConnection',
 const QueryBuilder = createSpecBuilderClass('Query', {
   repository: {linked: RepositoryBuilder, nullable: true},
   search: {linked: SearchResultBuilder},
+  viewer: {linked: UserBuilder},
 
   // Mutations
   addPullRequestReview: {linked: AddPullRequestReviewPayloadBuilder},
