@@ -28,6 +28,11 @@ describe('CreateDialogController', function() {
       <BareCreateDialogController
         user={userBuilder(userQuery).build()}
         request={dialogRequests.create()}
+        isLoading={false}
+        inProgress={false}
+        currentWindow={atomEnv.getCurrentWindow()}
+        workspace={atomEnv.workspace}
+        commands={atomEnv.commands}
         config={atomEnv.config}
         {...override}
       />
