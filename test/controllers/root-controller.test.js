@@ -59,6 +59,7 @@ describe('RootController', function() {
         confirm={confirm}
         project={project}
         keymaps={atomEnv.keymaps}
+        currentWindow={atomEnv.getCurrentWindow()}
 
         loginModel={loginModel}
         workdirContextPool={workdirContextPool}
