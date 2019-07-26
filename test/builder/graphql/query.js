@@ -17,6 +17,7 @@ import {
   UnresolveReviewThreadPayloadBuilder,
   AddReactionPayloadBuilder,
   RemoveReactionPayloadBuilder,
+  CreateRepositoryPayloadBuilder,
 } from './mutations';
 
 class SearchResultItemBuilder {
@@ -59,6 +60,7 @@ const QueryBuilder = createSpecBuilderClass('Query', {
   unresolveReviewThread: {linked: UnresolveReviewThreadPayloadBuilder},
   addReaction: {linked: AddReactionPayloadBuilder},
   removeReaction: {linked: RemoveReactionPayloadBuilder},
+  createRepository: {linked: CreateRepositoryPayloadBuilder},
 });
 
 export function queryBuilder(...nodes) {
