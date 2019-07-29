@@ -8,6 +8,7 @@ import {dialogRequests} from '../../lib/controllers/dialogs-controller';
 import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import {getEndpoint} from '../../lib/models/endpoint';
+import AutoFocus from '../../lib/autofocus';
 import {queryBuilder} from '../builder/graphql/query';
 
 import query from '../../lib/containers/__generated__/createDialogContainerQuery.graphql';
@@ -30,6 +31,7 @@ describe('CreateDialogContainer', function() {
       <CreateDialogContainer
         loginModel={new GithubLoginModel(InMemoryStrategy)}
         request={dialogRequests.create()}
+        autofocus={new AutoFocus()}
         inProgress={false}
         currentWindow={atomEnv.getCurrentWindow()}
         workspace={atomEnv.workspace}
