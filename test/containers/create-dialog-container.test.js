@@ -90,6 +90,6 @@ describe('CreateDialogContainer', function() {
     const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')('good-token');
     const queryWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({error: null, props});
 
-    assert.strictEqual(queryWrapper.find(CreateDialogController).prop('user'), props.user);
+    assert.strictEqual(queryWrapper.find(CreateDialogController).prop('user'), props.viewer);
   });
 });
