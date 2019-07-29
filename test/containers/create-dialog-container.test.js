@@ -55,7 +55,7 @@ describe('CreateDialogContainer', function() {
 
   it('fetches the login token from the login model', async function() {
     const loginModel = new GithubLoginModel(InMemoryStrategy);
-    loginModel.setToken(DOTCOM, 'good-token');
+    loginModel.setToken(DOTCOM.getLoginAccount(), 'good-token');
 
     const wrapper = shallow(buildApp({loginModel}));
     const observer = wrapper.find('ObserveModel');
