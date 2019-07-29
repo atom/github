@@ -3,7 +3,7 @@ import {QueryRenderer} from 'react-relay';
 import {shallow} from 'enzyme';
 
 import CreateDialogContainer from '../../lib/containers/create-dialog-container';
-import CreateDialogController, {BareCreateDialogController} from '../../lib/controllers/create-dialog-controller';
+import CreateDialogController from '../../lib/controllers/create-dialog-controller';
 import {dialogRequests} from '../../lib/controllers/dialogs-controller';
 import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
 import GithubLoginModel from '../../lib/models/github-login-model';
@@ -42,15 +42,14 @@ describe('CreateDialogContainer', function() {
     );
   }
 
-  it('renders the dialog controller in a loading state before the token is provided', function() {
+  it('renders nothing before the token is provided', function() {
     const loginModel = new GithubLoginModel(InMemoryStrategy);
     loginModel.setToken('https://api.github.com', 'good-token');
 
     const wrapper = shallow(buildApp({loginModel}));
     const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')(null);
 
-    assert.isNull(tokenWrapper.find(BareCreateDialogController).prop('user'));
-    assert.isTrue(tokenWrapper.find(BareCreateDialogController).prop('isLoading'));
+    assert.isTrue(tokenWrapper.isEmptyRender());
   });
 
   it('fetches the login token from the login model', async function() {
@@ -68,8 +67,8 @@ describe('CreateDialogContainer', function() {
     const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')('good-token');
     const queryWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({error: null, props: null});
 
-    assert.isNull(queryWrapper.find(BareCreateDialogController).prop('user'));
-    assert.isTrue(queryWrapper.find(BareCreateDialogController).prop('isLoading'));
+    assert.isNull(queryWrapper.find(CreateDialogController).prop('user'));
+    assert.isTrue(queryWrapper.find(CreateDialogController).prop('isLoading'));
   });
 
   it('passes GraphQL errors to the dialog controller', function() {
@@ -79,8 +78,8 @@ describe('CreateDialogContainer', function() {
     const tokenWrapper = wrapper.find('ObserveModel').renderProp('children')('good-token');
     const queryWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({error, props: null});
 
-    assert.isNull(queryWrapper.find(BareCreateDialogController).prop('user'));
-    assert.strictEqual(queryWrapper.find(BareCreateDialogController).prop('error'), error);
+    assert.isNull(queryWrapper.find(CreateDialogController).prop('user'));
+    assert.strictEqual(queryWrapper.find(CreateDialogController).prop('error'), error);
   });
 
   it('passes GraphQL query results to the dialog controller', function() {
