@@ -42,14 +42,6 @@
     }
   }
 
-  &Info {
-    display: inline-block;
-
-    li {
-      display: inline-block;
-    }
-  }
-
   &Footer {
     display: flex;
     flex-direction: row;
@@ -57,9 +49,14 @@
   }
 
   &Info {
+    display: inline-block;
     flex-grow: 1;
     margin: @github-dialog-spacing;
     padding: @github-dialog-spacing;
+
+    li {
+      display: inline-block;
+    }
   }
 
   &Buttons {
@@ -117,6 +114,12 @@
     }
   }
 
+  &-row {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+  }
+
   atom-text-editor[mini].editor {
     margin: 0;
 
@@ -131,5 +134,106 @@
   &:not(:focus-within) {
     padding-bottom: 1px;
     transition: padding-bottom 0.01s;
+  }
+}
+
+.github-RepositoryHome {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+
+  &-owner {
+    flex: 1;
+
+    &Option {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-items: center;
+    }
+
+    &Avatar {
+      flex: 0;
+      border-radius: @component-padding/4;
+      margin: 0 @component-padding 0 0;
+    }
+
+    &Unwritable {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+      align-items: center;
+    }
+  }
+
+  &-separator {
+    flex: 0;
+    margin: 0 @component-padding;
+  }
+
+  .github-AtomTextEditor-container {
+    flex: 1.5;
+  }
+}
+
+.github-RemoteConfiguration {
+  &-details {
+    summary {
+      cursor: default;
+      user-select: none;
+      margin: @component-padding 0;
+    }
+
+    main {
+      padding-top: @component-padding;
+    }
+  }
+
+  &-protocol {
+    &Heading {
+      display: inline-block;
+      margin-right: @component-padding;
+    }
+
+    &Option {
+      display: inline-block;
+      margin-right: @component-padding;
+    }
+  }
+
+  &-sourceRemote {
+    width: 60%;
+
+    label {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      .github-AtomTextEditor-container {
+        flex: 1;
+        margin-left: @component-padding;
+      }
+    }
+  }
+}
+
+.github-Create {
+  &-visibility {
+    &Heading {
+      display: inline-block;
+      margin-right: @component-padding*2;
+    }
+
+    &Option {
+      display: inline-flex;
+      align-items: baseline;
+      margin-right: @component-padding*2;
+
+      span::before {
+        margin-left: @component-padding/2;
+        margin-right: @component-padding/2;
+      }
+    }
   }
 }
