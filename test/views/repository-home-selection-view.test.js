@@ -3,6 +3,7 @@ import {shallow} from 'enzyme';
 import {TextBuffer} from 'atom';
 
 import {BareRepositoryHomeSelectionView} from '../../lib/views/repository-home-selection-view';
+import AutoFocus from '../../lib/autofocus';
 import userQuery from '../../lib/views/__generated__/repositoryHomeSelectionView_user.graphql';
 import {userBuilder} from '../builder/graphql/user';
 
@@ -26,6 +27,7 @@ describe('RepositoryHomeSelectionView', function() {
         nameBuffer={nameBuffer}
         selectedOwnerID={''}
         didChangeOwnerID={() => {}}
+        autofocus={new AutoFocus()}
         {...override}
       />
     );
