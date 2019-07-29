@@ -2,6 +2,8 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import DialogsController, {dialogRequests} from '../../lib/controllers/dialogs-controller';
+import GithubLoginModel from '../../lib/models/github-login-model';
+import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
 
 describe('DialogsController', function() {
   let atomEnv;
@@ -17,10 +19,13 @@ describe('DialogsController', function() {
   function buildApp(overrides = {}) {
     return (
       <DialogsController
-        workspace={atomEnv.workspace}
-        config={atomEnv.config}
-        commands={atomEnv.commands}
+        loginModel={new GithubLoginModel(InMemoryStrategy)}
         request={dialogRequests.null}
+        inProgress={false}
+        currentWindow={atomEnv.getCurrentWindow()}
+        workspace={atomEnv.workspace}
+        commands={atomEnv.commands}
+        config={atomEnv.config}
         {...overrides}
       />
     );
@@ -215,8 +220,56 @@ describe('DialogsController', function() {
       assert.isTrue(cancel.called);
     });
 
-    it('passes appropriate props to the CreateDialog when creating');
+    it('passes appropriate props to the CreateDialog when creating', function() {
+      const accept = sinon.spy();
+      const cancel = sinon.spy();
+      const request = dialogRequests.create();
+      request.onAccept(accept);
+      request.onCancel(cancel);
 
-    it('passes appropriate props to the CreateDialog when publishing');
+      const loginModel = new GithubLoginModel(InMemoryStrategy);
+
+      const wrapper = shallow(buildApp({request, loginModel}));
+      const dialog = wrapper.find('CreateDialog');
+      assert.strictEqual(dialog.prop('loginModel'), loginModel);
+      assert.strictEqual(dialog.prop('currentWindow'), atomEnv.getCurrentWindow());
+      assert.strictEqual(dialog.prop('workspace'), atomEnv.workspace);
+      assert.strictEqual(dialog.prop('commands'), atomEnv.commands);
+      assert.strictEqual(dialog.prop('config'), atomEnv.config);
+
+      const req = dialog.prop('request');
+
+      req.accept('abcd1234');
+      assert.isTrue(accept.calledWith('abcd1234'));
+
+      req.cancel();
+      assert.isTrue(cancel.called);
+    });
+
+    it('passes appropriate props to the CreateDialog when publishing', function() {
+      const accept = sinon.spy();
+      const cancel = sinon.spy();
+      const request = dialogRequests.publish({localDir: __dirname});
+      request.onAccept(accept);
+      request.onCancel(cancel);
+
+      const loginModel = new GithubLoginModel(InMemoryStrategy);
+
+      const wrapper = shallow(buildApp({request, loginModel}));
+      const dialog = wrapper.find('CreateDialog');
+      assert.strictEqual(dialog.prop('loginModel'), loginModel);
+      assert.strictEqual(dialog.prop('currentWindow'), atomEnv.getCurrentWindow());
+      assert.strictEqual(dialog.prop('workspace'), atomEnv.workspace);
+      assert.strictEqual(dialog.prop('commands'), atomEnv.commands);
+      assert.strictEqual(dialog.prop('config'), atomEnv.config);
+
+      const req = dialog.prop('request');
+
+      req.accept('abcd1234');
+      assert.isTrue(accept.calledWith('abcd1234'));
+
+      req.cancel();
+      assert.isTrue(cancel.called);
+    });
   });
 });
