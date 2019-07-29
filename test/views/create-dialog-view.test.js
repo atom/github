@@ -3,7 +3,7 @@ import {shallow} from 'enzyme';
 import {TextBuffer} from 'atom';
 
 import CreateDialogView from '../../lib/views/create-dialog-view';
-import RepositoryHomeSelectionView from '../../lib/views/repository-home-selection-view';
+import {BareRepositoryHomeSelectionView} from '../../lib/views/repository-home-selection-view';
 import {dialogRequests} from '../../lib/controllers/dialogs-controller';
 
 describe('CreateDialogView', function() {
@@ -46,7 +46,7 @@ describe('CreateDialogView', function() {
   it('renders in a loading state when no relay data is available', function() {
     const wrapper = shallow(buildApp({user: null, isLoading: true}));
 
-    const homeView = wrapper.find(RepositoryHomeSelectionView);
+    const homeView = wrapper.find(BareRepositoryHomeSelectionView);
     assert.isNull(homeView.prop('user'));
     assert.isTrue(homeView.prop('isLoading'));
   });
