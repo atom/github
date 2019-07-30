@@ -8,21 +8,29 @@ import userQuery from '../../lib/views/__generated__/repositoryHomeSelectionView
 import {userBuilder} from '../builder/graphql/user';
 
 describe('RepositoryHomeSelectionView', function() {
-  let atomEnv;
+  let atomEnv, clock;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
+    clock = sinon.useFakeTimers();
   });
 
   afterEach(function() {
     atomEnv.destroy();
+    clock.restore();
   });
 
   function buildApp(override = {}) {
+    const relay = {
+      hasMore: () => false,
+      isLoading: () => false,
+      loadMore: () => {},
+    };
     const nameBuffer = new TextBuffer();
 
     return (
       <BareRepositoryHomeSelectionView
+        relay={relay}
         isLoading={false}
         nameBuffer={nameBuffer}
         selectedOwnerID={''}
@@ -118,7 +126,43 @@ describe('RepositoryHomeSelectionView', function() {
     assert.strictEqual(valueWrapper.find('.github-RepositoryHome-ownerUnwritable').text(), '(insufficient permissions)');
   });
 
-  it('loads more organizations as the user scrolls');
+  it('loads more organizations if they are available', function() {
+    const page0 = userBuilder(userQuery)
+      .organizations(conn => {
+        conn.addEdge(edge => edge.node(o => o.id('org0')));
+        conn.addEdge(edge => edge.node(o => o.id('org1')));
+        conn.addEdge(edge => edge.node(o => o.id('org2')));
+      })
+      .build();
+    const loadMore0 = sinon.spy();
+    const wrapper = shallow(buildApp({user: page0, relay: {
+      hasMore: () => true,
+      isLoading: () => false,
+      loadMore: loadMore0,
+    }}));
+
+    assert.isFalse(loadMore0.called);
+    clock.tick(500);
+    assert.isTrue(loadMore0.called);
+
+    const page1 = userBuilder(userQuery)
+      .organizations(conn => {
+        conn.addEdge(edge => edge.node(o => o.id('org3')));
+        conn.addEdge(edge => edge.node(o => o.id('org4')));
+        conn.addEdge(edge => edge.node(o => o.id('org5')));
+      })
+      .build();
+    const loadMore1 = sinon.spy();
+    wrapper.setProps({user: page1, relay: {
+      hasMore: () => false,
+      isLoading: () => false,
+      loadMore: loadMore1,
+    }});
+
+    assert.isFalse(loadMore1.called);
+    clock.tick(500);
+    assert.isFalse(loadMore1.called);
+  });
 
   it('passes the currently chosen owner to the select list', function() {
     const user = userBuilder(userQuery)
