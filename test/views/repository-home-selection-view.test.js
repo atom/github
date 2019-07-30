@@ -41,11 +41,10 @@ describe('RepositoryHomeSelectionView', function() {
     );
   }
 
-  it('disables the select list and text input while loading', function() {
+  it('disables the select list while loading', function() {
     const wrapper = shallow(buildApp({isLoading: true}));
 
     assert.isTrue(wrapper.find('Select').prop('disabled'));
-    assert.isTrue(wrapper.find('AtomTextEditor').prop('readOnly'));
   });
 
   it('passes a provided buffer to the name entry box', function() {
