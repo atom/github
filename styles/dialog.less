@@ -183,6 +183,11 @@
       cursor: default;
       user-select: none;
       margin: @component-padding 0;
+
+      &:focus {
+        border: solid 1px @button-background-color-selected;
+        border-radius: 4px;
+      }
     }
 
     main {
@@ -191,14 +196,24 @@
   }
 
   &-protocol {
+    display: inline-flex;
+    align-items: center;
+
     &Heading {
       display: inline-block;
       margin-right: @component-padding;
     }
 
     &Option {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      padding: @component-padding/4;
       margin-right: @component-padding;
+
+      &:focus-within {
+        border: solid 1px @button-background-color-selected;
+        border-radius: 4px;
+      }
     }
   }
 
@@ -207,7 +222,6 @@
 
     label {
       display: flex;
-      flex-direction: row;
       align-items: center;
 
       .github-AtomTextEditor-container {
@@ -220,6 +234,9 @@
 
 .github-Create {
   &-visibility {
+    display: inline-flex;
+    align-items: center;
+
     &Heading {
       display: inline-block;
       margin-right: @component-padding*2;
@@ -227,8 +244,14 @@
 
     &Option {
       display: inline-flex;
-      align-items: baseline;
-      margin-right: @component-padding*2;
+      align-items: center;
+      padding: @component-padding/4;
+      margin-right: @component-padding;
+
+      &:focus-within {
+        border: solid 1px @button-background-color-selected;
+        border-radius: 4px;
+      }
 
       span::before {
         margin-left: @component-padding/2;
