@@ -44,4 +44,34 @@ describe('TabGroup', function() {
     group.focusBeginning();
     assert.isTrue(child0.focus.called);
   });
+
+  it('creates a child group that reserves a range of indices', function() {
+    const parent = new TabGroup();
+    assert.strictEqual(parent.nextIndex(), 1000001);
+
+    const child0 = parent.reserve(2);
+    assert.strictEqual(parent.nextIndex(), 1000004);
+    assert.strictEqual(parent.nextIndex(), 1000005);
+
+    const child1 = parent.reserve(3);
+    assert.strictEqual(parent.nextIndex(), 1000009);
+
+    assert.strictEqual(child0.nextIndex(), 1000002);
+    assert.strictEqual(child0.nextIndex(), 1000003);
+
+    assert.strictEqual(child1.nextIndex(), 1000006);
+    assert.strictEqual(child1.nextIndex(), 1000007);
+    assert.strictEqual(child1.nextIndex(), 1000008);
+    assert.throws(() => child1.nextIndex(), /Tab index out of range/);
+  });
+
+  it('resets to its start index', function() {
+    const parent = new TabGroup();
+    assert.strictEqual(parent.nextIndex(), 1000001);
+    assert.strictEqual(parent.nextIndex(), 1000002);
+
+    parent.reset();
+    assert.strictEqual(parent.nextIndex(), 1000001);
+    assert.strictEqual(parent.nextIndex(), 1000002);
+  });
 });
