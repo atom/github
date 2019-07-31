@@ -4,6 +4,7 @@ import {TextBuffer} from 'atom';
 
 import {BareRepositoryHomeSelectionView} from '../../lib/views/repository-home-selection-view';
 import AutoFocus from '../../lib/autofocus';
+import TabGroup from '../../lib/tab-group';
 import userQuery from '../../lib/views/__generated__/repositoryHomeSelectionView_user.graphql';
 import {userBuilder} from '../builder/graphql/user';
 
@@ -36,6 +37,7 @@ describe('RepositoryHomeSelectionView', function() {
         selectedOwnerID={''}
         didChangeOwnerID={() => {}}
         autofocus={new AutoFocus()}
+        tabGroup={new TabGroup()}
         {...override}
       />
     );
@@ -51,7 +53,6 @@ describe('RepositoryHomeSelectionView', function() {
     const nameBuffer = new TextBuffer();
     const wrapper = shallow(buildApp({nameBuffer}));
 
-    assert.isFalse(wrapper.find('AtomTextEditor').prop('readOnly'));
     assert.strictEqual(wrapper.find('AtomTextEditor').prop('buffer'), nameBuffer);
   });
 

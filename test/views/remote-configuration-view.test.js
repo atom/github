@@ -3,6 +3,7 @@ import {shallow} from 'enzyme';
 import {TextBuffer} from 'atom';
 
 import RemoteConfigurationView from '../../lib/views/remote-configuration-view';
+import TabGroup from '../../lib/tab-group';
 
 describe('RemoteConfigurationView', function() {
   function buildApp(override = {}) {
@@ -12,6 +13,7 @@ describe('RemoteConfigurationView', function() {
         currentProtocol={'https'}
         didChangeProtocol={() => {}}
         sourceRemoteBuffer={sourceRemoteBuffer}
+        tabGroup={new TabGroup()}
         {...override}
       />
     );

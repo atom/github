@@ -6,6 +6,7 @@ import {BareCreateDialogController} from '../../lib/controllers/create-dialog-co
 import CreateDialogView from '../../lib/views/create-dialog-view';
 import {dialogRequests} from '../../lib/controllers/dialogs-controller';
 import AutoFocus from '../../lib/autofocus';
+import TabGroup from '../../lib/tab-group';
 import {userBuilder} from '../builder/graphql/user';
 import userQuery from '../../lib/controllers/__generated__/createDialogController_user.graphql';
 
@@ -30,6 +31,7 @@ describe('CreateDialogController', function() {
         user={userBuilder(userQuery).build()}
         request={dialogRequests.create()}
         autofocus={new AutoFocus()}
+        tabGroup={new TabGroup()}
         isLoading={false}
         inProgress={false}
         currentWindow={atomEnv.getCurrentWindow()}

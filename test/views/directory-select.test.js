@@ -3,6 +3,7 @@ import {shallow} from 'enzyme';
 import {TextBuffer} from 'atom';
 
 import DirectorySelect from '../../lib/views/directory-select';
+import TabGroup from '../../lib/tab-group';
 
 describe('DirectorySelect', function() {
   let atomEnv;
@@ -23,6 +24,7 @@ describe('DirectorySelect', function() {
         currentWindow={atomEnv.getCurrentWindow()}
         buffer={buffer}
         showOpenDialog={() => {}}
+        tabGroup={new TabGroup()}
         {...override}
       />
     );
