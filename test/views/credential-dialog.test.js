@@ -18,8 +18,10 @@ describe('CredentialDialog', function() {
   function buildApp(overrides = {}) {
     return (
       <CredentialDialog
-        commands={atomEnv.commands}
         request={dialogRequests.credential()}
+        inProgress={false}
+        workspace={atomEnv.workspace}
+        commands={atomEnv.commands}
         {...overrides}
       />
     );

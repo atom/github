@@ -28,7 +28,9 @@ describe('OpenCommitDialog', function() {
     return (
       <OpenCommitDialog
         request={request}
+        inProgress={false}
         isValidRef={isValidRef}
+        workspace={atomEnv.workspace}
         commands={atomEnv.commands}
         {...overrides}
       />
