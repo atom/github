@@ -146,6 +146,31 @@
   &-owner {
     flex: 1;
 
+    .Select-control {
+      border-color: @button-border-color;
+    }
+
+    &.Select--single > .Select-control .Select-value.Select-value {
+      background: @button-background-color;
+    }
+
+    &.Select.has-value.Select--single > .Select-control .Select-value .Select-value-label {
+      color: @text-color;
+    }
+
+    .Select-option {
+      background: @button-background-color;
+      color: @text-color;
+
+      &.is-focused {
+        background: @button-background-color-selected;
+      }
+
+      &.is-disabled {
+        color: @text-color-subtle;
+      }
+    }
+
     &Option {
       display: flex;
       flex-direction: row;
