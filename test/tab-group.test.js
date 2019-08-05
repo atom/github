@@ -1,77 +1,150 @@
+import React from 'react';
+import {mount} from 'enzyme';
+
 import TabGroup from '../lib/tab-group';
+import {TabbableInput} from '../lib/views/tabbable';
 
 describe('TabGroup', function() {
-  let div;
+  let atomEnv, root;
 
   beforeEach(function() {
-    div = document.createElement('div');
-    div.tabIndex = 1000000;
-    document.body.appendChild(div);
+    atomEnv = global.buildAtomEnvironment();
+
+    root = document.createElement('div');
+    document.body.appendChild(root);
   });
 
   afterEach(function() {
-    div.remove();
+    root.remove();
+    atomEnv.destroy();
   });
 
-  it('begins above the highest tabIndex existing in the DOM', function() {
-    const group = new TabGroup();
-    assert.strictEqual(group.nextIndex(), 1000001);
+  describe('with tabbable elements', function() {
+    let group, zero, one, two;
+
+    beforeEach(function() {
+      group = new TabGroup();
+
+      mount(
+        <div>
+          <TabbableInput tabGroup={group} commands={atomEnv.commands} type="text" id="zero" />
+          <TabbableInput tabGroup={group} commands={atomEnv.commands} type="text" id="one" />
+          <TabbableInput tabGroup={group} commands={atomEnv.commands} type="text" id="two" />
+        </div>,
+        {attachTo: root},
+      );
+
+      zero = root.querySelector('#zero');
+      one = root.querySelector('#one');
+      two = root.querySelector('#two');
+
+      sinon.stub(zero, 'focus');
+      sinon.stub(one, 'focus');
+      sinon.stub(two, 'focus');
+    });
+
+    it('appends elements into a doubly-linked circular list', function() {
+      let current = zero;
+
+      current = group.after(current);
+      assert.strictEqual(current.id, 'one');
+      current = group.after(current);
+      assert.strictEqual(current.id, 'two');
+      current = group.after(current);
+      assert.strictEqual(current.id, 'zero');
+
+      current = group.before(current);
+      assert.strictEqual(current.id, 'two');
+      current = group.before(current);
+      assert.strictEqual(current.id, 'one');
+      current = group.before(current);
+      assert.strictEqual(current.id, 'zero');
+      current = group.before(current);
+      assert.strictEqual(current.id, 'two');
+    });
+
+    it('brings focus to a successor element, wrapping around at the end', function() {
+      group.focusAfter(zero);
+      assert.strictEqual(one.focus.callCount, 1);
+
+      group.focusAfter(one);
+      assert.strictEqual(two.focus.callCount, 1);
+
+      group.focusAfter(two);
+      assert.strictEqual(zero.focus.callCount, 1);
+    });
+
+    it('is a no-op with unregistered elements', function() {
+      const unregistered = document.createElement('div');
+
+      group.focusAfter(unregistered);
+      group.focusBefore(unregistered);
+
+      assert.isFalse(zero.focus.called);
+      assert.isFalse(one.focus.called);
+      assert.isFalse(two.focus.called);
+    });
+
+    it('brings focus to a predecessor element, wrapping around at the beginning', function() {
+      group.focusBefore(zero);
+      assert.strictEqual(two.focus.callCount, 1);
+
+      group.focusBefore(two);
+      assert.strictEqual(one.focus.callCount, 1);
+
+      group.focusBefore(one);
+      assert.strictEqual(zero.focus.callCount, 1);
+    });
   });
 
-  it('assigns ascending indices to each successive tab target', function() {
-    const group = new TabGroup();
-    assert.strictEqual(group.nextIndex(), 1000001);
-    assert.strictEqual(group.nextIndex(), 1000002);
-    assert.strictEqual(group.nextIndex(), 1000003);
-  });
+  describe('autofocus', function() {
+    it('brings focus to the first rendered element with autofocus', function() {
+      const group = new TabGroup();
 
-  it('brings focus to the lowest tabIndex assigned by this group', function() {
-    const group = new TabGroup();
+      mount(
+        <div>
+          <TabbableInput tabGroup={group} commands={atomEnv.commands} type="text" id="zero" />
+          {false && <TabbableInput tabGroup={group} commands={atomEnv.commands} autofocus type="text" id="missing" />}
+          <TabbableInput tabGroup={group} commands={atomEnv.commands} type="text" id="one" />
+          <TabbableInput tabGroup={group} commands={atomEnv.commands} autofocus type="text" id="two" />
+          <TabbableInput tabGroup={group} commands={atomEnv.commands} autofocus type="text" id="three" />
+        </div>,
+        {attachTo: root},
+      );
 
-    const child0 = document.createElement('div');
-    child0.tabIndex = group.nextIndex();
-    sinon.stub(child0, 'focus');
-    div.appendChild(child0);
+      const elements = ['zero', 'one', 'two', 'three'].map(id => document.getElementById(id));
+      for (const element of elements) {
+        sinon.stub(element, 'focus');
+      }
 
-    const child1 = document.createElement('div');
-    child1.tabIndex = group.nextIndex();
-    div.appendChild(child1);
+      group.autofocus();
 
-    const child2 = document.createElement('div');
-    child2.tabIndex = group.nextIndex();
-    div.appendChild(child2);
+      assert.isFalse(elements[0].focus.called);
+      assert.isFalse(elements[1].focus.called);
+      assert.isTrue(elements[2].focus.called);
+      assert.isFalse(elements[3].focus.called);
+    });
 
-    group.focusBeginning();
-    assert.isTrue(child0.focus.called);
-  });
+    it('is a no-op if no elements are autofocusable', function() {
+      const group = new TabGroup();
 
-  it('creates a child group that reserves a range of indices', function() {
-    const parent = new TabGroup();
-    assert.strictEqual(parent.nextIndex(), 1000001);
+      mount(
+        <div>
+          <TabbableInput tabGroup={group} commands={atomEnv.commands} type="text" id="zero" />
+          <TabbableInput tabGroup={group} commands={atomEnv.commands} type="text" id="one" />
+        </div>,
+        {attachTo: root},
+      );
 
-    const child0 = parent.reserve(2);
-    assert.strictEqual(parent.nextIndex(), 1000004);
-    assert.strictEqual(parent.nextIndex(), 1000005);
+      const elements = ['zero', 'one'].map(id => document.getElementById(id));
+      for (const element of elements) {
+        sinon.stub(element, 'focus');
+      }
 
-    const child1 = parent.reserve(3);
-    assert.strictEqual(parent.nextIndex(), 1000009);
+      group.autofocus();
 
-    assert.strictEqual(child0.nextIndex(), 1000002);
-    assert.strictEqual(child0.nextIndex(), 1000003);
-
-    assert.strictEqual(child1.nextIndex(), 1000006);
-    assert.strictEqual(child1.nextIndex(), 1000007);
-    assert.strictEqual(child1.nextIndex(), 1000008);
-    assert.throws(() => child1.nextIndex(), /Tab index out of range/);
-  });
-
-  it('resets to its start index', function() {
-    const parent = new TabGroup();
-    assert.strictEqual(parent.nextIndex(), 1000001);
-    assert.strictEqual(parent.nextIndex(), 1000002);
-
-    parent.reset();
-    assert.strictEqual(parent.nextIndex(), 1000001);
-    assert.strictEqual(parent.nextIndex(), 1000002);
+      assert.isFalse(elements[0].focus.called);
+      assert.isFalse(elements[1].focus.called);
+    });
   });
 });
