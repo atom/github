@@ -1080,6 +1080,13 @@ import * as reporterProxy from '../lib/reporter-proxy';
           ['refs/remotes/origin/HEAD', 'refs/remotes/origin/master'],
         );
       });
+
+      it('includes only refs matching a pattern', async function() {
+        assert.sameMembers(
+          await git.getBranchesWithCommit(SHA, {showLocal: true, showRemote: true, pattern: 'origin/master'}),
+          ['refs/remotes/origin/master'],
+        );
+      });
     });
 
     describe('getRemotes()', function() {
