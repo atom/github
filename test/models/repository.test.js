@@ -882,6 +882,40 @@ describe('Repository', function() {
     });
   });
 
+  describe('isCommitPushed(sha)', function() {
+    it('returns true if SHA is reachable from the upstream ref', async function() {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits');
+      const repository = new Repository(localRepoPath);
+      await repository.getLoadPromise();
+
+      const sha = (await repository.getLastCommit()).getSha();
+      assert.isTrue(await repository.isCommitPushed(sha));
+    });
+
+    it('returns false if SHA is not reachable from upstream', async function() {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits');
+      const repository = new Repository(localRepoPath);
+      await repository.getLoadPromise();
+
+      await repository.git.commit('unpushed', {allowEmpty: true});
+      repository.refresh();
+
+      const sha = (await repository.getLastCommit()).getSha();
+      assert.isFalse(await repository.isCommitPushed(sha));
+    });
+
+    it('returns false on a detached HEAD', async function() {
+      const workdir = await cloneRepository('multiple-commits');
+      const repository = new Repository(workdir);
+      await repository.getLoadPromise();
+
+      await repository.checkout('HEAD~2');
+
+      const sha = (await repository.getLastCommit()).getSha();
+      assert.isFalse(await repository.isCommitPushed(sha));
+    });
+  });
+
   describe('undoLastCommit()', function() {
     it('performs a soft reset', async function() {
       const workingDirPath = await cloneRepository('multiple-commits');
