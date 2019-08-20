@@ -1,20 +1,21 @@
+trigger:
+  branches:
+    include:
+    - master
+    - '*-releases'
+pr:
+  branches:
+    include:
+    - '*'
+
 jobs:
 - job: Linux
   pool:
     vmImage: ubuntu-16.04
-  strategy:
-    matrix:
-      dev:
-        atom_channel: dev
-        atom_name: atom-dev
-      beta:
-        atom_channel: beta
-        atom_name: atom-beta
-      stable:
-        atom_channel: stable
-        atom_name: atom
   variables:
     display: ":99"
+    atom_channel: dev
+    atom_name: atom-dev
   steps:
   - template: script/azure-pipelines/linux-install.yml
     parameters:
@@ -38,7 +39,11 @@ jobs:
   - bash: npm run report:coverage
     displayName: generate code coverage reports
     condition: succeededOrFailed()
-  - bash: npm run codecov -- --build="Linux $(atom_channel)"
+  - bash: >
+      bash <(curl -s https://codecov.io/bash)
+      -n "Linux $(atom_channel)"
+      -P "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER:-}"
+      -B "${SYSTEM_PULLREQUEST_SOURCEBRANCH:-${BUILD_SOURCEBRANCH}}"
     displayName: publish code coverage to CodeCov
     env:
       CODECOV_TOKEN: $(codecov.token)
@@ -53,17 +58,9 @@ jobs:
 - job: MacOS
   pool:
     vmImage: macos-10.13
-  strategy:
-    matrix:
-      dev:
-        atom_channel: dev
-        atom_app: Atom Dev.app
-      beta:
-        atom_channel: beta
-        atom_app: Atom Beta.app
-      stable:
-        atom_channel: stable
-        atom_app: Atom.app
+  variables:
+    atom_channel: dev
+    atom_app: Atom Dev.app
   steps:
   - template: script/azure-pipelines/macos-install.yml
     parameters:
@@ -87,7 +84,11 @@ jobs:
   - bash: npm run report:coverage
     displayName: generate code coverage reports
     condition: succeededOrFailed()
-  - bash: npm run codecov -- --build="MacOS $(atom_channel)"
+  - bash: >
+      bash <(curl -s https://codecov.io/bash)
+      -n "MacOS $(atom_channel)"
+      -P "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER:-}"
+      -B "${SYSTEM_PULLREQUEST_SOURCEBRANCH:-${BUILD_SOURCEBRANCH}}"
     displayName: publish code coverage to CodeCov
     env:
       CODECOV_TOKEN: $(codecov.token)
@@ -102,17 +103,9 @@ jobs:
 - job: Windows
   pool:
     vmImage: vs2015-win2012r2
-  strategy:
-    matrix:
-      dev:
-        atom_channel: dev
-        atom_directory: Atom Dev
-      beta:
-        atom_channel: beta
-        atom_directory: Atom Beta
-      stable:
-        atom_channel: stable
-        atom_directory: Atom
+  variables:
+    atom_channel: dev
+    atom_directory: Atom Dev
   steps:
   - template: script/azure-pipelines/windows-install.yml
     parameters:
@@ -150,13 +143,17 @@ jobs:
   - task: PublishTestResults@2
     inputs:
       testResultsFormat: JUnit
-      testResultsFiles: $(Agent.HomeDirectory)/test-results.xml
+      testResultsFiles: $(Agent.HomeDirectory)/test-results.xmlq
       testRunTitle: Windows $(atom_channel)
     condition: succeededOrFailed()
   - powershell: npm run report:coverage
     displayName: generate code coverage reports
     condition: succeededOrFailed()
-  - powershell: npm run codecov -- --build="Windows $(atom_channel)"
+  - bash: >
+      bash <(curl -s https://codecov.io/bash)
+      -n "Windows $(atom_channel)"
+      -P "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER:-}"
+      -B "${SYSTEM_PULLREQUEST_SOURCEBRANCH:-${BUILD_SOURCEBRANCH}}"
     displayName: publish code coverage to CodeCov
     env:
       CODECOV_TOKEN: $(codecov.token)

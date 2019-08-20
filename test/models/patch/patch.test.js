@@ -1,6 +1,7 @@
 import {TextBuffer} from 'atom';
 
 import Patch from '../../../lib/models/patch/patch';
+import PatchBuffer from '../../../lib/models/patch/patch-buffer';
 import Hunk from '../../../lib/models/patch/hunk';
 import {Unchanged, Addition, Deletion, NoNewline} from '../../../lib/models/patch/region';
 import {assertInPatch} from '../../helpers';
@@ -162,21 +163,19 @@ describe('Patch', function() {
   });
 
   describe('stage patch generation', function() {
-    let stageLayeredBuffer;
+    let stagePatchBuffer;
 
     beforeEach(function() {
-      const stageBuffer = new TextBuffer();
-      const stageLayers = buildLayers(stageBuffer);
-      stageLayeredBuffer = {buffer: stageBuffer, layers: stageLayers};
+      stagePatchBuffer = new PatchBuffer();
     });
 
     it('creates a patch that applies selected lines from only the first hunk', function() {
       const {patch, buffer: originalBuffer} = buildPatchFixture();
-      const stagePatch = patch.buildStagePatchForLines(originalBuffer, stageLayeredBuffer, new Set([2, 3, 4, 5]));
+      const stagePatch = patch.buildStagePatchForLines(originalBuffer, stagePatchBuffer, new Set([2, 3, 4, 5]));
       // buffer rows:             0     1     2     3     4     5     6
       const expectedBufferText = '0000\n0001\n0002\n0003\n0004\n0005\n0006\n';
-      assert.strictEqual(stageLayeredBuffer.buffer.getText(), expectedBufferText);
-      assertInPatch(stagePatch, stageLayeredBuffer.buffer).hunks(
+      assert.strictEqual(stagePatchBuffer.buffer.getText(), expectedBufferText);
+      assertInPatch(stagePatch, stagePatchBuffer.buffer).hunks(
         {
           startRow: 0,
           endRow: 6,
@@ -193,11 +192,11 @@ describe('Patch', function() {
 
     it('creates a patch that applies selected lines from a single non-first hunk', function() {
       const {patch, buffer: originalBuffer} = buildPatchFixture();
-      const stagePatch = patch.buildStagePatchForLines(originalBuffer, stageLayeredBuffer, new Set([8, 13, 14, 16]));
+      const stagePatch = patch.buildStagePatchForLines(originalBuffer, stagePatchBuffer, new Set([8, 13, 14, 16]));
       // buffer rows:             0     1     2     3     4     5     6     7     8     9
       const expectedBufferText = '0007\n0008\n0010\n0011\n0012\n0013\n0014\n0015\n0016\n0018\n';
-      assert.strictEqual(stageLayeredBuffer.buffer.getText(), expectedBufferText);
-      assertInPatch(stagePatch, stageLayeredBuffer.buffer).hunks(
+      assert.strictEqual(stagePatchBuffer.buffer.getText(), expectedBufferText);
+      assertInPatch(stagePatch, stagePatchBuffer.buffer).hunks(
         {
           startRow: 0,
           endRow: 9,
@@ -217,7 +216,7 @@ describe('Patch', function() {
 
     it('creates a patch that applies selected lines from several hunks', function() {
       const {patch, buffer: originalBuffer} = buildPatchFixture();
-      const stagePatch = patch.buildStagePatchForLines(originalBuffer, stageLayeredBuffer, new Set([1, 5, 15, 16, 17, 25]));
+      const stagePatch = patch.buildStagePatchForLines(originalBuffer, stagePatchBuffer, new Set([1, 5, 15, 16, 17, 25]));
       const expectedBufferText =
           // buffer rows
           // 0   1     2     3     4
@@ -226,8 +225,8 @@ describe('Patch', function() {
           '0007\n0010\n0011\n0012\n0013\n0014\n0015\n0016\n0017\n0018\n' +
           // 15  16    17
           '0024\n0025\n No newline at end of file\n';
-      assert.strictEqual(stageLayeredBuffer.buffer.getText(), expectedBufferText);
-      assertInPatch(stagePatch, stageLayeredBuffer.buffer).hunks(
+      assert.strictEqual(stagePatchBuffer.buffer.getText(), expectedBufferText);
+      assertInPatch(stagePatch, stagePatchBuffer.buffer).hunks(
         {
           startRow: 0,
           endRow: 4,
@@ -266,16 +265,12 @@ describe('Patch', function() {
 
     it('marks ranges for each change region on the correct marker layer', function() {
       const {patch, buffer: originalBuffer} = buildPatchFixture();
-      patch.buildStagePatchForLines(originalBuffer, stageLayeredBuffer, new Set([1, 5, 15, 16, 17, 25]));
+      patch.buildStagePatchForLines(originalBuffer, stagePatchBuffer, new Set([1, 5, 15, 16, 17, 25]));
 
       const layerRanges = [
-        ['hunk', stageLayeredBuffer.layers.hunk],
-        ['unchanged', stageLayeredBuffer.layers.unchanged],
-        ['addition', stageLayeredBuffer.layers.addition],
-        ['deletion', stageLayeredBuffer.layers.deletion],
-        ['noNewline', stageLayeredBuffer.layers.noNewline],
-      ].reduce((obj, [key, layer]) => {
-        obj[key] = layer.getMarkers().map(marker => marker.getRange().serialize());
+        Hunk.layerName, Unchanged.layerName, Addition.layerName, Deletion.layerName, NoNewline.layerName,
+      ].reduce((obj, layerName) => {
+        obj[layerName] = stagePatchBuffer.findMarkers(layerName, {}).map(marker => marker.getRange().serialize());
         return obj;
       }, {});
 
@@ -302,7 +297,7 @@ describe('Patch', function() {
           [[1, 0], [1, 4]],
           [[11, 0], [12, 4]],
         ],
-        noNewline: [
+        nonewline: [
           [[17, 0], [17, 26]],
         ],
       });
@@ -325,9 +320,9 @@ describe('Patch', function() {
 
       const patch = new Patch({status: 'deleted', hunks, marker});
 
-      const stagedPatch = patch.buildStagePatchForLines(buffer, stageLayeredBuffer, new Set([1, 3, 4]));
+      const stagedPatch = patch.buildStagePatchForLines(buffer, stagePatchBuffer, new Set([1, 3, 4]));
       assert.strictEqual(stagedPatch.getStatus(), 'modified');
-      assertInPatch(stagedPatch, stageLayeredBuffer.buffer).hunks(
+      assertInPatch(stagedPatch, stagePatchBuffer.buffer).hunks(
         {
           startRow: 0,
           endRow: 5,
@@ -358,7 +353,7 @@ describe('Patch', function() {
       const marker = markRange(layers.patch, 0, 2);
       const patch = new Patch({status: 'deleted', hunks, marker});
 
-      const stagePatch0 = patch.buildStagePatchForLines(buffer, stageLayeredBuffer, new Set([0, 1, 2]));
+      const stagePatch0 = patch.buildStagePatchForLines(buffer, stagePatchBuffer, new Set([0, 1, 2]));
       assert.strictEqual(stagePatch0.getStatus(), 'deleted');
     });
 
@@ -369,23 +364,21 @@ describe('Patch', function() {
   });
 
   describe('unstage patch generation', function() {
-    let unstageLayeredBuffer;
+    let unstagePatchBuffer;
 
     beforeEach(function() {
-      const unstageBuffer = new TextBuffer();
-      const unstageLayers = buildLayers(unstageBuffer);
-      unstageLayeredBuffer = {buffer: unstageBuffer, layers: unstageLayers};
+      unstagePatchBuffer = new PatchBuffer();
     });
 
     it('creates a patch that updates the index to unapply selected lines from a single hunk', function() {
       const {patch, buffer: originalBuffer} = buildPatchFixture();
-      const unstagePatch = patch.buildUnstagePatchForLines(originalBuffer, unstageLayeredBuffer, new Set([8, 12, 13]));
+      const unstagePatch = patch.buildUnstagePatchForLines(originalBuffer, unstagePatchBuffer, new Set([8, 12, 13]));
       assert.strictEqual(
-        unstageLayeredBuffer.buffer.getText(),
+        unstagePatchBuffer.buffer.getText(),
         // 0   1     2     3     4     5     6     7     8
         '0007\n0008\n0009\n0010\n0011\n0012\n0013\n0017\n0018\n',
       );
-      assertInPatch(unstagePatch, unstageLayeredBuffer.buffer).hunks(
+      assertInPatch(unstagePatch, unstagePatchBuffer.buffer).hunks(
         {
           startRow: 0,
           endRow: 8,
@@ -403,9 +396,9 @@ describe('Patch', function() {
 
     it('creates a patch that updates the index to unapply lines from several hunks', function() {
       const {patch, buffer: originalBuffer} = buildPatchFixture();
-      const unstagePatch = patch.buildUnstagePatchForLines(originalBuffer, unstageLayeredBuffer, new Set([1, 4, 5, 16, 17, 20, 25]));
+      const unstagePatch = patch.buildUnstagePatchForLines(originalBuffer, unstagePatchBuffer, new Set([1, 4, 5, 16, 17, 20, 25]));
       assert.strictEqual(
-        unstageLayeredBuffer.buffer.getText(),
+        unstagePatchBuffer.buffer.getText(),
         // 0   1     2     3     4     5
         '0000\n0001\n0003\n0004\n0005\n0006\n' +
         // 6   7     8     9     10    11    12    13
@@ -415,7 +408,7 @@ describe('Patch', function() {
         // 17  18    19
         '0024\n0025\n No newline at end of file\n',
       );
-      assertInPatch(unstagePatch, unstageLayeredBuffer.buffer).hunks(
+      assertInPatch(unstagePatch, unstagePatchBuffer.buffer).hunks(
         {
           startRow: 0,
           endRow: 5,
@@ -464,15 +457,11 @@ describe('Patch', function() {
 
     it('marks ranges for each change region on the correct marker layer', function() {
       const {patch, buffer: originalBuffer} = buildPatchFixture();
-      patch.buildUnstagePatchForLines(originalBuffer, unstageLayeredBuffer, new Set([1, 4, 5, 16, 17, 20, 25]));
+      patch.buildUnstagePatchForLines(originalBuffer, unstagePatchBuffer, new Set([1, 4, 5, 16, 17, 20, 25]));
       const layerRanges = [
-        ['hunk', unstageLayeredBuffer.layers.hunk],
-        ['unchanged', unstageLayeredBuffer.layers.unchanged],
-        ['addition', unstageLayeredBuffer.layers.addition],
-        ['deletion', unstageLayeredBuffer.layers.deletion],
-        ['noNewline', unstageLayeredBuffer.layers.noNewline],
-      ].reduce((obj, [key, layer]) => {
-        obj[key] = layer.getMarkers().map(marker => marker.getRange().serialize());
+        Hunk.layerName, Unchanged.layerName, Addition.layerName, Deletion.layerName, NoNewline.layerName,
+      ].reduce((obj, layerName) => {
+        obj[layerName] = unstagePatchBuffer.findMarkers(layerName, {}).map(marker => marker.getRange().serialize());
         return obj;
       }, {});
 
@@ -503,7 +492,7 @@ describe('Patch', function() {
           [[15, 0], [15, 4]],
           [[18, 0], [18, 4]],
         ],
-        noNewline: [
+        nonewline: [
           [[19, 0], [19, 26]],
         ],
       });
@@ -523,10 +512,10 @@ describe('Patch', function() {
       ];
       const marker = markRange(layers.patch, 0, 2);
       const patch = new Patch({status: 'added', hunks, marker});
-      const unstagePatch = patch.buildUnstagePatchForLines(buffer, unstageLayeredBuffer, new Set([1, 2]));
+      const unstagePatch = patch.buildUnstagePatchForLines(buffer, unstagePatchBuffer, new Set([1, 2]));
       assert.strictEqual(unstagePatch.getStatus(), 'modified');
-      assert.strictEqual(unstageLayeredBuffer.buffer.getText(), '0000\n0001\n0002\n');
-      assertInPatch(unstagePatch, unstageLayeredBuffer.buffer).hunks(
+      assert.strictEqual(unstagePatchBuffer.buffer.getText(), '0000\n0001\n0002\n');
+      assertInPatch(unstagePatch, unstagePatchBuffer.buffer).hunks(
         {
           startRow: 0,
           endRow: 2,
@@ -557,7 +546,7 @@ describe('Patch', function() {
       const marker = markRange(layers.patch, 0, 2);
       const patch = new Patch({status: 'added', hunks, marker});
 
-      const unstagePatch = patch.buildUnstagePatchForLines(buffer, unstageLayeredBuffer, new Set([0, 1, 2]));
+      const unstagePatch = patch.buildUnstagePatchForLines(buffer, unstagePatchBuffer, new Set([0, 1, 2]));
       assert.strictEqual(unstagePatch.getStatus(), 'deleted');
     });
 
@@ -579,7 +568,7 @@ describe('Patch', function() {
       const marker = markRange(layers.patch, 0, 2);
       const patch = new Patch({status: 'deleted', hunks, marker});
 
-      const unstagePatch = patch.buildUnstagePatchForLines(buffer, unstageLayeredBuffer, new Set([0, 1, 2]));
+      const unstagePatch = patch.buildUnstagePatchForLines(buffer, unstagePatchBuffer, new Set([0, 1, 2]));
       assert.strictEqual(unstagePatch.getStatus(), 'added');
     });
 
@@ -695,6 +684,7 @@ describe('Patch', function() {
     const nullPatch = Patch.createNull();
     assert.isNull(nullPatch.getStatus());
     assert.deepEqual(nullPatch.getMarker().getRange().serialize(), [[0, 0], [0, 0]]);
+    assert.deepEqual(nullPatch.getRange().serialize(), [[0, 0], [0, 0]]);
     assert.deepEqual(nullPatch.getStartRange().serialize(), [[0, 0], [0, 0]]);
     assert.deepEqual(nullPatch.getHunks(), []);
     assert.strictEqual(nullPatch.getChangedLineCount(), 0);
@@ -703,6 +693,8 @@ describe('Patch', function() {
     assert.deepEqual(nullPatch.getFirstChangeRange().serialize(), [[0, 0], [0, 0]]);
     assert.strictEqual(nullPatch.toStringIn(), '');
     assert.isFalse(nullPatch.isPresent());
+    assert.lengthOf(nullPatch.getStartingMarkers(), 0);
+    assert.lengthOf(nullPatch.getEndingMarkers(), 0);
   });
 });
 

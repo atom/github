@@ -3,14 +3,6 @@
 @default-padding: @component-padding;
 @avatar-dimensions: 16px;
 
-.github-PrCommitsView {
-
-  &-load-more-button {
-    display: block;
-    margin: 20px auto 0;
-  }
-}
-
 .github-PrCommitView {
 
   &-container {
@@ -22,7 +14,6 @@
     border-bottom: none;
 
     &:first-child {
-      margin-top: @default-padding * 2;
       border-top-left-radius: @component-border-radius;
       border-top-right-radius: @component-border-radius;
     }
@@ -40,14 +31,16 @@
 
   &-messageHeadline.is-button {
     padding: 0;
+    margin-right: @default-padding/1.5;
     background-color: transparent;
     border: none;
+    cursor: pointer;
+    text-align: left;
+    color: @text-color-highlight;
+
     &:hover,
     &:focus {
-      color: @text-color-highlight;
-    }
-    &:active {
-      color: @text-color-subtle;
+      color: mix(@text-color-highlight, @text-color-subtle);
     }
   }
 
@@ -71,8 +64,7 @@
   }
 
   &-moreButton {
-    border: none;
-    margin-left: @default-padding/1.5;
+    margin: 0 auto 0 @default-padding;
     padding: 0em .2em;
     color: @text-color-subtle;
     font-style: italic;

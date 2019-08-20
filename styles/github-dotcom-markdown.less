@@ -2,10 +2,16 @@
 
 // This styles Markdown used in issueish panes.
 
-@margin: 1.5em;
+@margin: 1em;
 
 .github-DotComMarkdownHtml {
 
+  font-size: 1.15em;
+  line-height: 1.5;
+
+  & > *:first-child {
+    margin-top: 0;
+  }
   & > *:last-child {
     margin-bottom: 0;
   }
@@ -86,6 +92,7 @@
   }
 
   .task-list-item {
+    position: relative;
     // indent task lists
     list-style: none;
     .task-list-item-checkbox {
@@ -172,4 +179,17 @@
     color: @text-color-subtle; // same as .cross-referenced-event-label-number
   }
 
+  .js-suggested-changes-blob { // gets used for suggested changes
+    margin: @margin 0;
+  }
+
+}
+
+.github-EmojiReactions {
+  &:empty {
+    display: none;
+  }
+  &Group {
+    margin-right: @component-padding*2;
+  }
 }

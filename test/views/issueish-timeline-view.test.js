@@ -29,7 +29,7 @@ describe('IssueishTimelineView', function() {
       ...overloadProps,
     };
 
-    const timeline = {
+    const timelineItems = {
       edges: o.timelineItemSpecs.map((spec, i) => ({
         cursor: `result${i}`,
         node: {
@@ -47,9 +47,9 @@ describe('IssueishTimelineView', function() {
     };
 
     if (o.issueMode) {
-      props.issue = {timeline};
+      props.issue = {timelineItems};
     } else {
-      props.pullRequest = {timeline};
+      props.pullRequest = {timelineItems};
     }
 
     return <IssueishTimelineView {...props} />;
@@ -58,20 +58,20 @@ describe('IssueishTimelineView', function() {
   it('separates timeline issues by typename and renders a grouped child component for each', function() {
     const wrapper = shallow(buildApp({
       timelineItemSpecs: [
-        {kind: 'Commit', id: 0},
-        {kind: 'Commit', id: 1},
+        {kind: 'PullRequestCommit', id: 0},
+        {kind: 'PullRequestCommit', id: 1},
         {kind: 'IssueComment', id: 2},
         {kind: 'MergedEvent', id: 3},
-        {kind: 'Commit', id: 4},
-        {kind: 'Commit', id: 5},
-        {kind: 'Commit', id: 6},
-        {kind: 'Commit', id: 7},
+        {kind: 'PullRequestCommit', id: 4},
+        {kind: 'PullRequestCommit', id: 5},
+        {kind: 'PullRequestCommit', id: 6},
+        {kind: 'PullRequestCommit', id: 7},
         {kind: 'IssueComment', id: 8},
         {kind: 'IssueComment', id: 9},
       ],
     }));
 
-    const commitGroup0 = wrapper.find('Relay(BareCommitsView)').filterWhere(c => c.prop('nodes').length === 2);
+    const commitGroup0 = wrapper.find('ForwardRef(Relay(BareCommitsView))').filterWhere(c => c.prop('nodes').length === 2);
     assert.deepEqual(commitGroup0.prop('nodes').map(n => n.id), [0, 1]);
 
     const commentGroup0 = wrapper.find('Grouped(Relay(BareIssueCommentView))').filterWhere(c => c.prop('nodes').length === 1);
@@ -80,7 +80,7 @@ describe('IssueishTimelineView', function() {
     const mergedGroup = wrapper.find('Grouped(Relay(BareMergedEventView))').filterWhere(c => c.prop('nodes').length === 1);
     assert.deepEqual(mergedGroup.prop('nodes').map(n => n.id), [3]);
 
-    const commitGroup1 = wrapper.find('Relay(BareCommitsView)').filterWhere(c => c.prop('nodes').length === 4);
+    const commitGroup1 = wrapper.find('ForwardRef(Relay(BareCommitsView))').filterWhere(c => c.prop('nodes').length === 4);
     assert.deepEqual(commitGroup1.prop('nodes').map(n => n.id), [4, 5, 6, 7]);
 
     const commentGroup1 = wrapper.find('Grouped(Relay(BareIssueCommentView))').filterWhere(c => c.prop('nodes').length === 2);
@@ -92,8 +92,8 @@ describe('IssueishTimelineView', function() {
 
     const wrapper = shallow(buildApp({
       timelineItemSpecs: [
-        {kind: 'Commit', id: 0},
-        {kind: 'Commit', id: 1},
+        {kind: 'PullRequestCommit', id: 0},
+        {kind: 'PullRequestCommit', id: 1},
         {kind: 'FancyNewDotcomFeature', id: 2},
         {kind: 'IssueComment', id: 3},
       ],

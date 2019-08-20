@@ -7,9 +7,11 @@ import isEqualWith from 'lodash.isequalwith';
 
 import Repository from '../../lib/models/repository';
 import CompositeGitStrategy from '../../lib/composite-git-strategy';
+import {LargeRepoError} from '../../lib/git-shell-out-strategy';
 import {nullCommit} from '../../lib/models/commit';
 import {nullOperationStates} from '../../lib/models/operation-states';
 import Author from '../../lib/models/author';
+import {FOCUS} from '../../lib/models/workspace-change-observer';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 import {
@@ -122,6 +124,7 @@ describe('Repository', function() {
         'push', 'setConfig', 'unsetConfig', 'createBlob', 'expandBlobToFile', 'createDiscardHistoryBlob',
         'updateDiscardHistory', 'storeBeforeAndAfterBlobs', 'restoreLastDiscardInTempFiles', 'popDiscardHistory',
         'clearDiscardHistory', 'discardWorkDirChangesForPaths', 'addRemote', 'setCommitMessage',
+        'fetchCommitMessageTemplate',
       ]) {
         await assert.isRejected(repository[method](), new RegExp(`${method} is not available in Destroyed state`));
       }
@@ -154,6 +157,46 @@ describe('Repository', function() {
     assert.isFalse(repository.showStatusBarTiles());
     await repository.getLoadPromise();
     assert.isTrue(repository.showStatusBarTiles());
+  });
+
+  describe('getCurrentGitHubRemote', function() {
+    let workdir, repository;
+    beforeEach(async function() {
+      workdir = await cloneRepository('three-files');
+      repository = new Repository(workdir);
+      await repository.getLoadPromise();
+    });
+    it('gets current GitHub remote if remote is configured', async function() {
+      await repository.addRemote('yes0', 'git@github.com:atom/github.git');
+
+      const remote = await repository.getCurrentGitHubRemote();
+      assert.strictEqual(remote.url, 'git@github.com:atom/github.git');
+      assert.strictEqual(remote.name, 'yes0');
+    });
+
+    it('returns null remote no remotes exist', async function() {
+      const remote = await repository.getCurrentGitHubRemote();
+      assert.isFalse(remote.isPresent());
+    });
+
+    it('returns null remote if only non-GitHub remotes exist', async function() {
+      await repository.addRemote('no0', 'https://sourceforge.net/some/repo.git');
+      const remote = await repository.getCurrentGitHubRemote();
+      assert.isFalse(remote.isPresent());
+    });
+
+    it('returns null remote if no remotes are configured and multiple GitHub remotes exist', async function() {
+      await repository.addRemote('yes0', 'git@github.com:atom/github.git');
+      await repository.addRemote('yes1', 'git@github.com:smashwilson/github.git');
+      const remote = await repository.getCurrentGitHubRemote();
+      assert.isFalse(remote.isPresent());
+    });
+
+    it('returns null remote before repository has loaded', async function() {
+      const loadingRepository = new Repository(workdir);
+      const remote = await loadingRepository.getCurrentGitHubRemote();
+      assert.isFalse(remote.isPresent());
+    });
   });
 
   describe('getGitDirectoryPath', function() {
@@ -392,8 +435,7 @@ describe('Repository', function() {
         @@ -0,0 +1,3 @@
         +qux
         +foo
-        +bar
-
+        +bar\n
       `);
 
       // Unstage symlink change, leaving deleted file staged
@@ -414,8 +456,7 @@ describe('Repository', function() {
         -foo
         -bar
         -baz
-        -
-
+        -\n
       `);
     });
 
@@ -441,6 +482,60 @@ describe('Repository', function() {
       const stagedPaths = stagedChanges.map(change => change.filePath);
 
       assert.deepStrictEqual(stagedPaths, ['w.txt', zShortPath]);
+    });
+  });
+
+  describe('getStatusBundle', function() {
+    it('transitions to the TooLarge state and returns empty status when too large', async function() {
+      const workdir = await cloneRepository();
+      const repository = new Repository(workdir);
+      await repository.getLoadPromise();
+
+      sinon.stub(repository.git, 'getStatusBundle').rejects(new LargeRepoError());
+
+      const result = await repository.getStatusBundle();
+
+      assert.isTrue(repository.isInState('TooLarge'));
+      assert.deepEqual(result.branch, {});
+      assert.deepEqual(result.stagedFiles, {});
+      assert.deepEqual(result.unstagedFiles, {});
+      assert.deepEqual(result.mergeConflictFiles, {});
+    });
+
+    it('propagates unrecognized git errors', async function() {
+      const workdir = await cloneRepository();
+      const repository = new Repository(workdir);
+      await repository.getLoadPromise();
+
+      sinon.stub(repository.git, 'getStatusBundle').rejects(new Error('oh no'));
+
+      await assert.isRejected(repository.getStatusBundle(), /oh no/);
+    });
+
+    it('post-processes renamed files to an addition and a deletion', async function() {
+      const workdir = await cloneRepository();
+      const repository = new Repository(workdir);
+      await repository.getLoadPromise();
+
+      sinon.stub(repository.git, 'getStatusBundle').resolves({
+        changedEntries: [],
+        untrackedEntries: [],
+        renamedEntries: [
+          {stagedStatus: 'R', origFilePath: 'from0.txt', filePath: 'to0.txt'},
+          {unstagedStatus: 'R', origFilePath: 'from1.txt', filePath: 'to1.txt'},
+          {stagedStatus: 'C', filePath: 'c2.txt'},
+          {unstagedStatus: 'C', filePath: 'c3.txt'},
+        ],
+        unmergedEntries: [],
+      });
+
+      const result = await repository.getStatusBundle();
+      assert.strictEqual(result.stagedFiles['from0.txt'], 'deleted');
+      assert.strictEqual(result.stagedFiles['to0.txt'], 'added');
+      assert.strictEqual(result.unstagedFiles['from1.txt'], 'deleted');
+      assert.strictEqual(result.unstagedFiles['to1.txt'], 'added');
+      assert.strictEqual(result.stagedFiles['c2.txt'], 'added');
+      assert.strictEqual(result.unstagedFiles['c3.txt'], 'added');
     });
   });
 
@@ -787,6 +882,40 @@ describe('Repository', function() {
     });
   });
 
+  describe('isCommitPushed(sha)', function() {
+    it('returns true if SHA is reachable from the upstream ref', async function() {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits');
+      const repository = new Repository(localRepoPath);
+      await repository.getLoadPromise();
+
+      const sha = (await repository.getLastCommit()).getSha();
+      assert.isTrue(await repository.isCommitPushed(sha));
+    });
+
+    it('returns false if SHA is not reachable from upstream', async function() {
+      const {localRepoPath} = await setUpLocalAndRemoteRepositories('multiple-commits');
+      const repository = new Repository(localRepoPath);
+      await repository.getLoadPromise();
+
+      await repository.git.commit('unpushed', {allowEmpty: true});
+      repository.refresh();
+
+      const sha = (await repository.getLastCommit()).getSha();
+      assert.isFalse(await repository.isCommitPushed(sha));
+    });
+
+    it('returns false on a detached HEAD', async function() {
+      const workdir = await cloneRepository('multiple-commits');
+      const repository = new Repository(workdir);
+      await repository.getLoadPromise();
+
+      await repository.checkout('HEAD~2');
+
+      const sha = (await repository.getLastCommit()).getSha();
+      assert.isFalse(await repository.isCommitPushed(sha));
+    });
+  });
+
   describe('undoLastCommit()', function() {
     it('performs a soft reset', async function() {
       const workingDirPath = await cloneRepository('multiple-commits');
@@ -928,6 +1057,20 @@ describe('Repository', function() {
       localHead = await localRepo.git.getCommit('branch');
       assert.strictEqual(remoteHead.messageSubject, 'second commit');
       assert.strictEqual(localHead.messageSubject, 'second commit');
+    });
+  });
+
+  describe('unsetConfig', function() {
+    it('unsets a git config option', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repository = new Repository(workingDirPath);
+      await repository.getLoadPromise();
+
+      await repository.setConfig('some.key', 'value');
+      assert.strictEqual(await repository.getConfig('some.key'), 'value');
+
+      await repository.unsetConfig('some.key');
+      assert.isNull(await repository.getConfig('some.key'));
     });
   });
 
@@ -1435,6 +1578,18 @@ describe('Repository', function() {
     });
   });
 
+  describe('getBlobContents(sha)', function() {
+    it('returns blob contents for sha', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repository = new Repository(workingDirPath);
+      await repository.getLoadPromise();
+
+      const sha = await repository.createBlob({stdin: 'aa\nbb\ncc\n'});
+      const contents = await repository.getBlobContents(sha);
+      assert.strictEqual(contents, 'aa\nbb\ncc\n');
+    });
+  });
+
   describe('discardWorkDirChangesForPaths()', function() {
     it('can discard working directory changes in modified files', async function() {
       const workingDirPath = await cloneRepository('three-files');
@@ -1522,6 +1677,31 @@ describe('Repository', function() {
       // Also should not throw
       const repo2 = new Repository(workingDirPath);
       await repo2.getLoadPromise();
+    });
+
+    it('passes unexpected git errors to the caller', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+      await repo.setConfig('atomGithub.historySha', '1111111111111111111111111111111111111111');
+
+      repo.refresh();
+      sinon.stub(repo.git, 'getBlobContents').rejects(new Error('oh no'));
+
+      await assert.isRejected(repo.updateDiscardHistory(), /oh no/);
+    });
+
+    it('is resilient to malformed history blobs', async function() {
+      const workingDirPath = await cloneRepository('three-files');
+      const repo = new Repository(workingDirPath);
+      await repo.getLoadPromise();
+      await repo.setConfig('atomGithub.historySha', '1111111111111111111111111111111111111111');
+
+      repo.refresh();
+      sinon.stub(repo.git, 'getBlobContents').resolves('lol not JSON');
+
+      // Should not throw
+      await repo.updateDiscardHistory();
     });
   });
 
@@ -1620,6 +1800,10 @@ describe('Repository', function() {
         calls.set(
           `getFilePatchForPath {staged} ${fileName}`,
           () => repository.getFilePatchForPath(fileName, {staged: true}),
+        );
+        calls.set(
+          `getDiffsForFilePath ${fileName}`,
+          () => repository.getDiffsForFilePath(fileName, 'HEAD^'),
         );
         calls.set(
           `readFileFromIndex ${fileName}`,
@@ -2105,6 +2289,9 @@ describe('Repository', function() {
       });
 
       it('when checking out a revision', async function() {
+        // Known flake: https://github.com/atom/github/issues/1958
+        this.retries(5);
+
         const {repository, observer, subscriptions} = await wireUpObserver();
         sub = subscriptions;
 
@@ -2223,6 +2410,47 @@ describe('Repository', function() {
           );
         });
       });
+    });
+
+    it('manually invalidates some keys when the WorkspaceChangeObserver indicates the window is focused', async function() {
+      const workdir = await cloneRepository('three-files');
+      const repository = new Repository(workdir);
+      await repository.getLoadPromise();
+
+      const readerMethods = await getCacheReaderMethods({repository});
+      function readerValues() {
+        return new Map(
+          Array.from(readerMethods.entries(), ([name, call]) => {
+            const promise = call();
+            if (process.platform === 'win32') {
+              promise.catch(() => {});
+            }
+            return [name, promise];
+          }),
+        );
+      }
+
+      const before = readerValues();
+      repository.observeFilesystemChange([{special: FOCUS}]);
+      const after = readerValues();
+
+      const invalidated = Array.from(readerMethods.keys()).filter(key => before.get(key) !== after.get(key));
+
+      assert.sameMembers(invalidated, [
+        'getStatusBundle',
+        'getFilePatchForPath {unstaged} a.txt',
+        'getFilePatchForPath {unstaged} b.txt',
+        'getFilePatchForPath {unstaged} c.txt',
+        `getFilePatchForPath {unstaged} ${path.join('subdir-1/a.txt')}`,
+        `getFilePatchForPath {unstaged} ${path.join('subdir-1/b.txt')}`,
+        `getFilePatchForPath {unstaged} ${path.join('subdir-1/c.txt')}`,
+        'getDiffsForFilePath a.txt',
+        'getDiffsForFilePath b.txt',
+        'getDiffsForFilePath c.txt',
+        `getDiffsForFilePath ${path.join('subdir-1/a.txt')}`,
+        `getDiffsForFilePath ${path.join('subdir-1/b.txt')}`,
+        `getDiffsForFilePath ${path.join('subdir-1/c.txt')}`,
+      ]);
     });
   });
 

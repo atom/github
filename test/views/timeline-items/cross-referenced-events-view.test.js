@@ -15,7 +15,7 @@ describe('CrossReferencedEventsView', function() {
 
   it('renders a child component for each grouped child event', function() {
     const wrapper = shallow(buildApp({nodeOpts: [{}, {}, {}]}));
-    assert.lengthOf(wrapper.find('Relay(BareCrossReferencedEventView)'), 3);
+    assert.lengthOf(wrapper.find('ForwardRef(Relay(BareCrossReferencedEventView))'), 3);
   });
 
   it('generates a summary based on a single pull request cross-reference', function() {

@@ -1,95 +1,109 @@
 import React from 'react';
-import {mount} from 'enzyme';
+import {shallow} from 'enzyme';
 
-import OpenIssueishDialog from '../../lib/views/open-issueish-dialog';
+import OpenIssueishDialog, {openIssueishItem} from '../../lib/views/open-issueish-dialog';
+import IssueishDetailItem from '../../lib/items/issueish-detail-item';
+import {dialogRequests} from '../../lib/controllers/dialogs-controller';
+import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('OpenIssueishDialog', function() {
-  let atomEnv, commandRegistry;
-  let app, wrapper, didAccept, didCancel;
+  let atomEnv;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
-    commandRegistry = atomEnv.commands;
-
-    didAccept = sinon.stub();
-    didCancel = sinon.stub();
-
-    app = (
-      <OpenIssueishDialog
-        commandRegistry={commandRegistry}
-        didAccept={didAccept}
-        didCancel={didCancel}
-      />
-    );
-    wrapper = mount(app);
+    sinon.stub(reporterProxy, 'addEvent').returns();
   });
 
   afterEach(function() {
     atomEnv.destroy();
   });
 
-  const setTextIn = function(selector, text) {
-    wrapper.find(selector).getDOMNode().getModel().setText(text);
-  };
+  function buildApp(overrides = {}) {
+    const request = dialogRequests.issueish();
 
-  describe('entering a issueish url', function() {
-    it("updates the issue url automatically if it hasn't been modified", function() {
-      setTextIn('.github-IssueishUrl atom-text-editor', 'https://github.com/atom/github/pull/1807');
-
-      assert.equal(wrapper.instance().getIssueishUrl(), 'https://github.com/atom/github/pull/1807');
-    });
-
-    it('does update the issue url if it was modified automatically', function() {
-      setTextIn('.github-IssueishUrl atom-text-editor', 'https://github.com/atom/github/pull/1807');
-      assert.equal(wrapper.instance().getIssueishUrl(), 'https://github.com/atom/github/pull/1807');
-
-      setTextIn('.github-IssueishUrl atom-text-editor', 'https://github.com/atom/github/issues/1655');
-      assert.equal(wrapper.instance().getIssueishUrl(), 'https://github.com/atom/github/issues/1655');
-    });
-  });
+    return (
+      <OpenIssueishDialog
+        request={request}
+        workspace={atomEnv.workspace}
+        commands={atomEnv.commands}
+        {...overrides}
+      />
+    );
+  }
 
   describe('open button enablement', function() {
     it('disables the open button with no issue url', function() {
-      setTextIn('.github-IssueishUrl atom-text-editor', '');
-      wrapper.update();
+      const wrapper = shallow(buildApp());
 
-      assert.isTrue(wrapper.find('button.icon-git-pull-request').prop('disabled'));
+      wrapper.find('.github-OpenIssueish-url').prop('buffer').setText('');
+      assert.isFalse(wrapper.find('DialogView').prop('acceptEnabled'));
     });
 
     it('enables the open button when issue url box is populated', function() {
-      setTextIn('.github-IssueishUrl atom-text-editor', 'https://github.com/atom/github/pull/1807');
-      wrapper.update();
+      const wrapper = shallow(buildApp());
+      wrapper.find('.github-OpenIssueish-url').prop('buffer').setText('https://github.com/atom/github/pull/1807');
 
-      assert.isFalse(wrapper.find('button.icon-git-pull-request').prop('disabled'));
+      assert.isTrue(wrapper.find('DialogView').prop('acceptEnabled'));
     });
   });
 
-  describe('parseUrl', function() {
-    it('returns an object with repo owner, repo name, and issueish number', function() {
-      setTextIn('.github-IssueishUrl atom-text-editor', 'https://github.com/atom/github/pull/1807');
+  it('calls the acceptance callback with the entered URL', function() {
+    const accept = sinon.spy();
+    const request = dialogRequests.issueish();
+    request.onAccept(accept);
+    const wrapper = shallow(buildApp({request}));
+    wrapper.find('.github-OpenIssueish-url').prop('buffer').setText('https://github.com/atom/github/pull/1807');
+    wrapper.find('DialogView').prop('accept')();
 
-      assert.deepEqual(wrapper.instance().parseUrl(), {
-        repoOwner: 'atom',
-        repoName: 'github',
-        issueishNumber: '1807',
-      });
-    });
-  });
-
-  it('calls the acceptance callback', function() {
-    setTextIn('.github-IssueishUrl atom-text-editor', 'https://github.com/atom/github/pull/1807');
-
-    wrapper.find('button.icon-git-pull-request').simulate('click');
-
-    assert.isTrue(didAccept.calledWith({
-      repoOwner: 'atom',
-      repoName: 'github',
-      issueishNumber: '1807',
-    }));
+    assert.isTrue(accept.calledWith('https://github.com/atom/github/pull/1807'));
   });
 
   it('calls the cancellation callback', function() {
-    wrapper.find('button.github-CancelButton').simulate('click');
-    assert.isTrue(didCancel.called);
+    const cancel = sinon.spy();
+    const request = dialogRequests.issueish();
+    request.onCancel(cancel);
+    const wrapper = shallow(buildApp({request}));
+    wrapper.find('DialogView').prop('cancel')();
+
+    assert.isTrue(cancel.called);
+  });
+
+  describe('openIssueishItem', function() {
+    it('opens an item for a valid issue URL', async function() {
+      sinon.stub(atomEnv.workspace, 'open').resolves('item');
+      assert.strictEqual(
+        await openIssueishItem('https://github.com/atom/github/issues/2203', {
+          workspace: atomEnv.workspace, workdir: __dirname,
+        }),
+        'item',
+      );
+      assert.isTrue(atomEnv.workspace.open.calledWith(
+        IssueishDetailItem.buildURI({
+          host: 'github.com', owner: 'atom', repo: 'github', number: 2203, workdir: __dirname,
+        }),
+      ));
+    });
+
+    it('opens an item for a valid PR URL', async function() {
+      sinon.stub(atomEnv.workspace, 'open').resolves('item');
+      assert.strictEqual(
+        await openIssueishItem('https://github.com/smashwilson/az-coordinator/pull/10', {
+          workspace: atomEnv.workspace, workdir: __dirname,
+        }),
+        'item',
+      );
+      assert.isTrue(atomEnv.workspace.open.calledWith(
+        IssueishDetailItem.buildURI({
+          host: 'github.com', owner: 'smashwilson', repo: 'az-coordinator', number: 10, workdir: __dirname,
+        }),
+      ));
+    });
+
+    it('rejects with an error for an invalid URL', async function() {
+      await assert.isRejected(
+        openIssueishItem('https://azurefire.net/not-an-issue', {workspace: atomEnv.workspace, workdir: __dirname}),
+        'Not a valid issue or pull request URL',
+      );
+    });
   });
 });

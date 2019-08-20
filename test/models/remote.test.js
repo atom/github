@@ -4,11 +4,13 @@ describe('Remote', function() {
   it('detects and extracts information from GitHub repository URLs', function() {
     const urls = [
       ['git@github.com:atom/github.git', 'ssh'],
+      ['git@github.com:/atom/github.git', 'ssh'],
       ['https://github.com/atom/github.git', 'https'],
       ['https://git:pass@github.com/atom/github.git', 'https'],
       ['ssh+https://github.com/atom/github.git', 'ssh+https'],
       ['git://github.com/atom/github', 'git'],
       ['ssh://git@github.com:atom/github.git', 'ssh'],
+      ['ssh://git@github.com:/atom/github.git', 'ssh'],
     ];
 
     for (const [url, proto] of urls) {
@@ -73,5 +75,18 @@ describe('Remote', function() {
     assert.isNull(nullRemote.getRepo());
     assert.isNull(nullRemote.getSlug());
     assert.strictEqual(nullRemote.getNameOr('else'), 'else');
+    assert.isNull(nullRemote.getEndpoint());
+  });
+
+  describe('getEndpoint', function() {
+    it('accesses an Endpoint for the corresponding GitHub host', function() {
+      const remote = new Remote('origin', 'git@github.com:atom/github.git');
+      assert.strictEqual(remote.getEndpoint().getGraphQLRoot(), 'https://api.github.com/graphql');
+    });
+
+    it('returns null for non-GitHub URLs', function() {
+      const elsewhere = new Remote('mirror', 'https://me@bitbucket.org/team/repo.git');
+      assert.isNull(elsewhere.getEndpoint());
+    });
   });
 });

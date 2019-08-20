@@ -1,97 +1,133 @@
 import React from 'react';
-import {mount} from 'enzyme';
+import {shallow} from 'enzyme';
 
-import OpenCommitDialog from '../../lib/views/open-commit-dialog';
+import OpenCommitDialog, {openCommitDetailItem} from '../../lib/views/open-commit-dialog';
+import {dialogRequests} from '../../lib/controllers/dialogs-controller';
+import CommitDetailItem from '../../lib/items/commit-detail-item';
+import {GitError} from '../../lib/git-shell-out-strategy';
+import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('OpenCommitDialog', function() {
-  let atomEnv, commandRegistry;
-  let app, wrapper, didAccept, didCancel, isValidEntry;
+  let atomEnv;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
-    commandRegistry = atomEnv.commands;
-
-    didAccept = sinon.stub();
-    didCancel = sinon.stub();
-    isValidEntry = sinon.stub().returns(true);
-
-    app = (
-      <OpenCommitDialog
-        commandRegistry={commandRegistry}
-        didAccept={didAccept}
-        didCancel={didCancel}
-        isValidEntry={isValidEntry}
-      />
-    );
-    wrapper = mount(app);
   });
 
   afterEach(function() {
     atomEnv.destroy();
   });
 
-  const setTextIn = function(selector, text) {
-    wrapper.find(selector).getDOMNode().getModel().setText(text);
-  };
+  function isValidRef(ref) {
+    return Promise.resolve(ref === 'abcd1234');
+  }
 
-  describe('entering a commit sha', function() {
-    it("updates the commit ref automatically if it hasn't been modified", function() {
-      setTextIn('.github-CommitRef atom-text-editor', 'asdf1234');
+  function buildApp(overrides = {}) {
+    const request = dialogRequests.commit();
 
-      assert.equal(wrapper.instance().getCommitRef(), 'asdf1234');
-    });
+    return (
+      <OpenCommitDialog
+        request={request}
+        isValidRef={isValidRef}
+        commands={atomEnv.commands}
+        {...overrides}
+      />
+    );
+  }
 
-    it('does update the ref if it was modified automatically', function() {
-      setTextIn('.github-CommitRef atom-text-editor', 'asdf1234');
-      assert.equal(wrapper.instance().getCommitRef(), 'asdf1234');
-
-      setTextIn('.github-CommitRef atom-text-editor', 'zxcv5678');
-      assert.equal(wrapper.instance().getCommitRef(), 'zxcv5678');
-    });
-  });
-
-  describe('open button enablement and error state', function() {
+  describe('open button enablement', function() {
     it('disables the open button with no commit ref', function() {
-      setTextIn('.github-CommitRef atom-text-editor', '');
-      wrapper.update();
+      const wrapper = shallow(buildApp());
 
-      assert.isTrue(wrapper.find('button.icon-commit').prop('disabled'));
-      assert.isFalse(wrapper.find('.error').exists());
+      assert.isFalse(wrapper.find('DialogView').prop('acceptEnabled'));
     });
 
-    it('disables the open button when the commit does not exist in repo', async function() {
-      isValidEntry.returns(false);
-      const ref = 'abcd1234';
-      setTextIn('.github-CommitRef atom-text-editor', ref);
-      wrapper.find('button.icon-commit').simulate('click');
+    it('enables the open button when commit sha box is populated', function() {
+      const wrapper = shallow(buildApp());
+      wrapper.find('AtomTextEditor').prop('buffer').setText('abcd1234');
 
-      await assert.async.strictEqual(wrapper.update().find('.error').text(), `There is no commit associated with "${ref}" in this repository`);
-      assert.isTrue(wrapper.find('button.icon-commit').prop('disabled'));
-    });
-
-    it('enables the open button when commit sha box is populated with a valid sha', function() {
-      setTextIn('.github-CommitRef atom-text-editor', 'abcd1234');
-      wrapper.update();
-
-      assert.isFalse(wrapper.find('button.icon-commit').prop('disabled'));
-      assert.isFalse(wrapper.find('.error').exists());
+      assert.isTrue(wrapper.find('DialogView').prop('acceptEnabled'));
     });
   });
 
-  it('calls the acceptance callback after validation', async function() {
-    isValidEntry.returns(true);
-    const ref = 'abcd1234';
-    setTextIn('.github-CommitRef atom-text-editor', ref);
+  it('calls the acceptance callback with the entered ref', function() {
+    const accept = sinon.spy();
+    const request = dialogRequests.commit();
+    request.onAccept(accept);
 
-    wrapper.find('button.icon-commit').simulate('click');
+    const wrapper = shallow(buildApp({request}));
+    wrapper.find('AtomTextEditor').prop('buffer').setText('abcd1234');
+    wrapper.find('DialogView').prop('accept')();
 
-    await assert.async.isTrue(didAccept.calledWith({ref}));
+    assert.isTrue(accept.calledWith('abcd1234'));
     wrapper.unmount();
   });
 
   it('calls the cancellation callback', function() {
-    wrapper.find('button.github-CancelButton').simulate('click');
-    assert.isTrue(didCancel.called);
-    wrapper.unmount();
+    const cancel = sinon.spy();
+    const request = dialogRequests.commit();
+    request.onCancel(cancel);
+
+    const wrapper = shallow(buildApp({request}));
+
+    wrapper.find('DialogView').prop('cancel')();
+    assert.isTrue(cancel.called);
+  });
+
+  describe('openCommitDetailItem()', function() {
+    let repository;
+
+    beforeEach(function() {
+      sinon.stub(atomEnv.workspace, 'open').resolves('item');
+      sinon.stub(reporterProxy, 'addEvent');
+
+      repository = {
+        getWorkingDirectoryPath() {
+          return __dirname;
+        },
+        getCommit(ref) {
+          if (ref === 'abcd1234') {
+            return Promise.resolve('ok');
+          }
+
+          if (ref === 'bad') {
+            const e = new GitError('bad ref');
+            e.code = 128;
+            return Promise.reject(e);
+          }
+
+          return Promise.reject(new GitError('other error'));
+        },
+      };
+    });
+
+    it('opens a CommitDetailItem with the chosen valid ref and records an event', async function() {
+      assert.strictEqual(await openCommitDetailItem('abcd1234', {workspace: atomEnv.workspace, repository}), 'item');
+      assert.isTrue(atomEnv.workspace.open.calledWith(
+        CommitDetailItem.buildURI(__dirname, 'abcd1234'),
+        {searchAllPanes: true},
+      ));
+      assert.isTrue(reporterProxy.addEvent.calledWith(
+        'open-commit-in-pane',
+        {package: 'github', from: OpenCommitDialog.name},
+      ));
+    });
+
+    it('raises a friendly error if the ref is invalid', async function() {
+      const e = await openCommitDetailItem('bad', {workspace: atomEnv.workspace, repository}).then(
+        () => { throw new Error('unexpected success'); },
+        error => error,
+      );
+      assert.strictEqual(e.userMessage, 'There is no commit associated with that reference.');
+    });
+
+    it('passes other errors through directly', async function() {
+      const e = await openCommitDetailItem('nope', {workspace: atomEnv.workspace, repository}).then(
+        () => { throw new Error('unexpected success'); },
+        error => error,
+      );
+      assert.isUndefined(e.userMessage);
+      assert.strictEqual(e.message, 'other error');
+    });
   });
 });

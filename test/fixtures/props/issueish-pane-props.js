@@ -2,8 +2,11 @@ import GithubLoginModel from '../../../lib/models/github-login-model';
 import WorkdirContextPool from '../../../lib/models/workdir-context-pool';
 import BranchSet from '../../../lib/models/branch-set';
 import RemoteSet from '../../../lib/models/remote-set';
+import {getEndpoint} from '../../../lib/models/endpoint';
+import RefHolder from '../../../lib/models/ref-holder';
 import {InMemoryStrategy} from '../../../lib/shared/keytar-strategy';
 import EnableableOperation from '../../../lib/models/enableable-operation';
+import IssueishDetailItem from '../../../lib/items/issueish-detail-item';
 
 export function issueishPaneItemProps(overrides = {}) {
   return {
@@ -15,7 +18,7 @@ export function issueishPaneItemProps(overrides = {}) {
 
 export function issueishDetailContainerProps(overrides = {}) {
   return {
-    host: 'https://api.github.com',
+    endpoint: getEndpoint('github.com'),
     owner: 'owner',
     repo: 'repo',
     issueishNumber: 1,
@@ -24,6 +27,15 @@ export function issueishDetailContainerProps(overrides = {}) {
 
     switchToIssueish: () => {},
     onTitleChange: () => {},
+
+    workspace: {},
+    commands: {},
+    keymaps: {},
+    tooltips: {},
+    config: {},
+    destroy: () => {},
+
+    itemType: IssueishDetailItem,
 
     ...overrides,
   };
@@ -84,6 +96,7 @@ export function pullRequestDetailViewProps(opts, overrides = {}) {
     pullRequestTitle: 'title',
     pullRequestBodyHTML: '<p>body</p>',
     pullRequestBaseRef: 'master',
+    includeAuthor: true,
     pullRequestAuthorLogin: 'author',
     pullRequestAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/000?v=4',
     issueishNumber: 1,
@@ -95,6 +108,7 @@ export function pullRequestDetailViewProps(opts, overrides = {}) {
     pullRequestCommitCount: 0,
     pullRequestChangedFileCount: 0,
     pullRequestCrossRepository: false,
+    pullRequestToken: '1234',
 
     relayRefetch: () => {},
     ...opts,
@@ -109,7 +123,7 @@ export function pullRequestDetailViewProps(opts, overrides = {}) {
     };
   };
 
-  return {
+  const props = {
     relay: {
       refetch: o.relayRefetch,
     },
@@ -145,19 +159,51 @@ export function pullRequestDetailViewProps(opts, overrides = {}) {
         url: `https://github.com/${o.pullRequestHeadRepoOwner}/${o.pullRequestHeadRepoName}`,
         sshUrl: `git@github.com:${o.pullRequestHeadRepoOwner}/${o.pullRequestHeadRepoName}.git`,
       },
-      author: {
-        login: o.pullRequestAuthorLogin,
-        avatarUrl: o.pullRequestAuthorAvatarURL,
-        url: `https://github.com/${o.pullRequestAuthorLogin}`,
-      },
+      author: null,
       reactionGroups: o.pullRequestReactions.map(buildReaction),
     },
 
     checkoutOp: new EnableableOperation(() => {}),
+
+    // function props
     switchToIssueish: () => {},
+    destroy: () => {},
+    openCommit: () => {},
+    openReviews: () => {},
+
+    // atom env props
+    workspace: {},
+    commands: {},
+    keymaps: {},
+    tooltips: {},
+    config: {},
+
+    localRepository: {},
+    token: o.pullRequestToken,
+    endpoint: {
+      getGraphQLRoot: () => {},
+      getRestRoot: () => {},
+      getRestURI: () => {},
+    },
+
+    itemType: IssueishDetailItem,
+    selectedTab: 0,
+    onTabSelected: () => {},
+    onOpenFilesTab: () => {},
+    refEditor: new RefHolder(),
 
     ...overrides,
   };
+
+  if (o.includeAuthor) {
+    props.pullRequest.author = {
+      login: o.pullRequestAuthorLogin,
+      avatarUrl: o.pullRequestAuthorAvatarURL,
+      url: `https://github.com/${o.pullRequestAuthorLogin}`,
+    };
+  }
+
+  return props;
 }
 
 export function issueDetailViewProps(opts, overrides = {}) {
@@ -169,6 +215,7 @@ export function issueDetailViewProps(opts, overrides = {}) {
     issueTitle: 'title',
     issueBodyHTML: '<p>body</p>',
     issueBaseRef: 'master',
+    includeAuthor: true,
     issueAuthorLogin: 'author',
     issueAuthorAvatarURL: 'https://avatars3.githubusercontent.com/u/000?v=4',
     issueishNumber: 1,
@@ -191,7 +238,7 @@ export function issueDetailViewProps(opts, overrides = {}) {
     };
   };
 
-  return {
+  const props = {
     relay: {
       refetch: o.relayRefetch,
     },
@@ -220,16 +267,23 @@ export function issueDetailViewProps(opts, overrides = {}) {
         url: `https://github.com/${o.issueHeadRepoOwner}/${o.issueHeadRepoName}`,
         sshUrl: `git@github.com:${o.issueHeadRepoOwner}/${o.issueHeadRepoName}.git`,
       },
-      author: {
-        login: o.issueAuthorLogin,
-        avatarUrl: o.issueAuthorAvatarURL,
-        url: `https://github.com/${o.issueAuthorLogin}`,
-      },
+      author: null,
       reactionGroups: o.issueReactions.map(buildReaction),
     },
 
     switchToIssueish: () => {},
+    reportRelayError: () => {},
 
     ...overrides,
   };
+
+  if (o.includeAuthor) {
+    props.issue.author = {
+      login: o.issueAuthorLogin,
+      avatarUrl: o.issueAuthorAvatarURL,
+      url: `https://github.com/${o.issueAuthorLogin}`,
+    };
+  }
+
+  return props;
 }

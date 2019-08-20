@@ -5,6 +5,7 @@ import {shell} from 'electron';
 import BranchSet from '../../lib/models/branch-set';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import Remote from '../../lib/models/remote';
+import {getEndpoint} from '../../lib/models/endpoint';
 import {nullOperationStateObserver} from '../../lib/models/operation-state-observer';
 import RemoteController from '../../lib/controllers/remote-controller';
 import * as reporterProxy from '../../lib/reporter-proxy';
@@ -30,7 +31,7 @@ describe('RemoteController', function() {
 
     return (
       <RemoteController
-        host="https://api.github.com"
+        endpoint={getEndpoint('github.com')}
         token="1234"
 
         repository={null}
@@ -80,7 +81,7 @@ describe('RemoteController', function() {
 
     const controller = wrapper.update().find('IssueishSearchesController');
     assert.strictEqual(controller.prop('token'), '1234');
-    assert.strictEqual(controller.prop('host'), 'https://api.github.com');
+    assert.strictEqual(controller.prop('endpoint').getHost(), 'github.com');
     assert.strictEqual(controller.prop('remote'), remote);
     assert.strictEqual(controller.prop('branches'), branchSet);
   });

@@ -16,7 +16,7 @@ describe('RecentCommitsView', function() {
         commits={[]}
         isLoading={false}
         selectedCommitSha=""
-        commandRegistry={atomEnv.commands}
+        commands={atomEnv.commands}
         undoLastCommit={() => { }}
         openCommit={() => { }}
         selectNextCommit={() => { }}

@@ -8,7 +8,7 @@ import {fileExists, getTempDir} from '../lib/helpers';
 import GithubPackage from '../lib/github-package';
 
 describe('GithubPackage', function() {
-  let atomEnv, workspace, project, commandRegistry, notificationManager, grammars, config, keymaps;
+  let atomEnv, workspace, project, commands, notificationManager, grammars, config, keymaps;
   let confirm, tooltips, styles;
   let getLoadSettings, configDirPath, deserializers;
   let githubPackage, contextPool;
@@ -19,7 +19,7 @@ describe('GithubPackage', function() {
 
     workspace = atomEnv.workspace;
     project = atomEnv.project;
-    commandRegistry = atomEnv.commands;
+    commands = atomEnv.commands;
     deserializers = atomEnv.deserializers;
     notificationManager = atomEnv.notifications;
     tooltips = atomEnv.tooltips;
@@ -32,7 +32,7 @@ describe('GithubPackage', function() {
     configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
 
     githubPackage = new GithubPackage({
-      workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars,
+      workspace, project, commands, notificationManager, tooltips, styles, grammars,
       keymaps, config, deserializers,
       confirm, getLoadSettings,
       configDirPath,
@@ -76,7 +76,7 @@ describe('GithubPackage', function() {
       const getLoadSettings1 = () => ({initialPaths});
 
       githubPackage1 = new GithubPackage({
-        workspace, project, commandRegistry, notificationManager, tooltips, styles, grammars, keymaps,
+        workspace, project, commands, notificationManager, tooltips, styles, grammars, keymaps,
         config, deserializers, confirm, getLoadSettings: getLoadSettings1,
         configDirPath,
       });
@@ -501,7 +501,7 @@ describe('GithubPackage', function() {
       project.setPaths([workdir1]);
 
       await workspace.open(path.join(workdir0, 'a.txt'));
-      commandRegistry.dispatch(atomEnv.views.getView(workspace), 'tree-view:toggle-focus');
+      commands.dispatch(atomEnv.views.getView(workspace), 'tree-view:toggle-focus');
       workspace.getLeftDock().activate();
 
       await githubPackage.scheduleActiveContextUpdate();
@@ -682,7 +682,7 @@ describe('GithubPackage', function() {
     });
   });
 
-  describe('createRepositoryForProjectPath()', function() {
+  describe('initialize', function() {
     it('creates and sets a repository for the given project path', async function() {
       const nonRepositoryPath = await getTempDir();
       project.setPaths([nonRepositoryPath]);
@@ -693,7 +693,7 @@ describe('GithubPackage', function() {
       assert.isTrue(githubPackage.getActiveRepository().isEmpty());
       assert.isFalse(githubPackage.getActiveRepository().isAbsent());
 
-      await githubPackage.createRepositoryForProjectPath(nonRepositoryPath);
+      await githubPackage.initialize(nonRepositoryPath);
 
       assert.isTrue(githubPackage.getActiveRepository().isPresent());
       assert.strictEqual(

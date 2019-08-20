@@ -6,8 +6,8 @@ import {BareCommitsView} from '../../../lib/views/timeline-items/commits-view';
 describe('CommitsView', function() {
   it('renders a header with one user name', function() {
     const nodes = [
-      {id: 1, author: {name: 'FirstName', user: {login: 'FirstLogin'}}},
-      {id: 2, author: {name: null, user: null}},
+      {commit: {id: 1, author: {name: 'FirstName', user: {login: 'FirstLogin'}}}},
+      {commit: {id: 2, author: {name: null, user: null}}},
     ];
     const app = <BareCommitsView nodes={nodes} />;
     const instance = shallow(app);
@@ -16,8 +16,8 @@ describe('CommitsView', function() {
 
   it('renders a header with two user names', function() {
     const nodes = [
-      {id: 1, author: {name: 'FirstName', user: {login: 'FirstLogin'}}},
-      {id: 2, author: {name: 'SecondName', user: {login: 'SecondLogin'}}},
+      {commit: {id: 1, author: {name: 'FirstName', user: {login: 'FirstLogin'}}}},
+      {commit: {id: 2, author: {name: 'SecondName', user: {login: 'SecondLogin'}}}},
     ];
     const app = <BareCommitsView nodes={nodes} />;
     const instance = shallow(app);
@@ -26,9 +26,9 @@ describe('CommitsView', function() {
 
   it('renders a header with more than two user names', function() {
     const nodes = [
-      {id: 1, author: {name: 'FirstName', user: {login: 'FirstLogin'}}},
-      {id: 2, author: {name: 'SecondName', user: {login: 'SecondLogin'}}},
-      {id: 2, author: {name: 'ThirdName', user: {login: 'ThirdLogin'}}},
+      {commit: {id: 1, author: {name: 'FirstName', user: {login: 'FirstLogin'}}}},
+      {commit: {id: 2, author: {name: 'SecondName', user: {login: 'SecondLogin'}}}},
+      {commit: {id: 3, author: {name: 'ThirdName', user: {login: 'ThirdLogin'}}}},
     ];
     const app = <BareCommitsView nodes={nodes} />;
     const instance = shallow(app);
@@ -37,8 +37,8 @@ describe('CommitsView', function() {
 
   it('prefers displaying usernames from user.login', function() {
     const nodes = [
-      {id: 1, author: {name: 'FirstName', user: {login: 'FirstLogin'}}},
-      {id: 2, author: {name: 'SecondName', user: null}},
+      {commit: {id: 1, author: {name: 'FirstName', user: {login: 'FirstLogin'}}}},
+      {commit: {id: 2, author: {name: 'SecondName', user: null}}},
     ];
     const app = <BareCommitsView nodes={nodes} />;
     const instance = shallow(app);
@@ -47,8 +47,8 @@ describe('CommitsView', function() {
 
   it('falls back to generic text if there are no names', function() {
     const nodes = [
-      {id: 1, author: {name: null, user: null}},
-      {id: 2, author: {name: null, user: null}},
+      {commit: {id: 1, author: {name: null, user: null}}},
+      {commit: {id: 2, author: {name: null, user: null}}},
     ];
     const app = <BareCommitsView nodes={nodes} />;
     const instance = shallow(app);
@@ -57,7 +57,7 @@ describe('CommitsView', function() {
 
   it('only renders the header if there are multiple commits', function() {
     const nodes = [
-      {id: 1, author: {name: 'FirstName', user: null}},
+      {commit: {id: 1, author: {name: 'FirstName', user: null}}},
     ];
     const app = <BareCommitsView nodes={nodes} />;
     const instance = shallow(app);

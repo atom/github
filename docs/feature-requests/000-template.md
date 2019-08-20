@@ -6,10 +6,6 @@ For community contributors -- Please fill out Part 1 of the following template. 
 
 # Feature title
 
-## :tipping_hand_woman: Status
-
-Proposed
-
 ## :memo: Summary
 
 One paragraph explanation of the feature.

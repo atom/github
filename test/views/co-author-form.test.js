@@ -16,7 +16,7 @@ describe('CoAuthorForm', function() {
 
     app = (
       <CoAuthorForm
-        commandRegistry={atomEnv.commands}
+        commands={atomEnv.commands}
         onSubmit={didSubmit}
         onCancel={didCancel}
       />

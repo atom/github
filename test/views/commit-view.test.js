@@ -15,13 +15,13 @@ import StagingView from '../../lib/views/staging-view';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('CommitView', function() {
-  let atomEnv, commandRegistry, tooltips, config, lastCommit;
+  let atomEnv, commands, tooltips, config, lastCommit;
   let messageBuffer;
   let app;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
-    commandRegistry = atomEnv.commands;
+    commands = atomEnv.commands;
     tooltips = atomEnv.tooltips;
     config = atomEnv.config;
 
@@ -35,7 +35,7 @@ describe('CommitView', function() {
     app = (
       <CommitView
         workspace={atomEnv.workspace}
-        commandRegistry={commandRegistry}
+        commands={commands}
         tooltips={tooltips}
         config={config}
         lastCommit={lastCommit}
@@ -284,12 +284,12 @@ describe('CommitView', function() {
         await assert.async.isTrue(commit.calledWith('Something'));
 
         // undo history is cleared
-        commandRegistry.dispatch(editorElement, 'core:undo');
+        commands.dispatch(editorElement, 'core:undo');
         assert.equal(editor.getText(), '');
       });
 
       it('calls props.commit(message) when github:commit is dispatched', async function() {
-        commandRegistry.dispatch(workspaceElement, 'github:commit');
+        commands.dispatch(workspaceElement, 'github:commit');
 
         await assert.async.isTrue(commit.calledWith('Something'));
       });
@@ -308,7 +308,7 @@ describe('CommitView', function() {
       });
 
       it('takes no further action when github:commit is dispatched', async function() {
-        commandRegistry.dispatch(workspaceElement, 'github:commit');
+        commands.dispatch(workspaceElement, 'github:commit');
 
         await assert.async.isTrue(editorElement.focus.called);
         assert.isFalse(commit.called);

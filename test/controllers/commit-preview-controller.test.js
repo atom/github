@@ -21,7 +21,7 @@ describe('CommitPreviewController', function() {
     const props = {
       repository,
       stagingStatus: 'unstaged',
-      multiFilePatch: new MultiFilePatch({}),
+      multiFilePatch: MultiFilePatch.createNull(),
 
       workspace: atomEnv.workspace,
       commands: atomEnv.commands,

@@ -41,6 +41,7 @@ describe('snapshot generation', function() {
         if (requiredModuleRelativePath.endsWith(path.join('node_modules/temp/lib/temp.js'))) { return true; }
         if (requiredModuleRelativePath.endsWith(path.join('node_modules/graceful-fs/graceful-fs.js'))) { return true; }
         if (requiredModuleRelativePath.endsWith(path.join('node_modules/fs-extra/lib/index.js'))) { return true; }
+        if (requiredModuleRelativePath.endsWith(path.join('node_modules/superstring/index.js'))) { return true; }
 
         return false;
       },

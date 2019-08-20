@@ -1,11 +1,14 @@
 import React from 'react';
 import {shallow} from 'enzyme';
+import {shell} from 'electron';
 
 import {createPullRequestResult} from '../fixtures/factories/pull-request-result';
 import Issueish from '../../lib/models/issueish';
 import {BareIssueishListController} from '../../lib/controllers/issueish-list-controller';
+import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('IssueishListController', function() {
+
   function buildApp(overrideProps = {}) {
     return (
       <BareIssueishListController
@@ -81,4 +84,41 @@ describe('IssueishListController', function() {
     assert.strictEqual(view.prop('total'), 5);
     assert.deepEqual(view.prop('issueishes').map(issueish => issueish.getNumber()), [11, 13, 12]);
   });
+
+  describe('openOnGitHub', function() {
+    const url = 'https://github.com/atom/github/pull/2084';
+
+    it('calls shell.openExternal with specified url', async function() {
+      const wrapper = shallow(buildApp());
+      sinon.stub(shell, 'openExternal').callsArg(2);
+
+      await wrapper.instance().openOnGitHub(url);
+      assert.isTrue(shell.openExternal.calledWith(url));
+    });
+
+    it('fires `open-issueish-in-browser` event upon success', async function() {
+      const wrapper = shallow(buildApp());
+      sinon.stub(shell, 'openExternal').callsArg(2);
+      sinon.stub(reporterProxy, 'addEvent');
+
+      await wrapper.instance().openOnGitHub(url);
+      assert.strictEqual(reporterProxy.addEvent.callCount, 1);
+
+      await assert.isTrue(reporterProxy.addEvent.calledWith('open-issueish-in-browser', {package: 'github', component: 'BareIssueishListController'}));
+    });
+
+    it('handles error when openOnGitHub fails', async function() {
+      const wrapper = shallow(buildApp());
+      sinon.stub(shell, 'openExternal').callsArgWith(2, new Error('oh noes'));
+      sinon.stub(reporterProxy, 'addEvent');
+
+      try {
+        await wrapper.instance().openOnGitHub(url);
+      } catch (err) {
+        assert.strictEqual(err.message, 'oh noes');
+      }
+      assert.strictEqual(reporterProxy.addEvent.callCount, 0);
+    });
+  });
+
 });

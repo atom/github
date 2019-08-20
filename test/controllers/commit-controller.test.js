@@ -6,21 +6,20 @@ import {shallow, mount} from 'enzyme';
 import Commit from '../../lib/models/commit';
 import {nullBranch} from '../../lib/models/branch';
 import UserStore from '../../lib/models/user-store';
-import URIPattern from '../../lib/atom/uri-pattern';
 
 import CommitController, {COMMIT_GRAMMAR_SCOPE} from '../../lib/controllers/commit-controller';
 import CommitPreviewItem from '../../lib/items/commit-preview-item';
-import {cloneRepository, buildRepository, buildRepositoryWithPipeline} from '../helpers';
+import {cloneRepository, buildRepository, buildRepositoryWithPipeline, registerGitHubOpener} from '../helpers';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('CommitController', function() {
-  let atomEnvironment, workspace, commandRegistry, notificationManager, lastCommit, config, confirm, tooltips;
+  let atomEnvironment, workspace, commands, notificationManager, lastCommit, config, confirm, tooltips;
   let app;
 
   beforeEach(function() {
     atomEnvironment = global.buildAtomEnvironment();
     workspace = atomEnvironment.workspace;
-    commandRegistry = atomEnvironment.commands;
+    commands = atomEnvironment.commands;
     notificationManager = atomEnvironment.notifications;
     config = atomEnvironment.config;
     tooltips = atomEnvironment.tooltips;
@@ -30,28 +29,13 @@ describe('CommitController', function() {
     const noop = () => { };
     const store = new UserStore({config});
 
-    // Ensure the Workspace doesn't mangle atom-github://... URIs.
-    // If you don't have an opener registered for a non-standard URI protocol, the Workspace coerces it into a file URI
-    // and tries to open it with a TextEditor. In the process, the URI gets mangled:
-    //
-    // atom.workspace.open('atom-github://unknown/whatever').then(item => console.log(item.getURI()))
-    // > 'atom-github:/unknown/whatever'
-    //
-    // Adding an opener that creates fake items prevents it from doing this and keeps the URIs unchanged.
-    const pattern = new URIPattern(CommitPreviewItem.uriPattern);
-    workspace.addOpener(uri => {
-      if (pattern.matches(uri).ok()) {
-        return {getURI() { return uri; }};
-      } else {
-        return undefined;
-      }
-    });
+    registerGitHubOpener(atomEnvironment);
 
     app = (
       <CommitController
         workspace={workspace}
         grammars={atomEnvironment.grammars}
-        commandRegistry={commandRegistry}
+        commands={commands}
         tooltips={tooltips}
         config={config}
         notificationManager={notificationManager}

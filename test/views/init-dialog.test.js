@@ -1,69 +1,70 @@
 import React from 'react';
-import {mount} from 'enzyme';
+import {shallow} from 'enzyme';
 import path from 'path';
 
 import InitDialog from '../../lib/views/init-dialog';
+import {dialogRequests} from '../../lib/controllers/dialogs-controller';
 
 describe('InitDialog', function() {
-  let atomEnv, config, commandRegistry;
-  let app, wrapper, didAccept, didCancel;
+  let atomEnv;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
-    config = atomEnv.config;
-    commandRegistry = atomEnv.commands;
-    sinon.stub(config, 'get').returns(path.join('home', 'me', 'codes'));
-
-    didAccept = sinon.stub();
-    didCancel = sinon.stub();
-
-    app = (
-      <InitDialog
-        config={config}
-        commandRegistry={commandRegistry}
-        didAccept={didAccept}
-        didCancel={didCancel}
-      />
-    );
-    wrapper = mount(app);
   });
 
   afterEach(function() {
     atomEnv.destroy();
   });
 
-  const setTextIn = function(selector, text) {
-    wrapper.find(selector).getDOMNode().getModel().setText(text);
-    wrapper.update();
-  };
+  function buildApp(overrides = {}) {
+    return (
+      <InitDialog
+        workspace={atomEnv.workspace}
+        commands={atomEnv.commands}
+        request={dialogRequests.init({dirPath: __dirname})}
+        inProgress={false}
+        {...overrides}
+      />
+    );
+  }
 
-  it('defaults to your project home path', function() {
-    const text = wrapper.find('atom-text-editor').getDOMNode().getModel().getText();
-    assert.equal(text, path.join('home', 'me', 'codes'));
+  it('defaults the destination directory to the dirPath parameter', function() {
+    const wrapper = shallow(buildApp({
+      request: dialogRequests.init({dirPath: path.join('/home/me/src')}),
+    }));
+    assert.strictEqual(wrapper.find('AtomTextEditor').prop('buffer').getText(), path.join('/home/me/src'));
   });
 
-  it('disables the initialize button with no project path', function() {
-    setTextIn('.github-ProjectPath atom-text-editor', '');
+  it('disables the initialize button when the project path is empty', function() {
+    const wrapper = shallow(buildApp({}));
 
-    assert.isTrue(wrapper.find('button.icon-repo-create').prop('disabled'));
+    assert.isTrue(wrapper.find('DialogView').prop('acceptEnabled'));
+    wrapper.find('AtomTextEditor').prop('buffer').setText('');
+    assert.isFalse(wrapper.find('DialogView').prop('acceptEnabled'));
+    wrapper.find('AtomTextEditor').prop('buffer').setText('/some/path');
+    assert.isTrue(wrapper.find('DialogView').prop('acceptEnabled'));
   });
 
-  it('enables the initialize button when the project path is populated', function() {
-    setTextIn('.github-ProjectPath atom-text-editor', path.join('somewhere', 'else'));
+  it('calls the request accept method with the chosen path', function() {
+    const accept = sinon.spy();
+    const request = dialogRequests.init({dirPath: __dirname});
+    request.onAccept(accept);
 
-    assert.isFalse(wrapper.find('button.icon-repo-create').prop('disabled'));
+    const wrapper = shallow(buildApp({request}));
+    wrapper.find('AtomTextEditor').prop('buffer').setText('/some/path');
+    wrapper.find('DialogView').prop('accept')();
+
+    assert.isTrue(accept.calledWith('/some/path'));
   });
 
-  it('calls the acceptance callback', function() {
-    setTextIn('.github-ProjectPath atom-text-editor', '/somewhere/directory/');
+  it('calls the request cancel callback', function() {
+    const cancel = sinon.spy();
+    const request = dialogRequests.init({dirPath: __dirname});
+    request.onCancel(cancel);
 
-    wrapper.find('button.icon-repo-create').simulate('click');
+    const wrapper = shallow(buildApp({request}));
 
-    assert.isTrue(didAccept.calledWith('/somewhere/directory/'));
-  });
-
-  it('calls the cancellation callback', function() {
-    wrapper.find('button.github-CancelButton').simulate('click');
-    assert.isTrue(didCancel.called);
+    wrapper.find('DialogView').prop('cancel')();
+    assert.isTrue(cancel.called);
   });
 });
