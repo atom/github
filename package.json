@@ -52,7 +52,7 @@
     "classnames": "2.2.6",
     "compare-sets": "1.0.1",
     "dompurify": "1.0.10",
-    "dugite": "1.87.0",
+    "dugite": "1.87.2",
     "event-kit": "2.5.3",
     "fs-extra": "4.0.3",
     "graphql": "14.3.1",
