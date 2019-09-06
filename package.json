@@ -107,7 +107,7 @@
     "nyc": "14.1.1",
     "relay-compiler": "5.0.0",
     "semver": "6.3.0",
-    "sinon": "7.4.1",
+    "sinon": "7.4.2",
     "test-until": "1.1.1"
   },
   "consumedServices": {
