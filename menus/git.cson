@@ -140,3 +140,13 @@
       'command': 'github:amend-last-commit'
     }
   ]
+  '.github-RecentCommit': [
+    {
+      'label': 'Copy Commit SHA'
+      'command': 'github:copy-commit-sha'
+    }
+    {
+      'label': 'Copy Commit Subject'
+      'command': 'github:copy-commit-subject'
+    }
+  ]
