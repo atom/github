@@ -14,6 +14,7 @@ describe('RecentCommitsView', function() {
     app = (
       <RecentCommitsView
         commits={[]}
+        clipboard={{}}
         isLoading={false}
         selectedCommitSha=""
         commands={atomEnv.commands}
@@ -218,6 +219,36 @@ describe('RecentCommitsView', function() {
     it('returns null from unrecognized previous focuses', async function() {
       assert.isNull(await instance.advanceFocusFrom(CommitView.firstFocus));
       assert.isNull(await instance.retreatFocusFrom(CommitView.firstFocus));
+    });
+  });
+
+  describe('copying details of a commit', function() {
+    let wrapper;
+    let clipboard;
+
+    beforeEach(function() {
+      const commits = [
+        commitBuilder().sha('0000').messageSubject('subject 0').build(),
+        commitBuilder().sha('1111').messageSubject('subject 1').build(),
+        commitBuilder().sha('2222').messageSubject('subject 2').build(),
+      ];
+      clipboard = {write: sinon.spy()};
+      app = React.cloneElement(app, {commits, clipboard});
+      wrapper = mount(app);
+    });
+
+    it('copies the commit sha on github:copy-commit-sha', function() {
+      const commitNode = wrapper.find('.github-RecentCommit').at(1).getDOMNode();
+      atomEnv.commands.dispatch(commitNode, 'github:copy-commit-sha');
+      assert.isTrue(clipboard.write.called);
+      assert.isTrue(clipboard.write.calledWith('1111'));
+    });
+
+    it('copies the commit subject on github:copy-commit-subject', function() {
+      const commitNode = wrapper.find('.github-RecentCommit').at(1).getDOMNode();
+      atomEnv.commands.dispatch(commitNode, 'github:copy-commit-subject');
+      assert.isTrue(clipboard.write.called);
+      assert.isTrue(clipboard.write.calledWith('subject 1'));
     });
   });
 });

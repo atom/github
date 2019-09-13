@@ -45,6 +45,12 @@ describe('RecentCommitsController', function() {
     assert.isTrue(wrapper.find('RecentCommitsView').prop('isLoading'));
   });
 
+  it('passes the clipboard to the RecentCommitsView', function() {
+    app = React.cloneElement(app);
+    const wrapper = shallow(app);
+    assert.deepEqual(wrapper.find('RecentCommitsView').prop('clipboard'), atom.clipboard);
+  });
+
   describe('openCommit({sha, preserveFocus})', function() {
     it('opens a commit detail item', async function() {
       sinon.stub(atomEnv.workspace, 'open').resolves();
