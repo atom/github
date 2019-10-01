@@ -1,4 +1,10 @@
-on: pull_request
+on:
+  pull_request:
+    types:
+    - opened
+    - merged
+    - assigned
+    - reopened
 name: Core team pull requests
 jobs:
   considerPullRequestForReleaseBoard:
@@ -6,10 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
-    - name: Consider pull request for release board
-      uses: actions/bin/filter@master
-      with:
-        args: action 'opened|merged|assigned|reopened'
     - name: Add pull request to release board
       uses: ./actions/auto-sprint
       env:

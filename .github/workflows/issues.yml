@@ -1,4 +1,7 @@
-on: issues
+on:
+  issues:
+    types:
+    - assigned
 name: Core team issues
 jobs:
   considerIssueForReleaseBoard:
@@ -6,10 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
-    - name: Consider issue for release board
-      uses: actions/bin/filter@master
-      with:
-        args: action assigned
     - name: Add issue to release board
       uses: ./actions/auto-sprint
       env:
