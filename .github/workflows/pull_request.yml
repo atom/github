@@ -1,0 +1,16 @@
+on: pull_request
+name: Core team pull requests
+jobs:
+  considerPullRequestForReleaseBoard:
+    name: Consider pull request for release board
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Consider pull request for release board
+      uses: actions/bin/filter@master
+      with:
+        args: action 'opened|merged|assigned|reopened'
+    - name: Add pull request to release board
+      uses: ./actions/auto-sprint
+      env:
+        GRAPHQL_TOKEN: ${{ secrets.GRAPHQL_TOKEN }}

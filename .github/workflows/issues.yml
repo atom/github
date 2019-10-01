@@ -1,0 +1,16 @@
+on: issues
+name: Core team issues
+jobs:
+  considerIssueForReleaseBoard:
+    name: Consider issue for release board
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Consider issue for release board
+      uses: actions/bin/filter@master
+      with:
+        args: action assigned
+    - name: Add issue to release board
+      uses: ./actions/auto-sprint
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
