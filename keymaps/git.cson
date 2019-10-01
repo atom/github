@@ -112,6 +112,7 @@
   'esc': 'tool-panel:unfocus'
 
 '.github-Dialog':
+  'tab': 'core:focus-next'
   'shift-tab': 'core:focus-previous'
 
 '.github-Dialog input':
