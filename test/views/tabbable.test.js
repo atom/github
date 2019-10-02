@@ -12,6 +12,10 @@ describe('makeTabbable', function() {
     tabGroup = new TabGroup();
   });
 
+  afterEach(function() {
+    atomEnv.destroy();
+  });
+
   it('accepts an HTML tag', function() {
     const TabbableDiv = makeTabbable('div');
     const wrapper = shallow(
