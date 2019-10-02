@@ -4,6 +4,7 @@ import path from 'path';
 
 import InitDialog from '../../lib/views/init-dialog';
 import {dialogRequests} from '../../lib/controllers/dialogs-controller';
+import {TabbableTextEditor} from '../../lib/views/tabbable';
 
 describe('InitDialog', function() {
   let atomEnv;
@@ -32,16 +33,18 @@ describe('InitDialog', function() {
     const wrapper = shallow(buildApp({
       request: dialogRequests.init({dirPath: path.join('/home/me/src')}),
     }));
-    assert.strictEqual(wrapper.find('AtomTextEditor').prop('buffer').getText(), path.join('/home/me/src'));
+    assert.strictEqual(wrapper.find(TabbableTextEditor).prop('buffer').getText(), path.join('/home/me/src'));
+
+    wrapper.unmount();
   });
 
   it('disables the initialize button when the project path is empty', function() {
     const wrapper = shallow(buildApp({}));
 
     assert.isTrue(wrapper.find('DialogView').prop('acceptEnabled'));
-    wrapper.find('AtomTextEditor').prop('buffer').setText('');
+    wrapper.find(TabbableTextEditor).prop('buffer').setText('');
     assert.isFalse(wrapper.find('DialogView').prop('acceptEnabled'));
-    wrapper.find('AtomTextEditor').prop('buffer').setText('/some/path');
+    wrapper.find(TabbableTextEditor).prop('buffer').setText('/some/path');
     assert.isTrue(wrapper.find('DialogView').prop('acceptEnabled'));
   });
 
@@ -51,10 +54,22 @@ describe('InitDialog', function() {
     request.onAccept(accept);
 
     const wrapper = shallow(buildApp({request}));
-    wrapper.find('AtomTextEditor').prop('buffer').setText('/some/path');
+    wrapper.find(TabbableTextEditor).prop('buffer').setText('/some/path');
     wrapper.find('DialogView').prop('accept')();
 
     assert.isTrue(accept.calledWith('/some/path'));
+  });
+
+  it('no-ops the accept callback with a blank chosen path', function() {
+    const accept = sinon.spy();
+    const request = dialogRequests.init({});
+    request.onAccept(accept);
+
+    const wrapper = shallow(buildApp({request}));
+    wrapper.find(TabbableTextEditor).prop('buffer').setText('');
+    wrapper.find('DialogView').prop('accept')();
+
+    assert.isFalse(accept.called);
   });
 
   it('calls the request cancel callback', function() {
