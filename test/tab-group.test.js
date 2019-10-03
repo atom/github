@@ -20,7 +20,7 @@ describe('TabGroup', function() {
   });
 
   describe('with tabbable elements', function() {
-    let group, zero, one, two;
+    let group, zero, one, two, currentFocus, skip;
 
     beforeEach(function() {
       group = new TabGroup();
@@ -38,9 +38,25 @@ describe('TabGroup', function() {
       one = root.querySelector('#one');
       two = root.querySelector('#two');
 
-      sinon.stub(zero, 'focus');
-      sinon.stub(one, 'focus');
-      sinon.stub(two, 'focus');
+      skip = new Set();
+
+      sinon.stub(zero, 'focus').callsFake(() => {
+        if (!skip.has(zero)) {
+          currentFocus = zero;
+        }
+      });
+      sinon.stub(one, 'focus').callsFake(() => {
+        if (!skip.has(one)) {
+          currentFocus = one;
+        }
+      });
+      sinon.stub(two, 'focus').callsFake(() => {
+        if (!skip.has(two)) {
+          currentFocus = two;
+        }
+      });
+
+      sinon.stub(group, 'getCurrentFocus').callsFake(() => currentFocus);
     });
 
     it('appends elements into a doubly-linked circular list', function() {
@@ -74,6 +90,13 @@ describe('TabGroup', function() {
       assert.strictEqual(zero.focus.callCount, 1);
     });
 
+    it('skips elements that do not receive focus when moving forward', function() {
+      skip.add(one);
+
+      group.focusAfter(zero);
+      assert.strictEqual(two.focus.callCount, 1);
+    });
+
     it('is a no-op with unregistered elements', function() {
       const unregistered = document.createElement('div');
 
@@ -94,6 +117,74 @@ describe('TabGroup', function() {
 
       group.focusBefore(one);
       assert.strictEqual(zero.focus.callCount, 1);
+    });
+
+    it('skips elements that do not receive focus when moving backwards', function() {
+      skip.add(one);
+
+      group.focusBefore(two);
+      assert.strictEqual(zero.focus.callCount, 1);
+    });
+
+    describe('removing elements', function() {
+      it('is a no-op for elements that are not present', function() {
+        const unregistered = document.createElement('div');
+        group.removeElement(unregistered);
+      });
+
+      it('removes the first element', function() {
+        group.removeElement(zero);
+
+        // No-op
+        group.focusAfter(zero);
+        assert.isFalse(zero.focus.called);
+        assert.isFalse(one.focus.called);
+        assert.isFalse(two.focus.called);
+
+        group.focusAfter(one);
+        assert.strictEqual(two.focus.callCount, 1);
+
+        group.focusAfter(two);
+        assert.strictEqual(one.focus.callCount, 1);
+
+        group.focusBefore(two);
+        assert.strictEqual(one.focus.callCount, 2);
+
+        group.focusBefore(one);
+        assert.strictEqual(two.focus.callCount, 2);
+      });
+
+      it('removes an interior element', function() {
+        group.removeElement(one);
+
+        group.focusAfter(zero);
+        assert.strictEqual(two.focus.callCount, 1);
+
+        group.focusAfter(two);
+        assert.strictEqual(zero.focus.callCount, 1);
+
+        group.focusBefore(two);
+        assert.strictEqual(zero.focus.callCount, 2);
+
+        group.focusBefore(zero);
+        assert.strictEqual(two.focus.callCount, 2);
+      });
+
+      it('removes the final element', function() {
+        group.removeElement(two);
+
+        group.focusAfter(zero);
+        assert.strictEqual(one.focus.callCount, 1);
+
+        group.focusAfter(one);
+        assert.strictEqual(zero.focus.callCount, 1);
+
+        group.focusBefore(zero);
+        assert.strictEqual(one.focus.callCount, 2);
+
+        group.focusBefore(one);
+        assert.strictEqual(zero.focus.callCount, 2);
+      });
     });
   });
 
