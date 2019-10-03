@@ -704,6 +704,42 @@ describe('GithubPackage', function() {
     });
   });
 
+  describe('clone', function() {
+    it('clones into an existing project path', async function() {
+      const sourcePath = await cloneRepository();
+      const existingPath = await getTempDir();
+      project.setPaths([existingPath]);
+
+      await contextUpdateAfter(() => githubPackage.activate());
+      const repository = githubPackage.getActiveRepository();
+      await repository.getLoadPromise();
+      assert.isTrue(repository.isEmpty());
+
+      assert.isNull(await githubPackage.workdirCache.find(existingPath));
+
+      await githubPackage.clone(sourcePath, existingPath);
+
+      assert.strictEqual(await githubPackage.workdirCache.find(existingPath), existingPath);
+    });
+
+    it('clones into a new project path', async function() {
+      const sourcePath = await cloneRepository();
+      const newPath = await getTempDir();
+
+      await contextUpdateAfter(() => githubPackage.activate());
+      const original = githubPackage.getActiveRepository();
+      await original.getLoadPromise();
+      assert.isTrue(original.isAbsentGuess());
+      assert.deepEqual(project.getPaths(), []);
+
+      await contextUpdateAfter(() => githubPackage.clone(sourcePath, newPath));
+
+      assert.deepEqual(project.getPaths(), [newPath]);
+      const replaced = githubPackage.getActiveRepository();
+      assert.notStrictEqual(original, replaced);
+    });
+  });
+
   describe('stub item creation', function() {
     beforeEach(function() {
       sinon.spy(githubPackage, 'rerender');
