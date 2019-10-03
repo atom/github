@@ -4,6 +4,7 @@ import {TextBuffer} from 'atom';
 
 import DirectorySelect from '../../lib/views/directory-select';
 import TabGroup from '../../lib/tab-group';
+import {TabbableTextEditor} from '../../lib/views/tabbable';
 
 describe('DirectorySelect', function() {
   let atomEnv;
@@ -34,13 +35,13 @@ describe('DirectorySelect', function() {
     const buffer = new TextBuffer();
     const wrapper = shallow(buildApp({buffer}));
 
-    assert.strictEqual(wrapper.find('AtomTextEditor.github-DirectorySelect-destinationPath').prop('buffer'), buffer);
+    assert.strictEqual(wrapper.find('.github-DirectorySelect-destinationPath').prop('buffer'), buffer);
   });
 
   it('disables both controls', function() {
     const wrapper = shallow(buildApp({disabled: true}));
 
-    assert.isTrue(wrapper.find('AtomTextEditor').prop('readOnly'));
+    assert.isTrue(wrapper.find(TabbableTextEditor).prop('readOnly'));
     assert.isTrue(wrapper.find('.btn.icon-file-directory').prop('disabled'));
   });
 

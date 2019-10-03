@@ -88,38 +88,7 @@ describe('DialogView', function() {
       const button = wrapper.find('.btn-primary');
       assert.isTrue(button.hasClass('icon'));
       assert.isTrue(button.hasClass('icon-repo-clone'));
-      assert.strictEqual(button.text(), 'Engage');
-    });
-  });
-
-  describe('tabbing', function() {
-    let div;
-
-    beforeEach(function() {
-      div = document.createElement('div');
-      div.tabIndex = 1000000;
-      document.body.appendChild(div);
-    });
-
-    afterEach(function() {
-      div.remove();
-    });
-
-    it('assigns successive distinct tab indices to button elements', function() {
-      const tabGroup = new TabGroup();
-      const wrapper = shallow(buildApp({tabGroup}));
-
-      assert.strictEqual(wrapper.find('.github-Dialog-cancelButton').prop('tabIndex'), 1000001);
-      assert.strictEqual(wrapper.find('.btn-primary').prop('tabIndex'), 1000002);
-    });
-
-    it('recaptures focus after it leaves the dialog element', function() {
-      const tabGroup = new TabGroup();
-      const wrapper = shallow(buildApp({tabGroup}));
-
-      sinon.spy(tabGroup, 'focusBeginning');
-      wrapper.find('.github-Dialog').prop('onTransitionEnd')();
-      assert.isTrue(tabGroup.focusBeginning.called);
+      assert.strictEqual(button.prop('children'), 'Engage');
     });
   });
 
