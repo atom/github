@@ -49,6 +49,12 @@ describe('CreateDialogController', function() {
 
     buffer.setText('home');
     assert.strictEqual(atomEnv.config.get('github.sourceRemoteName'), 'home');
+
+    sinon.spy(atomEnv.config, 'set');
+    buffer.setText('home');
+    assert.isFalse(atomEnv.config.set.called);
+
+    wrapper.unmount();
   });
 
   it('synchronizes the source protocol from Atom configuration', async function() {
@@ -60,6 +66,16 @@ describe('CreateDialogController', function() {
 
     await wrapper.find(CreateDialogView).prop('didChangeProtocol')('https');
     assert.strictEqual(atomEnv.config.get('github.remoteFetchProtocol'), 'https');
+
+    sinon.spy(atomEnv.config, 'set');
+    await wrapper.find(CreateDialogView).prop('didChangeProtocol')('https');
+    assert.isFalse(atomEnv.config.set.called);
+  });
+
+  it('begins with an empty owner ID while loading', function() {
+    const wrapper = shallow(buildApp({user: null, isLoading: true}));
+
+    assert.strictEqual(wrapper.find(CreateDialogView).prop('selectedOwnerID'), '');
   });
 
   it('begins with the owner ID as the viewer ID', function() {
@@ -172,6 +188,12 @@ describe('CreateDialogController', function() {
 
       assert.isFalse(wrapper.find(CreateDialogView).prop('acceptEnabled'));
     });
+
+    it('disables the accept button if user data has not loaded yet', function() {
+      const wrapper = shallow(buildApp({user: null}));
+
+      assert.isFalse(wrapper.find(CreateDialogView).prop('acceptEnabled'));
+    });
   });
 
   describe('acceptance', function() {
@@ -185,6 +207,39 @@ describe('CreateDialogController', function() {
       await wrapper.find(CreateDialogView).prop('accept')();
 
       assert.isFalse(accept.called);
+    });
+
+    it('uses the user ID if the selected owner ID was never changed', async function() {
+      const accept = sinon.spy();
+      const request = dialogRequests.create();
+      request.onAccept(accept);
+      const wrapper = shallow(buildApp({request, user: null, isLoading: true}));
+
+      assert.strictEqual(wrapper.find(CreateDialogView).prop('selectedOwnerID'), '');
+
+      wrapper.setProps({
+        user: userBuilder(userQuery).id('my-id').build(),
+        isLoading: false,
+      });
+
+      wrapper.find(CreateDialogView).prop('repoName').setText('repo-name');
+      wrapper.find(CreateDialogView).prop('didChangeVisibility')('PRIVATE');
+      wrapper.find(CreateDialogView).prop('localPath').setText(path.join('/local/path'));
+      wrapper.find(CreateDialogView).prop('didChangeProtocol')('ssh');
+      wrapper.find(CreateDialogView).prop('sourceRemoteName').setText('upstream');
+
+      assert.strictEqual(wrapper.find(CreateDialogView).prop('selectedOwnerID'), '');
+
+      await wrapper.find(CreateDialogView).prop('accept')();
+
+      assert.isTrue(accept.calledWith({
+        ownerID: 'my-id',
+        name: 'repo-name',
+        visibility: 'PRIVATE',
+        localPath: path.join('/local/path'),
+        protocol: 'ssh',
+        sourceRemoteName: 'upstream',
+      }));
     });
 
     it('resolves onAccept with the populated data', async function() {
