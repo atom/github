@@ -11,6 +11,8 @@ import {multiFilePatchBuilder} from '../builder/patch';
 import Repository from '../../lib/models/repository';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
+import RemoteSet from '../../lib/models/remote-set';
+import Remote from '../../lib/models/remote';
 import RefHolder from '../../lib/models/ref-holder';
 import {getEndpoint} from '../../lib/models/endpoint';
 import GithubLoginModel from '../../lib/models/github-login-model';
@@ -626,10 +628,38 @@ describe('RootController', function() {
       publishable = await buildRepository(await cloneRepository());
     });
 
-    it('renders the modal publish dialog', function() {
-      const wrapper = shallow(React.cloneElement(app, {repository: publishable}));
+    it('does not register the command while repository data is being fetched', function() {
+      const wrapper = shallow(app);
+      const inner = wrapper.find('ObserveModel').renderProp('children')(null);
+      assert.isTrue(inner.isEmptyRender());
+    });
 
-      wrapper.find('Command[command="github:publish-repository"]').prop('callback')();
+    it('does not register the command when the repository is not publishable', function() {
+      const wrapper = shallow(app);
+      const inner = wrapper.find('ObserveModel').renderProp('children')({isPublishable: false});
+      assert.isTrue(inner.isEmptyRender());
+    });
+
+    it('does not register the command when the repository already has a GitHub remote', function() {
+      const remotes = new RemoteSet([
+        new Remote('origin', 'git@github.com:atom/github'),
+      ]);
+
+      const wrapper = shallow(app);
+      const inner = wrapper.find('ObserveModel').renderProp('children')({isPublishable: true, remotes});
+      assert.isTrue(inner.isEmptyRender());
+    });
+
+    it('renders the modal publish dialog', async function() {
+      const wrapper = shallow(app);
+      const observer = wrapper.find('ObserveModel');
+
+      const payload = await observer.prop('fetchData')(publishable);
+      assert.isTrue(payload.isPublishable);
+      assert.isTrue(payload.remotes.filter(each => each.isGithubRepo()).isEmpty());
+      const inner = observer.renderProp('children')(payload);
+
+      inner.find('Command[command="github:publish-repository"]').prop('callback')();
       assert.strictEqual(wrapper.find('DialogsController').prop('request').identifier, 'publish');
     });
 
@@ -651,8 +681,11 @@ describe('RootController', function() {
       sinon.stub(publishable, 'push').resolves();
 
       const wrapper = shallow(React.cloneElement(app, {repository: publishable}));
-
-      wrapper.find('Command[command="github:publish-repository"]').prop('callback')();
+      const inner = wrapper.find('ObserveModel').renderProp('children')({
+        isPublishable: true,
+        remotes: new RemoteSet(),
+      });
+      inner.find('Command[command="github:publish-repository"]').prop('callback')();
 
       const req0 = wrapper.find('DialogsController').prop('request');
       await req0.accept({
@@ -676,7 +709,11 @@ describe('RootController', function() {
 
     it('dismisses the CreateDialog on cancel', function() {
       const wrapper = shallow(React.cloneElement(app, {repository: publishable}));
-      wrapper.find('Command[command="github:publish-repository"]').prop('callback')();
+      const inner = wrapper.find('ObserveModel').renderProp('children')({
+        isPublishable: true,
+        remotes: new RemoteSet(),
+      });
+      inner.find('Command[command="github:publish-repository"]').prop('callback')();
 
       const req0 = wrapper.find('DialogsController').prop('request');
       req0.cancel();
@@ -684,19 +721,6 @@ describe('RootController', function() {
       wrapper.update();
       const req1 = wrapper.find('DialogsController').prop('request');
       assert.strictEqual(req1, dialogRequests.null);
-    });
-
-    it('does not render the command if the current repository is absent', function() {
-      const repository = Repository.absent();
-      const wrapper = shallow(React.cloneElement(app, {repository}));
-      assert.isFalse(wrapper.exists('Command[command="github:publish-repository"]'));
-    });
-
-    it('does not render the command if the current repository is empty', async function() {
-      const emptyWorkdir = temp.mkdirSync({prefix: 'rootctrl-'});
-      const repository = await buildRepository(emptyWorkdir);
-      const wrapper = shallow(React.cloneElement(app, {repository}));
-      assert.isFalse(wrapper.exists('Command[command="github:publish-repository"]'));
     });
   });
 
