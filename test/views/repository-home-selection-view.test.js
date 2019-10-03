@@ -7,6 +7,7 @@ import AutoFocus from '../../lib/autofocus';
 import TabGroup from '../../lib/tab-group';
 import userQuery from '../../lib/views/__generated__/repositoryHomeSelectionView_user.graphql';
 import {userBuilder} from '../builder/graphql/user';
+import {TabbableSelect, TabbableTextEditor} from '../../lib/views/tabbable';
 
 describe('RepositoryHomeSelectionView', function() {
   let atomEnv, clock;
@@ -46,14 +47,14 @@ describe('RepositoryHomeSelectionView', function() {
   it('disables the select list while loading', function() {
     const wrapper = shallow(buildApp({isLoading: true}));
 
-    assert.isTrue(wrapper.find('Select').prop('disabled'));
+    assert.isTrue(wrapper.find(TabbableSelect).prop('disabled'));
   });
 
   it('passes a provided buffer to the name entry box', function() {
     const nameBuffer = new TextBuffer();
     const wrapper = shallow(buildApp({nameBuffer}));
 
-    assert.strictEqual(wrapper.find('AtomTextEditor').prop('buffer'), nameBuffer);
+    assert.strictEqual(wrapper.find(TabbableTextEditor).prop('buffer'), nameBuffer);
   });
 
   it('translates loaded organizations and the current user as options for the select list', function() {
@@ -79,7 +80,7 @@ describe('RepositoryHomeSelectionView', function() {
 
     const wrapper = shallow(buildApp({user}));
 
-    assert.deepEqual(wrapper.find('Select').prop('options'), [
+    assert.deepEqual(wrapper.find(TabbableSelect).prop('options'), [
       {id: 'user0', login: 'me', avatarURL: 'https://avatars2.githubusercontent.com/u/17565?s=24&v=4', disabled: false},
       {id: 'org0', login: 'enabled', avatarURL: 'https://avatars2.githubusercontent.com/u/1089146?s=24&v=4', disabled: false},
       {id: 'org1', login: 'disabled', avatarURL: 'https://avatars1.githubusercontent.com/u/1507452?s=24&v=4', disabled: true},
@@ -102,7 +103,7 @@ describe('RepositoryHomeSelectionView', function() {
       .build();
     const wrapper = shallow(buildApp({user}));
 
-    const optionWrapper = wrapper.find('Select').renderProp('optionRenderer')({
+    const optionWrapper = wrapper.find(TabbableSelect).renderProp('optionRenderer')({
       id: user.id,
       login: user.login,
       avatarURL: user.avatarUrl,
@@ -114,7 +115,7 @@ describe('RepositoryHomeSelectionView', function() {
     assert.isFalse(optionWrapper.exists('.github-RepositoryHome-ownerUnwritable'));
 
     const org = user.organizations.edges[0].node;
-    const valueWrapper = wrapper.find('Select').renderProp('valueRenderer')({
+    const valueWrapper = wrapper.find(TabbableSelect).renderProp('valueRenderer')({
       id: org.id,
       login: org.login,
       avatarURL: org.avatarUrl,
@@ -185,7 +186,7 @@ describe('RepositoryHomeSelectionView', function() {
 
     const wrapper = shallow(buildApp({user, selectedOwnerID: 'user0'}));
 
-    assert.deepEqual(wrapper.find('Select').prop('value'), {
+    assert.deepEqual(wrapper.find(TabbableSelect).prop('value'), {
       id: 'user0',
       login: 'me',
       avatarURL: 'https://avatars2.githubusercontent.com/u/17565?s=24&v=4',
@@ -194,7 +195,7 @@ describe('RepositoryHomeSelectionView', function() {
 
     wrapper.setProps({selectedOwnerID: 'org1'});
 
-    assert.deepEqual(wrapper.find('Select').prop('value'), {
+    assert.deepEqual(wrapper.find(TabbableSelect).prop('value'), {
       id: 'org1',
       login: 'one',
       avatarURL: 'https://avatars3.githubusercontent.com/u/13409222?s=24&v=4',
@@ -218,7 +219,7 @@ describe('RepositoryHomeSelectionView', function() {
 
     const wrapper = shallow(buildApp({user, didChangeOwnerID}));
 
-    wrapper.find('Select').prop('onChange')(org);
+    wrapper.find(TabbableSelect).prop('onChange')(org);
     assert.isTrue(didChangeOwnerID.calledWith('org0'));
   });
 });
