@@ -35,6 +35,28 @@ describe('AtomTextEditor', function() {
     assert.isTrue(workspace.isTextEditor(app.instance().refModel.get()));
   });
 
+  it('creates its own element ref if one is not provided by a parent', function() {
+    const app = mount(<AtomTextEditor workspace={workspace} />);
+
+    const model = app.instance().refModel.get();
+    const element = app.instance().refElement.get();
+    assert.strictEqual(element, model.getElement());
+    assert.strictEqual(element.getModel(), model);
+  });
+
+  it('accepts parent-provided model and element refs', function() {
+    const refElement = new RefHolder();
+
+    mount(<AtomTextEditor refModel={refModel} refElement={refElement} workspace={workspace} />);
+
+    const model = refModel.get();
+    const element = refElement.get();
+
+    assert.isTrue(workspace.isTextEditor(model));
+    assert.strictEqual(element, model.getElement());
+    assert.strictEqual(element.getModel(), model);
+  });
+
   it('returns undefined if the current model is unavailable', function() {
     const emptyHolder = new RefHolder();
     const app = shallow(<AtomTextEditor refModel={emptyHolder} />);

@@ -50,6 +50,18 @@ describe('CloneDialog', function() {
       );
     });
 
+    it("doesn't update the project path if the source URL has no pathname", function() {
+      sinon.stub(atomEnv.config, 'get').returns(path.join('/home/me/src'));
+      const wrapper = shallow(buildApp());
+
+      wrapper.find('.github-Clone-sourceURL').prop('buffer').setText('https://github.com');
+      wrapper.update();
+      assert.strictEqual(
+        wrapper.find('.github-Clone-destinationPath').prop('buffer').getText(),
+        path.join('/home/me/src'),
+      );
+    });
+
     it("doesn't update the project path if it has been modified", function() {
       const wrapper = shallow(buildApp());
       wrapper.find('.github-Clone-destinationPath').prop('buffer').setText(path.join('/somewhere/else'));
@@ -101,6 +113,16 @@ describe('CloneDialog', function() {
 
     wrapper.find('DialogView').prop('accept')();
     assert.isTrue(accept.calledWith('git@github.com:atom/github.git', path.join('/some/where')));
+  });
+
+  it('does nothing from the acceptance callback if either text field is empty', function() {
+    const accept = sinon.spy();
+    const request = dialogRequests.clone();
+    request.onAccept(accept);
+    const wrapper = shallow(buildApp({request}));
+
+    wrapper.find('DialogView').prop('accept')();
+    assert.isFalse(accept.called);
   });
 
   it('calls the cancellation callback', function() {

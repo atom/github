@@ -197,7 +197,18 @@
     "reportCannotLocateWorkspaceError": {
       "type": "boolean",
       "default": "false",
-      "description": "Log an error to the console if a git repository cannot be located for the opened file "
+      "description": "Log an error to the console if a git repository cannot be located for the opened file"
+    },
+    "sourceRemoteName": {
+      "type": "string",
+      "default": "origin",
+      "description": "Name of the git remote to create when creating a new repository"
+    },
+    "remoteFetchProtocol": {
+      "type": "string",
+      "default": "https",
+      "enum": ["https", "ssh"],
+      "description": "Transport protocol to prefer when creating a new git remote"
     }
   },
   "deserializers": {

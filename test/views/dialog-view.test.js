@@ -2,7 +2,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import DialogView from '../../lib/views/dialog-view';
-import AutoFocus from '../../lib/autofocus';
+import TabGroup from '../../lib/tab-group';
 
 describe('DialogView', function() {
   let atomEnv;
@@ -20,7 +20,7 @@ describe('DialogView', function() {
       <DialogView
         workspace={atomEnv.workspace}
         commands={atomEnv.commands}
-        autofocus={new AutoFocus()}
+        tabGroup={new TabGroup()}
         inProgress={false}
         acceptEnabled={true}
         accept={() => {}}
@@ -88,35 +88,7 @@ describe('DialogView', function() {
       const button = wrapper.find('.btn-primary');
       assert.isTrue(button.hasClass('icon'));
       assert.isTrue(button.hasClass('icon-repo-clone'));
-      assert.strictEqual(button.text(), 'Engage');
-    });
-  });
-
-  describe('tabbing', function() {
-    it('defaults the tabIndex of the buttons to 0', function() {
-      const wrapper = shallow(buildApp());
-
-      assert.strictEqual(wrapper.find('.github-Dialog-cancelButton').prop('tabIndex'), 0);
-      assert.strictEqual(wrapper.find('.btn-primary').prop('tabIndex'), 0);
-    });
-
-    it('customizes the tabIndex of the standard buttons', function() {
-      const wrapper = shallow(buildApp({
-        cancelTabIndex: 10,
-        acceptTabIndex: 20,
-      }));
-
-      assert.strictEqual(wrapper.find('.github-Dialog-cancelButton').prop('tabIndex'), 10);
-      assert.strictEqual(wrapper.find('.btn-primary').prop('tabIndex'), 20);
-    });
-
-    it('recaptures focus after it leaves the dialog element', function() {
-      const autofocus = new AutoFocus();
-      const wrapper = shallow(buildApp({autofocus}));
-
-      sinon.spy(autofocus, 'trigger');
-      wrapper.find('.github-Dialog').simulate('transitionEnd');
-      assert.isTrue(autofocus.trigger.called);
+      assert.strictEqual(button.prop('children'), 'Engage');
     });
   });
 
@@ -147,7 +119,7 @@ describe('DialogView', function() {
     const accept = sinon.spy();
     const wrapper = shallow(buildApp({accept}));
 
-    wrapper.find('.btn-primary').simulate('click');
+    wrapper.find('.btn-primary').prop('onClick')();
     assert.isTrue(accept.called);
   });
 
@@ -163,7 +135,7 @@ describe('DialogView', function() {
     const cancel = sinon.spy();
     const wrapper = shallow(buildApp({cancel}));
 
-    wrapper.find('.github-Dialog-cancelButton').simulate('click');
+    wrapper.find('.github-Dialog-cancelButton').prop('onClick')();
     assert.isTrue(cancel.called);
   });
 });

@@ -5,6 +5,7 @@ import OpenCommitDialog, {openCommitDetailItem} from '../../lib/views/open-commi
 import {dialogRequests} from '../../lib/controllers/dialogs-controller';
 import CommitDetailItem from '../../lib/items/commit-detail-item';
 import {GitError} from '../../lib/git-shell-out-strategy';
+import {TabbableTextEditor} from '../../lib/views/tabbable';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('OpenCommitDialog', function() {
@@ -19,7 +20,7 @@ describe('OpenCommitDialog', function() {
   });
 
   function isValidRef(ref) {
-    return Promise.resolve(ref === 'abcd1234');
+    return Promise.resolve(/^abcd/.test(ref));
   }
 
   function buildApp(overrides = {}) {
@@ -28,7 +29,9 @@ describe('OpenCommitDialog', function() {
     return (
       <OpenCommitDialog
         request={request}
+        inProgress={false}
         isValidRef={isValidRef}
+        workspace={atomEnv.workspace}
         commands={atomEnv.commands}
         {...overrides}
       />
@@ -44,8 +47,11 @@ describe('OpenCommitDialog', function() {
 
     it('enables the open button when commit sha box is populated', function() {
       const wrapper = shallow(buildApp());
-      wrapper.find('AtomTextEditor').prop('buffer').setText('abcd1234');
+      wrapper.find(TabbableTextEditor).prop('buffer').setText('abcd1234');
 
+      assert.isTrue(wrapper.find('DialogView').prop('acceptEnabled'));
+
+      wrapper.find(TabbableTextEditor).prop('buffer').setText('abcd6789');
       assert.isTrue(wrapper.find('DialogView').prop('acceptEnabled'));
     });
   });
@@ -56,11 +62,22 @@ describe('OpenCommitDialog', function() {
     request.onAccept(accept);
 
     const wrapper = shallow(buildApp({request}));
-    wrapper.find('AtomTextEditor').prop('buffer').setText('abcd1234');
+    wrapper.find(TabbableTextEditor).prop('buffer').setText('abcd1234');
     wrapper.find('DialogView').prop('accept')();
 
     assert.isTrue(accept.calledWith('abcd1234'));
     wrapper.unmount();
+  });
+
+  it('does nothing on accept if the ref is empty', async function() {
+    const accept = sinon.spy();
+    const request = dialogRequests.commit();
+    request.onAccept(accept);
+
+    const wrapper = shallow(buildApp({request}));
+    await wrapper.find('DialogView').prop('accept')();
+
+    assert.isFalse(accept.called);
   });
 
   it('calls the cancellation callback', function() {

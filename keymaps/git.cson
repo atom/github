@@ -112,6 +112,7 @@
   'esc': 'tool-panel:unfocus'
 
 '.github-Dialog':
+  'tab': 'core:focus-next'
   'shift-tab': 'core:focus-previous'
 
 '.github-Dialog input':
@@ -120,18 +121,20 @@
 '.github-CoAuthorForm input':
   'enter': 'core:confirm'
 
+'body .github-TabbableWrapper':
+  'down': 'github:selectbox-down'
+  'up': 'github:selectbox-up'
+  'enter': 'github:selectbox-enter'
+  'tab': 'github:selectbox-tab'
+  'backspace': 'github:selectbox-backspace'
+  'pageup': 'github:selectbox-pageup'
+  'pagedown': 'github:selectbox-pagedown'
+  'end': 'github:selectbox-end'
+  'home': 'github:selectbox-home'
+  'delete': 'github:selectbox-delete'
+  'escape': 'github:selectbox-escape'
+
 'body .github-CommitView-coAuthorEditor':
-  'enter': 'github:co-author:enter'
-  'down': 'github:co-author:down'
-  'up': 'github:co-author:up'
-  'tab': 'github:co-author:tab'
-  'backspace': 'github:co-author:backspace'
-  'escape': 'github:co-author:escape'
-  'pageup': 'github:co-author:pageup'
-  'pagedown': 'github:co-author:pagedown'
-  'home': 'github:co-author:home'
-  'end': 'github:co-author:end'
-  'delete': 'github:co-author:delete'
   'shift-backspace': 'github:co-author-exclude'
 
 '.platform-darwin .github-Reviews':

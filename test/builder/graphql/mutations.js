@@ -2,6 +2,7 @@ import {createSpecBuilderClass} from './base';
 
 import {CommentBuilder, ReviewBuilder, ReviewThreadBuilder} from './pr';
 import {ReactableBuilder} from './reactable';
+import {RepositoryBuilder} from './repository';
 
 const ReviewEdgeBuilder = createSpecBuilderClass('PullRequestReviewEdge', {
   node: {linked: ReviewBuilder},
@@ -49,4 +50,8 @@ export const AddReactionPayloadBuilder = createSpecBuilderClass('AddReactionPayl
 
 export const RemoveReactionPayloadBuilder = createSpecBuilderClass('RemoveReactionPayload', {
   subject: {linked: ReactableBuilder},
+});
+
+export const CreateRepositoryPayloadBuilder = createSpecBuilderClass('CreateRepositoryPayload', {
+  repository: {linked: RepositoryBuilder},
 });
