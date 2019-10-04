@@ -7,7 +7,7 @@ import TabGroup from '../../lib/tab-group';
 describe('makeTabbable', function() {
   let atomEnv, tabGroup;
 
-  const e = {
+  const fakeEvent = {
     stopPropagation() {},
   };
 
@@ -43,11 +43,11 @@ describe('makeTabbable', function() {
     commands.prop('target').setter(element);
 
     sinon.stub(tabGroup, 'focusAfter');
-    commands.find('Command[command="core:focus-next"]').prop('callback')(e);
+    commands.find('Command[command="core:focus-next"]').prop('callback')(fakeEvent);
     assert.isTrue(tabGroup.focusAfter.called);
 
     sinon.stub(tabGroup, 'focusBefore');
-    commands.find('Command[command="core:focus-previous"]').prop('callback')(e);
+    commands.find('Command[command="core:focus-previous"]').prop('callback')(fakeEvent);
     assert.isTrue(tabGroup.focusBefore.called);
   });
 
