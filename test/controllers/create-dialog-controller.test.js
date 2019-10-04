@@ -194,6 +194,20 @@ describe('CreateDialogController', function() {
 
       assert.isFalse(wrapper.find(CreateDialogView).prop('acceptEnabled'));
     });
+
+    it('enables the accept button when user data loads', function() {
+      const wrapper = shallow(buildApp({user: null}));
+      wrapper.find(CreateDialogView).prop('repoName').setText('the-repo');
+      wrapper.find(CreateDialogView).prop('localPath').setText(path.join('/local/path'));
+
+      assert.isFalse(wrapper.find(CreateDialogView).prop('acceptEnabled'));
+
+      wrapper.setProps({user: userBuilder(userQuery).build()});
+      assert.isTrue(wrapper.find(CreateDialogView).prop('acceptEnabled'));
+
+      wrapper.setProps({});
+      assert.isTrue(wrapper.find(CreateDialogView).prop('acceptEnabled'));
+    });
   });
 
   describe('acceptance', function() {
