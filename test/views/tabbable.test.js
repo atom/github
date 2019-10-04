@@ -7,6 +7,10 @@ import TabGroup from '../../lib/tab-group';
 describe('makeTabbable', function() {
   let atomEnv, tabGroup;
 
+  const e = {
+    stopPropagation() {},
+  };
+
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
     tabGroup = new TabGroup();
@@ -39,11 +43,11 @@ describe('makeTabbable', function() {
     commands.prop('target').setter(element);
 
     sinon.stub(tabGroup, 'focusAfter');
-    commands.find('Command[command="core:focus-next"]').prop('callback')();
+    commands.find('Command[command="core:focus-next"]').prop('callback')(e);
     assert.isTrue(tabGroup.focusAfter.called);
 
     sinon.stub(tabGroup, 'focusBefore');
-    commands.find('Command[command="core:focus-previous"]').prop('callback')();
+    commands.find('Command[command="core:focus-previous"]').prop('callback')(e);
     assert.isTrue(tabGroup.focusBefore.called);
   });
 
