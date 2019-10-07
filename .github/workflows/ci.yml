@@ -112,7 +112,7 @@ jobs:
         Write-Host "::add-path::$script:ATOMROOT\Atom Dev\resources\cli\"
         Write-Host "::add-path::C:\Program Files (x86)\Microsoft Visual Studio\2079\Enterprise\MSBuild\Current\Bin"
 
-        Get-ChildItem -Path "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\MSBuild" -Recurse -Filter "*Microsoft.Cpp"
+        Get-ChildItem -Path "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\MSBuild" -Recurse -Filter "*Microsoft.Cpp" | ForEach-Object { Write-Host $_ }
 
         Write-Host "Downloading latest Atom release"
         $source = "https://atom.io/download/windows_zip?channel=dev"
