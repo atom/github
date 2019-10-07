@@ -172,7 +172,7 @@ jobs:
           -- :99 -ac -screen 0 1280x1024x16
         sudo apt-get update
         sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev gvfs-bin
-        sudo dpkg --install /tmp/atom-amd64.deb
+        dpkg-deb -x /tmp/atom-amd64.deb /tmp/atom
     - name: install dependencies
       shell: bash
       run: /tmp/atom/usr/share/atom-dev/resources/app/apm/bin/apm ci
