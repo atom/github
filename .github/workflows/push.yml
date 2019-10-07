@@ -32,7 +32,7 @@ jobs:
           -- :99 -ac -screen 0 1280x1024x16
         sudo apt-get update
         sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev
-        sudo dpkg-deb --install /tmp/atom-amd64.deb
+        sudo dpkg --install /tmp/atom-amd64.deb
     - name: install dependencies
       shell: bash
       run: apm ci
@@ -170,7 +170,7 @@ jobs:
           -- :99 -ac -screen 0 1280x1024x16
         sudo apt-get update
         sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev
-        sudo dpkg-deb --install /tmp/atom-amd64.deb
+        sudo dpkg --install /tmp/atom-amd64.deb
     - name: install dependencies
       shell: bash
       run: apm ci
@@ -200,7 +200,7 @@ jobs:
           -- :99 -ac -screen 0 1280x1024x16
         sudo apt-get update
         sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev
-        sudo dpkg-deb --install /tmp/atom-amd64.deb
+        sudo dpkg --install /tmp/atom-amd64.deb
     - name: install dependencies
       shell: bash
       run: apm ci
