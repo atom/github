@@ -11,7 +11,7 @@ const {createStrategy, UNAUTHENTICATED} = require(process.env.ATOM_GITHUB_KEYTAR
 const diagnosticsEnabled = process.env.GIT_TRACE && process.env.GIT_TRACE.length !== 0;
 const workdirPath = process.env.ATOM_GITHUB_WORKDIR_PATH;
 const inSpecMode = process.env.ATOM_GITHUB_SPEC_MODE === 'true';
-const sockPath = process.argv[2];
+const sockAddr = process.argv[2];
 const action = process.argv[3];
 
 const rememberFile = path.join(__dirname, 'remember');
@@ -25,6 +25,28 @@ function log(message) {
   }
 
   process.stderr.write(`git-credential-atom: ${message}\n`);
+}
+
+function getSockOptions() {
+  const common = {
+    allowHalfOpen: true,
+  };
+
+  const tcp = /tcp:(\d+)/.exec(sockAddr);
+  if (tcp) {
+    const port = parseInt(tcp[1], 10);
+    if (Number.isNaN(port)) {
+      throw new Error(`Non-integer TCP port: ${tcp[1]}`);
+    }
+    return {port, host: 'localhost', ...common};
+  }
+
+  const unix = /unix:(.+)/.exec(sockAddr);
+  if (unix) {
+    return {path: unix[1], ...common};
+  }
+
+  throw new Error(`Malformed $ATOM_GITHUB_SOCK_ADDR: ${sockAddr}`);
 }
 
 /*
@@ -47,7 +69,7 @@ function systemCredentialHelpers() {
     log('discover credential helpers from system git configuration');
     log(`PATH = ${env.PATH}`);
 
-    execFile('git', ['config', '--system', '--get-all', 'credential.helper'], {env}, (error, stdout, stderr) => {
+    execFile('git', ['config', '--system', '--get-all', 'credential.helper'], {env}, (error, stdout) => {
       if (error) {
         log(`failed to list credential helpers. this is ok\n${error.stack}`);
 
@@ -279,30 +301,34 @@ async function fromKeytar(query) {
 /*
  * Request a dialog in Atom by writing a null-delimited JSON query to the socket we were given.
  */
-function dialog(query) {
-  if (query.username) {
-    query.auth = query.username;
+function dialog(q) {
+  if (q.username) {
+    q.auth = q.username;
   }
-  const prompt = 'Please enter your credentials for ' + url.format(query);
-  const includeUsername = !query.username;
+  const prompt = 'Please enter your credentials for ' + url.format(q);
+  const includeUsername = !q.username;
 
-  const payload = {prompt, includeUsername, includeRemember: true, pid: process.pid};
+  const query = {prompt, includeUsername, includeRemember: true, pid: process.pid};
+
+  const sockOptions = getSockOptions();
 
   return new Promise((resolve, reject) => {
     log('requesting dialog through Atom socket');
     log(`prompt = "${prompt}" includeUsername = ${includeUsername}`);
 
-    const socket = net.connect(sockPath, async () => {
+    const socket = net.connect(sockOptions, async () => {
       log('connection established');
 
-      const parts = [];
+      let payload = '';
 
-      socket.on('data', data => parts.push(data));
+      socket.on('data', data => {
+        payload += data;
+      });
       socket.on('end', () => {
         log('Atom socket stream terminated');
 
         try {
-          const reply = JSON.parse(parts.join(''));
+          const reply = JSON.parse(payload);
 
           const writeReply = function(err) {
             if (err) {
@@ -311,7 +337,7 @@ function dialog(query) {
 
             const lines = [];
             ['protocol', 'host', 'username', 'password'].forEach(k => {
-              const value = reply[k] !== undefined ? reply[k] : query[k];
+              const value = reply[k] !== undefined ? reply[k] : q[k];
               lines.push(`${k}=${value}\n`);
             });
 
@@ -325,16 +351,16 @@ function dialog(query) {
             writeReply();
           }
         } catch (e) {
-          log(`Unable to parse reply from Atom:\n${e.stack}`);
+          log(`Unable to parse reply from Atom:\n${payload}\n${e.stack}`);
           reject(e);
         }
       });
 
-      log('writing payload');
+      log('writing query');
       await new Promise(r => {
-        socket.write(JSON.stringify(payload) + '\u0000', 'utf8', r);
+        socket.end(JSON.stringify(query), 'utf8', r);
       });
-      log('payload written');
+      log('query written');
     });
     socket.setEncoding('utf8');
   });
@@ -424,7 +450,7 @@ async function erase() {
 }
 
 log(`working directory = ${workdirPath}`);
-log(`socket path = ${sockPath}`);
+log(`socket address = ${sockAddr}`);
 log(`action = ${action}`);
 
 switch (action) {
