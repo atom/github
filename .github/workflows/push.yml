@@ -1,0 +1,208 @@
+name: Continuous integration
+on:
+- push:
+    branches:
+    - master
+- pull_request:
+    types:
+    - opened
+    - synchronize
+jobs:
+  linux-tests:
+    name: Linux tests
+    runs-on: ubuntu-18.04
+    env:
+      DISPLAY: ":99"
+      ATOM_GITHUB_BABEL_ENV: coverage
+      MOCHA_TIMEOUT: 60000
+      UNTIL_TIMEOUT: 30000
+    steps:
+    - uses: actions/checkout@v1
+    - name: install Atom
+      shell: bash
+      run: |
+        curl -s -L https://atom.io/download/deb?channel=dev \
+          -H 'Accept: application/octet-stream' \
+          -o /tmp/atom-amd64.deb
+        /sbin/start-stop-daemon --start --quiet \
+          --pidfile /tmp/custom_xvfb_99.pid \
+          --make-pidfile --background \
+          --exec /usr/bin/Xvfb \
+          -- :99 -ac -screen 0 1280x1024x16
+        sudo apt-get update
+        sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev
+        dpkg-deb -x /tmp/atom-amd64.deb
+    - name: install dependencies
+      shell: bash
+      run: apm ci
+    - name: run tests
+      shell: bash
+      run: atom --test test/
+    - name: report code coverage
+      shell: bash
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        SYSTEM_PULLREQUEST_PULLREQUESTNUMBER: ${{ github.event.number }}
+        SYSTEM_PULLREQUEST_SOURCEBRANCH: ${{ github.head_ref }}
+        BUILD_SOURCEBRANCH: ${{ github.event.ref }}
+      run: |
+        npm run report:coverage
+        bash <(curl -s https://codecov.io/bash)
+          -n "Linux"
+          -P "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER:-}"
+          -B "${SYSTEM_PULLREQUEST_SOURCEBRANCH:-${BUILD_SOURCEBRANCH}}"
+      if: success() || failure()
+
+  macos-tests:
+    name: MacOS tests
+    runs-on: macos-10.14
+    env:
+      ATOM_GITHUB_BABEL_ENV: coverage
+      MOCHA_TIMEOUT: 60000
+      UNTIL_TIMEOUT: 30000
+    steps:
+    - uses: actions/checkout@v1
+    - name: install Atom
+      shell: bash
+      run: |
+        curl -s -L https://atom.io/download/mac?channel=dev \
+          -H 'Accept: application/octet-stream' \
+          -o /tmp/atom.zip
+        sudo unzip -q atom.zip -d '/Applications/Atom Dev.app'
+    - name: install dependencies
+      shell: bash
+      run: apm ci
+    - name: run tests
+      shell: bash
+      run: atom --test test/
+    - name: report code coverage
+      shell: bash
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        SYSTEM_PULLREQUEST_PULLREQUESTNUMBER: ${{ github.event.number }}
+        SYSTEM_PULLREQUEST_SOURCEBRANCH: ${{ github.head_ref }}
+        BUILD_SOURCEBRANCH: ${{ github.event.ref }}
+      run: |
+        npm run report:coverage
+        bash <(curl -s https://codecov.io/bash)
+          -n "macOS"
+          -P "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER:-}"
+          -B "${SYSTEM_PULLREQUEST_SOURCEBRANCH:-${BUILD_SOURCEBRANCH}}"
+      if: success() || failure()
+
+  windows-tests:
+    name: Windows tests
+    runs-on: windows-2019
+    env:
+      ATOM_GITHUB_BABEL_ENV: coverage
+      MOCHA_TIMEOUT: 60000
+      UNTIL_TIMEOUT: 30000
+    steps:
+    - uses: actions/checkout@v1
+    - name: install Atom
+      shell: powershell
+      run: |
+        Set-StrictMode -Version Latest
+        $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
+
+        Write-Host "Downloading latest Atom release"
+        $source = "https://atom.io/download/windows_zip?channel=dev"
+        $destination = "atom.zip"
+
+        (New-Object System.Net.WebClient).DownloadFile($source, $destination)
+        Expand-Archive -Path "atom.zip" -DestinationPath $script:ATOMROOT
+    - name: install dependencies
+      shell: powershell
+      run: |
+        Set-StrictMode -Version Latest
+        $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
+        $script:APM_SCRIPT_PATH = "$script:ATOMROOT\${env:ATOM_DIRECTORY}\resources\app\apm\bin\apm.cmd"
+
+        & "$script:APM_SCRIPT_PATH" ci
+    - name: run tests
+      shell: powershell
+      run: |
+        Set-StrictMode -Version Latest
+        $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
+        $script:ATOM_SCRIPT_PATH = "$script:ATOMROOT\$env:ATOM_DIRECTORY\resources\cli\atom.cmd"
+
+        # Normalize %TEMP% as a long (non 8.3) path.
+        $env:TEMP = (Get-Item -LiteralPath $env:TEMP).FullName
+
+        $env:ELECTRON_NO_ATTACH_CONSOLE = "true"
+        [Environment]::SetEnvironmentVariable("ELECTRON_NO_ATTACH_CONSOLE", "true", "User")
+
+        Write-Host "Running tests"
+        & "$script:ATOM_SCRIPT_PATH" --test test 2>&1 | %{ "$_" }
+    - name: report code coverage
+      shell: bash
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        SYSTEM_PULLREQUEST_PULLREQUESTNUMBER: ${{ github.event.number }}
+        SYSTEM_PULLREQUEST_SOURCEBRANCH: ${{ github.head_ref }}
+        BUILD_SOURCEBRANCH: ${{ github.event.ref }}
+      run: |
+        npm run report:coverage
+        bash <(curl -s https://codecov.io/bash)
+          -n "macOS"
+          -P "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER:-}"
+          -B "${SYSTEM_PULLREQUEST_SOURCEBRANCH:-${BUILD_SOURCEBRANCH}}"
+      if: success() || failure()
+
+lint:
+  name: Lint
+  runs-on: ubuntu-18.04
+  env:
+    DISPLAY: ":99"
+  steps:
+  - uses: actions/checkout@v1
+  - name: install Atom
+    shell: bash
+    run: |
+      curl -s -L https://atom.io/download/deb?channel=dev \
+        -H 'Accept: application/octet-stream' \
+        -o /tmp/atom-amd64.deb
+      /sbin/start-stop-daemon --start --quiet \
+        --pidfile /tmp/custom_xvfb_99.pid \
+        --make-pidfile --background \
+        --exec /usr/bin/Xvfb \
+        -- :99 -ac -screen 0 1280x1024x16
+      sudo apt-get update
+      sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev
+      dpkg-deb -x /tmp/atom-amd64.deb
+  - name: install dependencies
+    shell: bash
+    run: apm ci
+  - name: lint
+    shell: bash
+    run: npm run lint
+
+snapshot-tests:
+  name: Snapshot tests
+  runs-on: ubuntu-18.04
+  env:
+    DISPLAY: ":99"
+    ATOM_GITHUB_BABEL_ENV: coverage
+    ATOM_GITHUB_TEST_SUITE: snapshot
+  steps:
+  - uses: actions/checkout@v1
+  - name: install Atom
+    shell: bash
+    run: |
+      curl -s -L https://atom.io/download/deb?channel=dev \
+        -H 'Accept: application/octet-stream' \
+        -o /tmp/atom-amd64.deb
+      /sbin/start-stop-daemon --start --quiet \
+        --pidfile /tmp/custom_xvfb_99.pid \
+        --make-pidfile --background \
+        --exec /usr/bin/Xvfb \
+        -- :99 -ac -screen 0 1280x1024x16
+      sudo apt-get update
+      sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev
+      dpkg-deb -x /tmp/atom-amd64.deb
+  - name: install dependencies
+    shell: bash
+    run: apm ci
+  - name: run snapshot tests
+    shell: bash
+    run: atom --test test/
