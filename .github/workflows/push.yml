@@ -106,7 +106,7 @@ jobs:
       shell: powershell
       run: |
         Set-StrictMode -Version Latest
-        $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
+        $script:ATOMROOT = "$env:GITHUB_WORKSPACE/atom"
 
         Write-Host "Downloading latest Atom release"
         $source = "https://atom.io/download/windows_zip?channel=dev"
@@ -118,8 +118,8 @@ jobs:
       shell: powershell
       run: |
         Set-StrictMode -Version Latest
-        $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
-        $script:APM_SCRIPT_PATH = "$script:ATOMROOT\${env:ATOM_DIRECTORY}\resources\app\apm\bin\apm.cmd"
+        $script:ATOMROOT = "$env:GITHUB_WORKSPACE/atom"
+        $script:APM_SCRIPT_PATH = "$script:ATOMROOT\Atom Dev\resources\app\apm\bin\apm.cmd"
 
         & "$script:APM_SCRIPT_PATH" ci
     - name: run tests
