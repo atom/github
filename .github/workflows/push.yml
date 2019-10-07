@@ -48,9 +48,9 @@ jobs:
         BUILD_SOURCEBRANCH: ${{ github.event.ref }}
       run: |
         npm run report:coverage
-        bash <(curl -s https://codecov.io/bash)
-          -n "Linux"
-          -P "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER:-}"
+        bash <(curl -s https://codecov.io/bash) \
+          -n "Linux" \
+          -P "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER:-}" \
           -B "${SYSTEM_PULLREQUEST_SOURCEBRANCH:-${BUILD_SOURCEBRANCH}}"
       if: success() || failure()
 
@@ -87,9 +87,9 @@ jobs:
         BUILD_SOURCEBRANCH: ${{ github.event.ref }}
       run: |
         npm run report:coverage
-        bash <(curl -s https://codecov.io/bash)
-          -n "macOS"
-          -P "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER:-}"
+        bash <(curl -s https://codecov.io/bash) \
+          -n "macOS" \
+          -P "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER:-}" \
           -B "${SYSTEM_PULLREQUEST_SOURCEBRANCH:-${BUILD_SOURCEBRANCH}}"
       if: success() || failure()
 
@@ -107,6 +107,8 @@ jobs:
       run: |
         Set-StrictMode -Version Latest
         $script:ATOMROOT = "$env:GITHUB_WORKSPACE/atom"
+        Write-Host "::set-env name=ATOMROOT $script:ATOMROOT"
+        Write-Host "::add-path $script:ATOMROOT\Atom Dev\resources\cli\"
 
         Write-Host "Downloading latest Atom release"
         $source = "https://atom.io/download/windows_zip?channel=dev"
@@ -116,27 +118,16 @@ jobs:
         Expand-Archive -Path "atom.zip" -DestinationPath $script:ATOMROOT
     - name: install dependencies
       shell: powershell
-      run: |
-        Set-StrictMode -Version Latest
-        $script:ATOMROOT = "$env:GITHUB_WORKSPACE/atom"
-        $script:APM_SCRIPT_PATH = "$script:ATOMROOT\Atom Dev\resources\app\apm\bin\apm.cmd"
-
-        & "$script:APM_SCRIPT_PATH" ci
+      run: & apm ci
     - name: run tests
       shell: powershell
       run: |
-        Set-StrictMode -Version Latest
-        $script:ATOMROOT = "$env:GITHUB_WORKSPACE/atom"
-        $script:ATOM_SCRIPT_PATH = "$script:ATOMROOT\$env:ATOM_DIRECTORY\resources\cli\atom.cmd"
-
         # Normalize %TEMP% as a long (non 8.3) path.
         $env:TEMP = (Get-Item -LiteralPath $env:TEMP).FullName
-
         $env:ELECTRON_NO_ATTACH_CONSOLE = "true"
-        [Environment]::SetEnvironmentVariable("ELECTRON_NO_ATTACH_CONSOLE", "true", "User")
 
         Write-Host "Running tests"
-        & "$script:ATOM_SCRIPT_PATH" --test test 2>&1 | %{ "$_" }
+        & atom --test test 2>&1 | %{ "$_" }
     - name: report code coverage
       shell: bash
       env:
@@ -146,9 +137,9 @@ jobs:
         BUILD_SOURCEBRANCH: ${{ github.event.ref }}
       run: |
         npm run report:coverage
-        bash <(curl -s https://codecov.io/bash)
-          -n "macOS"
-          -P "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER:-}"
+        bash <(curl -s https://codecov.io/bash) \
+          -n "macOS" \
+          -P "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER:-}" \
           -B "${SYSTEM_PULLREQUEST_SOURCEBRANCH:-${BUILD_SOURCEBRANCH}}"
       if: success() || failure()
 
