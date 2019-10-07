@@ -118,7 +118,7 @@ jobs:
         Expand-Archive -Path "atom.zip" -DestinationPath $script:ATOMROOT
     - name: install dependencies
       shell: powershell
-      run: & apm ci
+      run: apm ci
     - name: run tests
       shell: powershell
       run: |
