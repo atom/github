@@ -32,13 +32,13 @@ jobs:
           -- :99 -ac -screen 0 1280x1024x16
         sudo apt-get update
         sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev gvfs-bin
-        sudo dpkg --install /tmp/atom-amd64.deb
+        dpkg-deb -x /tmp/atom-amd64.deb /tmp/atom
     - name: install dependencies
       shell: bash
-      run: apm ci
+      run: /tmp/atom/usr/share/atom-dev/resources/app/apm/bin/apm ci
     - name: run tests
       shell: bash
-      run: atom --test test/
+      run: /tmp/atom/usr/bin/atom-dev --test test/
     - name: report code coverage
       shell: bash
       env:
@@ -69,15 +69,15 @@ jobs:
         curl -s -L https://atom.io/download/mac?channel=dev \
           -H 'Accept: application/octet-stream' \
           -o /tmp/atom.zip
-        sudo unzip -q /tmp/atom.zip -d '/Applications/Atom Dev.app'
-        sudo ln -s "/Applications/Atom Dev.app/Contents/Resources/app/atom.sh" /usr/local/bin/atom
-        sudo ln -s "/Applications/Atom Dev.app/Contents/Resources/app/apm.sh" /usr/local/bin/apm
+        sudo unzip -q /tmp/atom.zip -d /tmp/atom
     - name: install dependencies
       shell: bash
-      run: apm ci
+      run: |
+        '/tmp/atom/Atom Dev.app/Contents/Resources/app/apm/bin/apm' ci
     - name: run tests
       shell: bash
-      run: atom --test test/
+      run: |
+        '/tmp/atom/Atom Dev.app/Contents/Resources/app/atom.sh' --test test/
     - name: report code coverage
       shell: bash
       env:
@@ -126,7 +126,7 @@ jobs:
       shell: powershell
       run: |
         Set-StrictMode -Version Latest
-        $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
+        $script:ATOMROOT = "$env:GITHUB_WORKSPACE/atom"
         $script:ATOM_SCRIPT_PATH = "$script:ATOMROOT\$env:ATOM_DIRECTORY\resources\cli\atom.cmd"
 
         # Normalize %TEMP% as a long (non 8.3) path.
@@ -202,10 +202,10 @@ jobs:
           -- :99 -ac -screen 0 1280x1024x16
         sudo apt-get update
         sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev gvfs-bin
-        sudo dpkg --install /tmp/atom-amd64.deb
+        dpkg-deb -x /tmp/atom-amd64.deb /tmp/atom
     - name: install dependencies
       shell: bash
-      run: apm ci
+      run: /tmp/atom/usr/share/atom-dev/resources/app/apm/bin/apm ci
     - name: run snapshot tests
       shell: bash
-      run: atom --test test/
+      run: /tmp/atom/usr/bin/atom-dev --test test/
