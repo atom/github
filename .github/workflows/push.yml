@@ -31,7 +31,7 @@ jobs:
           --exec /usr/bin/Xvfb \
           -- :99 -ac -screen 0 1280x1024x16
         sudo apt-get update
-        sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev
+        sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev gvfs-bin
         sudo dpkg --install /tmp/atom-amd64.deb
     - name: install dependencies
       shell: bash
@@ -171,7 +171,7 @@ jobs:
           --exec /usr/bin/Xvfb \
           -- :99 -ac -screen 0 1280x1024x16
         sudo apt-get update
-        sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev
+        sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev gvfs-bin
         sudo dpkg --install /tmp/atom-amd64.deb
     - name: install dependencies
       shell: bash
@@ -201,7 +201,7 @@ jobs:
           --exec /usr/bin/Xvfb \
           -- :99 -ac -screen 0 1280x1024x16
         sudo apt-get update
-        sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev
+        sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev gvfs-bin
         sudo dpkg --install /tmp/atom-amd64.deb
     - name: install dependencies
       shell: bash
