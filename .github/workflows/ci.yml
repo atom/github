@@ -107,8 +107,8 @@ jobs:
       run: |
         Set-StrictMode -Version Latest
         $script:ATOMROOT = "$env:GITHUB_WORKSPACE/atom"
-        Write-Host "::set-env name=ATOMROOT $script:ATOMROOT"
-        Write-Host "::add-path $script:ATOMROOT\Atom Dev\resources\cli\"
+        Write-Host "::set-env name=ATOMROOT,::$script:ATOMROOT"
+        Write-Host "::add-path::$script:ATOMROOT\Atom Dev\resources\cli\"
 
         Write-Host "Downloading latest Atom release"
         $source = "https://atom.io/download/windows_zip?channel=dev"
