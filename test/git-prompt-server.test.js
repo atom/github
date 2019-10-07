@@ -43,7 +43,7 @@ describe('GitPromptServer', function() {
 
       return new Promise((resolve, reject) => {
         const child = execFile(
-          getAtomHelperPath(), [tempDir.getCredentialHelperJs(), tempDir.getSocketPath(), command],
+          getAtomHelperPath(), [tempDir.getCredentialHelperJs(), server.getAddress(), command],
           {env: electronEnv},
           (err, stdout, stderr) => {
             resolve({err, stdout, stderr});
@@ -402,7 +402,7 @@ describe('GitPromptServer', function() {
       let err, stdout;
       await new Promise((resolve, reject) => {
         const child = execFile(
-          getAtomHelperPath(), [tempDir.getAskPassJs(), tempDir.getSocketPath(), 'Please enter your password for "updog"'],
+          getAtomHelperPath(), [tempDir.getAskPassJs(), server.getAddress(), 'Please enter your password for "updog"'],
           {env: electronEnv},
           (_err, _stdout, _stderr) => {
             err = _err;
