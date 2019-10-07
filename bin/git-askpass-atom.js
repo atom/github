@@ -1,7 +1,7 @@
 const net = require('net');
 const {execFile} = require('child_process');
 
-const sockPath = process.argv[2];
+const sockAddr = process.argv[2];
 const prompt = process.argv[3];
 
 const diagnosticsEnabled = process.env.GIT_TRACE && process.env.GIT_TRACE.length !== 0;
@@ -14,6 +14,28 @@ function log(message) {
   }
 
   process.stderr.write(`git-askpass-atom: ${message}\n`);
+}
+
+function getSockOptions() {
+  const common = {
+    allowHalfOpen: true,
+  };
+
+  const tcp = /tcp:(\d+)/.exec(sockAddr);
+  if (tcp) {
+    const port = parseInt(tcp[1], 10);
+    if (Number.isNaN(port)) {
+      throw new Error(`Non-integer TCP port: ${tcp[1]}`);
+    }
+    return {port, host: 'localhost', ...common};
+  }
+
+  const unix = /unix:(.+)/.exec(sockAddr);
+  if (unix) {
+    return {path: unix[1], ...common};
+  }
+
+  throw new Error(`Malformed $ATOM_GITHUB_SOCK_ADDR: ${sockAddr}`);
 }
 
 function userHelper() {
@@ -43,32 +65,34 @@ function userHelper() {
 }
 
 function dialog() {
-  const payload = {prompt, includeUsername: false, pid: process.pid};
+  const sockOptions = getSockOptions();
+  const query = {prompt, includeUsername: false, pid: process.pid};
   log('requesting dialog through Atom socket');
   log(`prompt = "${prompt}"`);
 
   return new Promise((resolve, reject) => {
-    const socket = net.connect(sockPath, () => {
+    const socket = net.connect(sockOptions, () => {
       log('connection established');
-      const parts = [];
+      let payload = '';
 
-      socket.on('data', data => parts.push(data));
+      socket.on('data', data => {
+        payload += data;
+      });
       socket.on('end', () => {
         log('Atom socket stream terminated');
 
         try {
-          const replyDocument = JSON.parse(parts.join(''));
+          const reply = JSON.parse(payload);
           log('Atom reply parsed');
-          resolve(replyDocument.password);
+          resolve(reply.password);
         } catch (err) {
           log('Unable to parse reply from Atom');
           reject(err);
         }
       });
 
-      log('writing payload');
-      socket.write(JSON.stringify(payload) + '\u0000', 'utf8');
-      log('payload written');
+      log('writing query');
+      socket.end(JSON.stringify(query), 'utf8', () => log('query written'));
     });
     socket.setEncoding('utf8');
   });
