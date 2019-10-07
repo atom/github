@@ -337,7 +337,7 @@ function dialog(q) {
 
             const lines = [];
             ['protocol', 'host', 'username', 'password'].forEach(k => {
-              const value = reply[k] !== undefined ? reply[k] : query[k];
+              const value = reply[k] !== undefined ? reply[k] : q[k];
               lines.push(`${k}=${value}\n`);
             });
 
