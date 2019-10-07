@@ -1434,7 +1434,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
           const [args, options] = execStub.getCall(1).args;
           assertGitConfigSetting(args, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
-          assert.isDefined(options.env.ATOM_GITHUB_SOCK_PATH);
+          assert.isDefined(options.env.ATOM_GITHUB_SOCK_ADDR);
           assert.isDefined(options.env.ATOM_GITHUB_GPG_PROMPT);
         });
 
@@ -1460,12 +1460,12 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
             const [args0, options0] = execStub.getCall(0).args;
             assertGitConfigSetting(args0, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
-            assert.isUndefined(options0.env.ATOM_GITHUB_SOCK_PATH);
+            assert.isUndefined(options0.env.ATOM_GITHUB_SOCK_ADDR);
             assert.isUndefined(options0.env.ATOM_GITHUB_GPG_PROMPT);
 
             const [args1, options1] = execStub.getCall(1).args;
             assertGitConfigSetting(args1, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
-            assert.isDefined(options1.env.ATOM_GITHUB_SOCK_PATH);
+            assert.isDefined(options1.env.ATOM_GITHUB_SOCK_ADDR);
             assert.isDefined(options1.env.ATOM_GITHUB_GPG_PROMPT);
           });
         }
