@@ -95,7 +95,7 @@ jobs:
 
   windows-tests:
     name: Windows tests
-    runs-on: windows-2019
+    runs-on: windows-2016
     env:
       ATOM_GITHUB_BABEL_ENV: coverage
       MOCHA_TIMEOUT: 60000
