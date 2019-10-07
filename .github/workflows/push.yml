@@ -70,6 +70,8 @@ jobs:
           -H 'Accept: application/octet-stream' \
           -o /tmp/atom.zip
         sudo unzip -q /tmp/atom.zip -d '/Applications/Atom Dev.app'
+        sudo ln -s "/Applications/Atom Dev.app/Contents/Resources/app/atom.sh" /usr/local/bin/atom
+        sudo ln -s "/Applications/Atom Dev.app/Contents/Resources/app/apm.sh" /usr/local/bin/apm
     - name: install dependencies
       shell: bash
       run: apm ci
