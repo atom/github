@@ -112,6 +112,8 @@ jobs:
         Write-Host "::add-path::$script:ATOMROOT\Atom Dev\resources\cli\"
         Write-Host "::add-path::C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin"
 
+        Get-ChildItem -Path "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\MSBuild\" -Recurse -Filter "*Microsoft.Cpp"
+
         Write-Host "Downloading latest Atom release"
         $source = "https://atom.io/download/windows_zip?channel=dev"
         $destination = "atom.zip"
