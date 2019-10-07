@@ -175,7 +175,7 @@ jobs:
         sudo dpkg --install /tmp/atom-amd64.deb
     - name: install dependencies
       shell: bash
-      run: apm ci
+      run: /tmp/atom/usr/share/atom-dev/resources/app/apm/bin/apm ci
     - name: lint
       shell: bash
       run: npm run lint
