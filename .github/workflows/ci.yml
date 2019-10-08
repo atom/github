@@ -121,6 +121,12 @@ jobs:
       shell: powershell
       run: |
         apm config set msvs_version 2017
+        Write-Host "apm config:"
+        apm config list
+        Write-Host "---"
+        Write-Host "npm config:"
+        npm config list
+        Write-Host "---"
         apm ci
     - name: run tests
       shell: powershell
