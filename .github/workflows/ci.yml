@@ -112,14 +112,16 @@ jobs:
         Write-Host "::add-path::$script:ATOMROOT\Atom Dev\resources\cli\"
         Write-Host "::add-path::C:\Program Files (x86)\Microsoft Visual Studio\2079\Enterprise\MSBuild\Current\Bin"
 
-        Get-ChildItem -Path "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\MSBuild" -Recurse -Filter "*Microsoft.Cpp" | ForEach-Object { Write-Host $_ }
+        Write-Host "Starting enumeration:"
+        Get-ChildItem -Path "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\MSBuild" -Recurse -Directory | ForEach-Object { Write-Host $_.FullName }
+        Write-Host "Enumeration complete"
 
         Write-Host "Downloading latest Atom release"
         $source = "https://atom.io/download/windows_zip?channel=dev"
         $destination = "atom.zip"
 
-        (New-Object System.Net.WebClient).DownloadFile($source, $destination)
-        Expand-Archive -Path "atom.zip" -DestinationPath $script:ATOMROOT
+        # (New-Object System.Net.WebClient).DownloadFile($source, $destination)
+        # Expand-Archive -Path "atom.zip" -DestinationPath $script:ATOMROOT
     - name: install dependencies
       shell: powershell
       run: apm ci
