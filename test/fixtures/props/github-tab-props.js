@@ -49,7 +49,7 @@ export function gitHubTabViewProps(atomEnv, repository, overrides = {}) {
     currentBranch: nullBranch,
     remotes: new RemoteSet(),
     currentRemote: nullRemote,
-    manyRemotesAvailable: false,
+    isSelectingRemote: false,
     aheadCount: 0,
     pushInProgress: false,
 

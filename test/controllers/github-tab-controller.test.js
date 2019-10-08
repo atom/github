@@ -57,21 +57,21 @@ describe('GitHubTabController', function() {
       const allRemotes = new RemoteSet([dotcom0, dotcom1, nonDotcom]);
       const wrapper = shallow(buildApp({allRemotes, selectedRemoteName: 'yes1'}));
       assert.strictEqual(wrapper.find('GitHubTabView').prop('currentRemote'), dotcom1);
-      assert.isFalse(wrapper.find('GitHubTabView').prop('manyRemotesAvailable'));
+      assert.isFalse(wrapper.find('GitHubTabView').prop('isSelectingRemote'));
     });
 
     it('uses a single GitHub-hosted remote', function() {
       const allRemotes = new RemoteSet([dotcom0, nonDotcom]);
       const wrapper = shallow(buildApp({allRemotes}));
       assert.strictEqual(wrapper.find('GitHubTabView').prop('currentRemote'), dotcom0);
-      assert.isFalse(wrapper.find('GitHubTabView').prop('manyRemotesAvailable'));
+      assert.isFalse(wrapper.find('GitHubTabView').prop('isSelectingRemote'));
     });
 
     it('indicates when multiple remotes are available', function() {
       const allRemotes = new RemoteSet([dotcom0, dotcom1]);
       const wrapper = shallow(buildApp({allRemotes}));
       assert.isFalse(wrapper.find('GitHubTabView').prop('currentRemote').isPresent());
-      assert.isTrue(wrapper.find('GitHubTabView').prop('manyRemotesAvailable'));
+      assert.isTrue(wrapper.find('GitHubTabView').prop('isSelectingRemote'));
     });
   });
 
