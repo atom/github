@@ -100,7 +100,7 @@ jobs:
       ATOM_GITHUB_BABEL_ENV: coverage
       MOCHA_TIMEOUT: 60000
       UNTIL_TIMEOUT: 30000
-      VCTargetsPath: 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\MSBuild\Microsoft.Cpp\v4.0\V120'
+      VCTargetsPath: 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Common7\VC\VCTargets'
     steps:
     - uses: actions/checkout@v1
     - name: install Atom
@@ -110,10 +110,10 @@ jobs:
         $script:ATOMROOT = "$env:GITHUB_WORKSPACE/atom"
         Write-Host "::set-env name=ATOMROOT,::$script:ATOMROOT"
         Write-Host "::add-path::$script:ATOMROOT\Atom Dev\resources\cli\"
-        Write-Host "::add-path::C:\Program Files (x86)\Microsoft Visual Studio\2079\Enterprise\MSBuild\Current\Bin"
+        Write-Host "::add-path::C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\MSBuild\Current\Bin"
 
         Write-Host "Starting enumeration:"
-        Get-ChildItem -Path "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\MSBuild" -Recurse -Directory | ForEach-Object { Write-Host $_.FullName }
+        Get-ChildItem -Path "C:\Program Files (x86)\Microsoft Visual Studio\2017\Common7\VC\VCTargets" -Recurse -Directory | ForEach-Object { Write-Host $_.FullName }
         Write-Host "Enumeration complete"
 
         Write-Host "Downloading latest Atom release"
