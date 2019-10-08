@@ -1,0 +1,30 @@
+@import "variables";
+
+.github-RemoteController {
+  cursor: default;
+  user-select: none;
+
+  &-header {
+    font-weight: 600;
+    color: @text-color-highlight;
+    padding: @component-padding/2;
+    display: flex;
+    align-items: center;
+
+    &::-webkit-details-marker {
+      color: @text-color-highlight;
+    }
+  }
+
+  &-link {
+    font-weight: 400;
+    color: @text-color-subtle;
+    text-decoration: underline;
+    font-style: italic;
+    padding: @component-padding/2;
+  }
+
+  &-link:hover {
+
+  }
+}
