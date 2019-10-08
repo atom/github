@@ -10,7 +10,7 @@ on:
     - synchronize
 jobs:
   linux-tests:
-    name: Linux tests
+    name: linux tests
     runs-on: ubuntu-18.04
     env:
       DISPLAY: ":99"
@@ -55,7 +55,7 @@ jobs:
       if: success() || failure()
 
   macos-tests:
-    name: MacOS tests
+    name: macos tests
     runs-on: macos-10.14
     env:
       ATOM_GITHUB_BABEL_ENV: coverage
@@ -94,7 +94,7 @@ jobs:
       if: success() || failure()
 
   windows-tests:
-    name: Windows tests
+    name: windows tests
     runs-on: windows-2016
     env:
       ATOM_GITHUB_BABEL_ENV: coverage
@@ -148,7 +148,7 @@ jobs:
       if: success() || failure()
 
   lint:
-    name: Lint
+    name: lint
     runs-on: ubuntu-18.04
     env:
       DISPLAY: ":99"
@@ -176,7 +176,7 @@ jobs:
       run: npm run lint
 
   snapshot-tests:
-    name: Snapshot tests
+    name: snapshot tests
     runs-on: ubuntu-18.04
     env:
       DISPLAY: ":99"
