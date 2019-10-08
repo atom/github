@@ -111,12 +111,6 @@ jobs:
         Write-Host "::set-env name=ATOMROOT,::$script:ATOMROOT"
         Write-Host "::add-path::$script:ATOMROOT\Atom Dev\resources\cli\"
 
-        npm config set msvs_version 2017 -g
-
-        # Write-Host "Starting enumeration:"
-        # Get-ChildItem -Path "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\" -Recurse -Directory | ForEach-Object { Write-Host $_.FullName }
-        # Write-Host "Enumeration complete"
-
         Write-Host "Downloading latest Atom release"
         $source = "https://atom.io/download/windows_zip?channel=dev"
         $destination = "atom.zip"
@@ -125,7 +119,9 @@ jobs:
         Expand-Archive -Path "atom.zip" -DestinationPath $script:ATOMROOT
     - name: install dependencies
       shell: powershell
-      run: apm ci
+      run: |
+        apm config set msvs_version 2017
+        apm ci
     - name: run tests
       shell: powershell
       run: |
