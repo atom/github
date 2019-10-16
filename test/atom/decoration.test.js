@@ -7,6 +7,7 @@ import Decoration from '../../lib/atom/decoration';
 import AtomTextEditor from '../../lib/atom/atom-text-editor';
 import Marker from '../../lib/atom/marker';
 import MarkerLayer from '../../lib/atom/marker-layer';
+import ErrorBoundary from '../../lib/error-boundary';
 
 describe('Decoration', function() {
   let atomEnv, workspace, editor, marker;
@@ -128,15 +129,48 @@ describe('Decoration', function() {
       assert.isNull(editor.gutterWithName(gutterName));
     });
 
-    it('throws an error if `gutterName` prop is not supplied for gutter decorations', function() {
-      const app = (
-        <Decoration editor={editor} decorable={marker} type="gutter">
-          <div className="decoration-subtree">
-            This is a subtree
-          </div>
-        </Decoration>
-      );
-      assert.throws(() => mount(app), 'You are trying to decorate a gutter but did not supply gutterName prop.');
+    context('throws an error', function() {
+      let errors;
+
+      // This consumes the errors rather than printing them to console.
+      const onError = function(e) {
+        errors.push(e.error);
+        e.preventDefault();
+      }
+
+      beforeEach(function() {
+        errors = [];
+        // register error consumer
+        window.addEventListener('error', onError);
+      });
+
+      afterEach(function() {
+        errors = [];
+        // deregister error consumer (important)
+        window.removeEventListener('error', onError);
+      });
+
+      specify('if `gutterName` prop is not supplied for gutter decorations', function() {
+        const app = (
+          <ErrorBoundary>
+            <Decoration editor={editor} decorable={marker} type="gutter">
+              <div className="decoration-subtree">
+                This is a subtree
+              </div>
+            </Decoration>
+          </ErrorBoundary>
+        );
+        mount(app);
+        if (errors.length === 1) {
+          assert(errors[0], 'You are trying to decorate a gutter but did not supply gutterName prop.');
+        } else {
+          window.removeEventListener('error', onError);
+          for (const error of errors) {
+            console.error(error);
+          }
+          assert.fail();
+        }
+      });
     });
   });
 
@@ -254,7 +288,7 @@ describe('Decoration', function() {
 
   it('decorates a parent Marker on a prop-provided TextEditor', function() {
     mount(
-      <Marker editor={editor} bufferRange={[[0, 0], [1, 0]]}>
+      <Marker editor={editor} bufferRange={Range.fromObject([[0, 0], [1, 0]])}>
         <Decoration editor={editor} type="line" className="something" />
       </Marker>,
     );
@@ -266,7 +300,7 @@ describe('Decoration', function() {
     let layerID = null;
     mount(
       <MarkerLayer editor={editor} handleID={id => { layerID = id; }}>
-        <Marker bufferRange={[[0, 0], [1, 0]]} />
+        <Marker bufferRange={Range.fromObject([[0, 0], [1, 0]])} />
         <Decoration editor={editor} type="line" className="something" />
       </MarkerLayer>,
     );
