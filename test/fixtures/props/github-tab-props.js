@@ -12,6 +12,10 @@ export function gitHubTabItemProps(atomEnv, repository, overrides = {}) {
     workspace: atomEnv.workspace,
     repository,
     loginModel: new GithubLoginModel(InMemoryStrategy),
+    project: {
+      getPaths: () => [],
+    },
+    changeProjectWorkingDirectory: () => {},
     ...overrides,
   };
 }
