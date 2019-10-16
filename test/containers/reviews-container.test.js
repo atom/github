@@ -39,7 +39,9 @@ describe('ReviewsContainer', function() {
 
     queryData = {
       repository: {
-        pullRequest: {},
+        pullRequest: {
+          headRefOid: '0000000000000000000000000000000000000000',
+        },
       },
     };
   });
