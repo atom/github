@@ -45,6 +45,7 @@ describe('CurrentPullRequestContainer', function() {
         pushInProgress={false}
 
         onOpenIssueish={() => {}}
+        onOpenReviews={() => {}}
         onCreatePr={() => {}}
 
         {...overrideProps}
