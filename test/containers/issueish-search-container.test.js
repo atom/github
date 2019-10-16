@@ -26,6 +26,7 @@ describe('IssueishSearchContainer', function() {
 
         onOpenIssueish={() => {}}
         onOpenSearch={() => {}}
+        onOpenReviews={() => {}}
 
         {...overrideProps}
       />
@@ -87,6 +88,9 @@ describe('IssueishSearchContainer', function() {
   });
 
   it('passes an empty result list and an error prop to the controller when errored', async function() {
+    // Consumes the failing Relay Query console warning
+    const stub = sinon.stub(console, "warn");
+
     expectRelayQuery({
       name: 'issueishSearchContainerQuery',
       variables: {
@@ -102,6 +106,9 @@ describe('IssueishSearchContainer', function() {
         .addError('uh oh')
         .build();
     }).resolve();
+
+    // Restores console.warn
+    stub.restore();
 
     const wrapper = mount(buildApp({}));
 
