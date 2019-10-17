@@ -3,6 +3,7 @@ const {spawn} = require('child_process');
 function atomProcess(env, ...args) {
   const atomBinPath = process.env.ATOM_SCRIPT_PATH || 'atom';
   const atomEnv = {...process.env, ...env};
+  const isWindows = process.platform === 'win32';
 
   return new Promise((resolve, reject) => {
     let settled = false;
@@ -10,7 +11,7 @@ function atomProcess(env, ...args) {
     const child = spawn(atomBinPath, args, {
       env: atomEnv,
       stdio: 'inherit',
-      shell: true,
+      shell: isWindows,
       windowsHide: true,
     });
 
