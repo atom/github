@@ -90,14 +90,14 @@ describe('IssueishSearchContainer', function() {
   context('when the query errors', function() {
     let stub;
     // Consumes the failing Relay Query console error
-    before(function () {
-      stub = sinon.stub(console, "error");
+    before(function() {
+      stub = sinon.stub(console, 'error');
+      // eslint-disable-next-line no-console
       console.error.withArgs(
-        "Error encountered in subquery",
-        sinon.match.defined.and(
-          sinon.match.hasNested("errors[0].message", sinon.match("uh oh"))
-        )
+        'Error encountered in subquery',
+        sinon.match.defined.and(sinon.match.hasNested('errors[0].message', sinon.match('uh oh'))),
       ).callsFake(() => {});
+      // eslint-disable-next-line no-console
       console.error.callThrough();
     });
 

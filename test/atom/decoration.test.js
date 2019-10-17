@@ -136,7 +136,7 @@ describe('Decoration', function() {
       const onError = function(e) {
         errors.push(e.error);
         e.preventDefault();
-      }
+      };
 
       beforeEach(function() {
         errors = [];
@@ -166,6 +166,7 @@ describe('Decoration', function() {
         } else {
           window.removeEventListener('error', onError);
           for (const error of errors) {
+            // eslint-disable-next-line no-console
             console.error(error);
           }
           assert.fail();
