@@ -87,7 +87,7 @@ describe('IssueishSearchContainer', function() {
     await promise;
   });
 
-  context('when the query errors', async function() {
+  context('when the query errors', function() {
     let stub;
     // Consumes the failing Relay Query console error
     before(function () {
@@ -101,7 +101,7 @@ describe('IssueishSearchContainer', function() {
       console.error.callThrough();
     });
 
-    it('passes an empty result list and an error prop to the controller', function() {
+    it('passes an empty result list and an error prop to the controller', async function() {
       expectRelayQuery({
         name: 'issueishSearchContainerQuery',
         variables: {
