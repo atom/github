@@ -509,7 +509,6 @@ describe('GithubPackage', function() {
         const symlinkPath = (await fs.realpath(temp.mkdirSync())) + '-symlink';
         fs.symlinkSync(workdirPath, symlinkPath);
         project.setPaths([symlinkPath]);
-        await workspace.open(path.join(symlinkPath, 'a.txt'));
 
         await githubPackage.scheduleActiveContextUpdate();
         await assert.async.isOk(githubPackage.getActiveRepository());
