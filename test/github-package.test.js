@@ -7,7 +7,7 @@ import {cloneRepository, disableFilesystemWatchers} from './helpers';
 import {fileExists, getTempDir} from '../lib/helpers';
 import GithubPackage from '../lib/github-package';
 
-describe.only('GithubPackage', function() {
+describe('GithubPackage', function() {
   let atomEnv, workspace, project, commands, notificationManager, grammars, config, keymaps;
   let confirm, tooltips, styles;
   let getLoadSettings, currentWindow, configDirPath, deserializers;
