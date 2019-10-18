@@ -155,55 +155,52 @@ describe.only('GithubPackage', function() {
       assert.isTrue(contextPool.getContext(nonRepositoryPath).isPresent());
     });
 
-    context('uses an active model', function() {
-      specify('from a single preexisting project', async function() {
-        const workdirPath = await cloneRepository('three-files');
-        project.setPaths([workdirPath]);
+    it('uses an active model from a single preexisting project', async function() {
+      const workdirPath = await cloneRepository('three-files');
+      project.setPaths([workdirPath]);
 
-        await contextUpdateAfter(() => githubPackage.activate());
+      await contextUpdateAfter(() => githubPackage.activate());
 
-        const context = contextPool.getContext(workdirPath);
-        assert.isTrue(context.isPresent());
+      const context = contextPool.getContext(workdirPath);
+      assert.isTrue(context.isPresent());
 
-        assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
-        assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
-        assert.equal(githubPackage.getActiveWorkdir(), workdirPath);
-      });
+      assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
+      assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
+      assert.equal(githubPackage.getActiveWorkdir(), workdirPath);
+    });
 
-      specify('from the first working directory when multiple are availible and no preference is set', async function() {
-        const [workdirPath1, workdirPath2] = await Promise.all([
-          cloneRepository('three-files'),
-          cloneRepository('three-files'),
-        ]);
-        project.setPaths([workdirPath1, workdirPath2]);
+    it('uses an active model from the first working directory when multiple are availible and no preference is set', async function() {
+      const [workdirPath1, workdirPath2] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+      ]);
+      project.setPaths([workdirPath1, workdirPath2]);
 
-        await contextUpdateAfter(() => githubPackage.activate());
+      await contextUpdateAfter(() => githubPackage.activate());
 
-        const context = contextPool.getContext(workdirPath1);
-        assert.isTrue(context.isPresent());
-        assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
-        assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
-        assert.equal(githubPackage.getActiveWorkdir(), workdirPath1);
-      });
+      const context = contextPool.getContext(workdirPath1);
+      assert.isTrue(context.isPresent());
+      assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
+      assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
+      assert.equal(githubPackage.getActiveWorkdir(), workdirPath1);
+    });
 
-      specify('from serialized state', async function() {
-        const [workdirPath1, workdirPath2, workdirPath3] = await Promise.all([
-          cloneRepository('three-files'),
-          cloneRepository('three-files'),
-          cloneRepository('three-files'),
-        ]);
-        project.setPaths([workdirPath1, workdirPath2, workdirPath3]);
+    it('uses an active model from serialized state', async function() {
+      const [workdirPath1, workdirPath2, workdirPath3] = await Promise.all([
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+        cloneRepository('three-files'),
+      ]);
+      project.setPaths([workdirPath1, workdirPath2, workdirPath3]);
 
-        await contextUpdateAfter(() => githubPackage.activate({
-          activeRepositoryPath: workdirPath2,
-        }));
-
-        const context = contextPool.getContext(workdirPath2);
-        assert.isTrue(context.isPresent());
-        assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
-        assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
-        assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
-      });
+      await contextUpdateAfter(() => githubPackage.activate({
+        activeRepositoryPath: workdirPath2,
+      }));
+      const context = contextPool.getContext(workdirPath2);
+      assert.isTrue(context.isPresent());
+      assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
+      assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
+      assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
     });
 
     it('prefers the active model from serialized state to first working directory', async function() {
