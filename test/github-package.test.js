@@ -768,19 +768,61 @@ describe('GithubPackage', function() {
         await githubPackage.scheduleActiveContextUpdate();
       });
 
-      it('uses an active repository', async function() {
-        await assert.async.isTrue(githubPackage.getActiveRepository().isPresent());
+      it('uses a repository', async function() {
+        await assert.async.isOk(githubPackage.getActiveRepository());
       });
     });
   });
 
-  /*describe('when there is a change in the repository', function() {
+  describe('when there is a change in the repository', function() {
+    let atomEnv, githubPackage;
+    let workspace, project, commands, notificationManager;
+    let tooltips, deserializers, config, keymaps, styles;
+    let grammars, confirm, configDirPath, getLoadSettings;
+    let renderFn, contextPool, currentWindow;
+    let useLegacyPanels;
+
+    // Build Atom Environment and create the GitHub Package
+    beforeEach(async function() {
+      atomEnv = global.buildAtomEnvironment();
+      await disableFilesystemWatchers(atomEnv);
+
+      workspace = atomEnv.workspace;
+      project = atomEnv.project;
+      commands = atomEnv.commands;
+      deserializers = atomEnv.deserializers;
+      notificationManager = atomEnv.notifications;
+      tooltips = atomEnv.tooltips;
+      config = atomEnv.config;
+      keymaps = atomEnv.keymaps;
+      confirm = atomEnv.confirm.bind(atomEnv);
+      styles = atomEnv.styles;
+      grammars = atomEnv.grammars;
+      getLoadSettings = atomEnv.getLoadSettings.bind(atomEnv);
+      currentWindow = atomEnv.getCurrentWindow();
+      configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
+      renderFn = sinon.stub().callsFake((component, element, callback) => {
+        if (callback) {
+          process.nextTick(callback);
+        }
+      });
+
+      useLegacyPanels = !workspace.getLeftDock;
+
+      githubPackage = new GithubPackage({
+        workspace, project, commands, notificationManager, tooltips,
+        styles, grammars, keymaps, config, deserializers, confirm,
+        getLoadSettings, currentWindow, configDirPath, renderFn,
+      });
+
+      contextPool = githubPackage.getContextPool();
+    });
+
     let workdirPath1, atomGitRepository1, repository1;
     let workdirPath2, atomGitRepository2, repository2;
 
+    // Setup file system.
     beforeEach(async function() {
-      this.retries(5); // FLAKE
-
       [workdirPath1, workdirPath2] = await Promise.all([
         cloneRepository('three-files'),
         cloneRepository('three-files'),
