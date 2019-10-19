@@ -756,7 +756,7 @@ describe('GithubPackage', function() {
 
     context('with a symlinked repository project', function() {
       beforeEach(async function() {
-        if (process.platform !== 'win32') {
+        if (process.platform === 'win32') {
           this.skip();
         }
         const workdirPath = await cloneRepository('three-files');
