@@ -830,7 +830,10 @@ describe('GithubPackage', function() {
 
       fs.writeFileSync(path.join(workdirPath1, 'c.txt'), 'ch-ch-ch-changes', 'utf8');
       fs.writeFileSync(path.join(workdirPath2, 'c.txt'), 'ch-ch-ch-changes', 'utf8');
+    });
 
+    // Setup up GitHub Package and file watchers
+    beforeEach(async function() {
       project.setPaths([workdirPath1, workdirPath2]);
       await githubPackage.activate();
 
@@ -845,7 +848,10 @@ describe('GithubPackage', function() {
       }
 
       await Promise.all(watcherPromises);
+    });
 
+    // Stub the repositories functions
+    beforeEach(function() {
       [atomGitRepository1, atomGitRepository2] = githubPackage.project.getRepositories();
       sinon.stub(atomGitRepository1, 'refreshStatus');
       sinon.stub(atomGitRepository2, 'refreshStatus');
@@ -856,11 +862,17 @@ describe('GithubPackage', function() {
       sinon.stub(repository2, 'observeFilesystemChange');
     });
 
+    // Destroy Atom Environment and the GitHub Package
+    afterEach(async function() {
+      await githubPackage.deactivate();
+
+      atomEnv.destroy();
+    });
+
     it('refreshes the appropriate Repository and Atom GitRepository when a file is changed in workspace 1', async function() {
       if (process.platform === 'linux') {
         this.skip();
       }
-      this.retries(5); // FLAKE
 
       fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'some changes', 'utf8');
 
@@ -872,7 +884,6 @@ describe('GithubPackage', function() {
       if (process.platform === 'linux') {
         this.skip();
       }
-      this.retries(5); // FLAKE
 
       fs.writeFileSync(path.join(workdirPath2, 'b.txt'), 'other changes', 'utf8');
 
@@ -895,24 +906,77 @@ describe('GithubPackage', function() {
     });
   });
 
-  /*describe('initialize', function() {
-    it('creates and sets a repository for the given project path', async function() {
-      const nonRepositoryPath = await getTempDir();
-      project.setPaths([nonRepositoryPath]);
+  describe('initialize()', function() {
+    let atomEnv, githubPackage;
+    let workspace, project, commands, notificationManager;
+    let tooltips, deserializers, config, keymaps, styles;
+    let grammars, confirm, configDirPath, getLoadSettings;
+    let renderFn, contextPool, currentWindow;
+    let useLegacyPanels;
 
-      await contextUpdateAfter(githubPackage, () => githubPackage.activate());
-      await githubPackage.getActiveRepository().getLoadPromise();
+    beforeEach(async function() {
+      atomEnv = global.buildAtomEnvironment();
+      await disableFilesystemWatchers(atomEnv);
 
-      assert.isTrue(githubPackage.getActiveRepository().isEmpty());
-      assert.isFalse(githubPackage.getActiveRepository().isAbsent());
+      workspace = atomEnv.workspace;
+      project = atomEnv.project;
+      commands = atomEnv.commands;
+      deserializers = atomEnv.deserializers;
+      notificationManager = atomEnv.notifications;
+      tooltips = atomEnv.tooltips;
+      config = atomEnv.config;
+      keymaps = atomEnv.keymaps;
+      confirm = atomEnv.confirm.bind(atomEnv);
+      styles = atomEnv.styles;
+      grammars = atomEnv.grammars;
+      getLoadSettings = atomEnv.getLoadSettings.bind(atomEnv);
+      currentWindow = atomEnv.getCurrentWindow();
+      configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
+      renderFn = sinon.stub().callsFake((component, element, callback) => {
+        if (callback) {
+          process.nextTick(callback);
+        }
+      });
 
-      await githubPackage.initialize(nonRepositoryPath);
+      useLegacyPanels = !workspace.getLeftDock;
 
-      assert.isTrue(githubPackage.getActiveRepository().isPresent());
-      assert.strictEqual(
-        githubPackage.getActiveRepository(),
-        await contextPool.getContext(nonRepositoryPath).getRepository(),
-      );
+      githubPackage = new GithubPackage({
+        workspace, project, commands, notificationManager, tooltips,
+        styles, grammars, keymaps, config, deserializers, confirm,
+        getLoadSettings, currentWindow, configDirPath, renderFn,
+      });
+
+      contextPool = githubPackage.getContextPool();
+    });
+
+    afterEach(async function() {
+      await githubPackage.deactivate();
+
+      atomEnv.destroy();
+    });
+
+    context('with a non-repository project', function() {
+      let nonRepositoryPath;
+      beforeEach(async function() {
+        nonRepositoryPath = await getTempDir();
+        project.setPaths([nonRepositoryPath]);
+
+        await contextUpdateAfter(githubPackage, () => githubPackage.activate());
+        await githubPackage.getActiveRepository().getLoadPromise();
+
+        await githubPackage.initialize(nonRepositoryPath);
+      });
+
+      it('creates a repository for the project', function() {
+        assert.isTrue(githubPackage.getActiveRepository().isPresent());
+      });
+
+      it('uses the newly created repository for the project', async function() {
+        assert.strictEqual(
+          githubPackage.getActiveRepository(),
+          await contextPool.getContext(nonRepositoryPath).getRepository(),
+        );
+      });
     });
   });
 
