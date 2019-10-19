@@ -434,7 +434,7 @@ describe('GithubPackage', function() {
         await contextUpdateAfter(githubPackage, () => githubPackage.activate());
       });
 
-      it('uses an absent repository', function() {
+      it('uses an absent guess repository', function() {
         assert.isTrue(githubPackage.getActiveRepository().isAbsentGuess());
       });
     });
@@ -640,6 +640,10 @@ describe('GithubPackage', function() {
 
       it('creates a context for the project', function() {
         assert.isTrue(contextPool.getContext(nonRepositoryPath).isPresent());
+      });
+
+      it('is not cached', async function() {
+        assert.isNull(await githubPackage.workdirCache.find(nonRepositoryPath));
       });
 
       it('uses an empty repository', function() {
@@ -980,39 +984,105 @@ describe('GithubPackage', function() {
     });
   });
 
-  /*describe('clone', function() {
-    it('clones into an existing project path', async function() {
-      const sourcePath = await cloneRepository();
-      const existingPath = await getTempDir();
-      project.setPaths([existingPath]);
+  describe('clone()', function() {
+    let atomEnv, githubPackage;
+    let workspace, project, commands, notificationManager;
+    let tooltips, deserializers, config, keymaps, styles;
+    let grammars, confirm, configDirPath, getLoadSettings;
+    let renderFn, contextPool, currentWindow;
+    let useLegacyPanels;
 
-      await contextUpdateAfter(githubPackage, () => githubPackage.activate());
-      const repository = githubPackage.getActiveRepository();
-      await repository.getLoadPromise();
-      assert.isTrue(repository.isEmpty());
+    beforeEach(async function() {
+      atomEnv = global.buildAtomEnvironment();
+      await disableFilesystemWatchers(atomEnv);
 
-      assert.isNull(await githubPackage.workdirCache.find(existingPath));
+      workspace = atomEnv.workspace;
+      project = atomEnv.project;
+      commands = atomEnv.commands;
+      deserializers = atomEnv.deserializers;
+      notificationManager = atomEnv.notifications;
+      tooltips = atomEnv.tooltips;
+      config = atomEnv.config;
+      keymaps = atomEnv.keymaps;
+      confirm = atomEnv.confirm.bind(atomEnv);
+      styles = atomEnv.styles;
+      grammars = atomEnv.grammars;
+      getLoadSettings = atomEnv.getLoadSettings.bind(atomEnv);
+      currentWindow = atomEnv.getCurrentWindow();
+      configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
+      renderFn = sinon.stub().callsFake((component, element, callback) => {
+        if (callback) {
+          process.nextTick(callback);
+        }
+      });
 
-      await githubPackage.clone(sourcePath, existingPath);
+      useLegacyPanels = !workspace.getLeftDock;
 
-      assert.strictEqual(await githubPackage.workdirCache.find(existingPath), existingPath);
+      githubPackage = new GithubPackage({
+        workspace, project, commands, notificationManager, tooltips,
+        styles, grammars, keymaps, config, deserializers, confirm,
+        getLoadSettings, currentWindow, configDirPath, renderFn,
+      });
+
+      contextPool = githubPackage.getContextPool();
     });
 
-    it('clones into a new project path', async function() {
-      const sourcePath = await cloneRepository();
-      const newPath = await getTempDir();
+    afterEach(async function() {
+      await githubPackage.deactivate();
 
-      await contextUpdateAfter(githubPackage, () => githubPackage.activate());
-      const original = githubPackage.getActiveRepository();
-      await original.getLoadPromise();
-      assert.isTrue(original.isAbsentGuess());
-      assert.deepEqual(project.getPaths(), []);
+      atomEnv.destroy();
+    });
 
-      await contextUpdateAfter(githubPackage, () => githubPackage.clone(sourcePath, newPath));
+    context('with an existing project', function() {
+      let existingPath, sourcePath;
 
-      assert.deepEqual(project.getPaths(), [newPath]);
-      const replaced = githubPackage.getActiveRepository();
-      assert.notStrictEqual(original, replaced);
+      // Setup files and the GitHub Package
+      beforeEach(async function() {
+        sourcePath = await cloneRepository();
+        existingPath = await getTempDir();
+        project.setPaths([existingPath]);
+
+        await contextUpdateAfter(githubPackage, () => githubPackage.activate());
+        const repository = githubPackage.getActiveRepository();
+        await repository.getLoadPromise();
+      });
+
+      // Clone
+      beforeEach(async function() {
+        await githubPackage.clone(sourcePath, existingPath);
+      });
+
+      it('clones into the existing project', async function() {
+        assert.strictEqual(await githubPackage.workdirCache.find(existingPath), existingPath);
+      });
+    });
+
+    context('with no projects', function() {
+      let newPath, sourcePath, originalRepo;
+
+      // Setup files and the GitHub Package
+      beforeEach(async function() {
+        sourcePath = await cloneRepository();
+        newPath = await getTempDir();
+
+        await contextUpdateAfter(githubPackage, () => githubPackage.activate());
+        originalRepo = githubPackage.getActiveRepository();
+        await originalRepo.getLoadPromise();
+      });
+
+      // Clone and Update context
+      beforeEach(async function() {
+        await contextUpdateAfter(githubPackage, () => githubPackage.clone(sourcePath, newPath));
+      });
+
+      it('creates a new project', function() {
+        assert.deepEqual(project.getPaths(), [newPath]);
+      })
+
+      it('clones into a new project', function() {
+        const replaced = githubPackage.getActiveRepository();
+        assert.notStrictEqual(originalRepo, replaced);
+      });
     });
   });
 
