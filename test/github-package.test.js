@@ -8,34 +8,50 @@ import {fileExists, getTempDir} from '../lib/helpers';
 import GithubPackage from '../lib/github-package';
 
 describe.only('GithubPackage', function() {
-  function assertFileExists(message, file) {
-    it(message, async function() {
-      assert.isTrue(await fileExists(file));
-    });
+
+  async function buildAtomEnvironmentAndGithubPackage(buildAtomEnvironment, options = {}) {
+    const atomEnv = global.buildAtomEnvironment();
+    await disableFilesystemWatchers(atomEnv);
+
+    const packageOptions = {
+      workspace: atomEnv.workspace,
+      project: atomEnv.project,
+      commands: atomEnv.commands,
+      deserializers: atomEnv.deserializers,
+      notificationManager: atomEnv.notifications,
+      tooltips: atomEnv.tooltips,
+      config: atomEnv.config,
+      keymaps: atomEnv.keymaps,
+      confirm: atomEnv.confirm.bind(atomEnv),
+      styles: atomEnv.styles,
+      grammars: atomEnv.grammars,
+      getLoadSettings: atomEnv.getLoadSettings.bind(atomEnv),
+      currentWindow: atomEnv.getCurrentWindow(),
+      configDirPath: path.join(__dirname, 'fixtures', 'atomenv-config'),
+      renderFn: sinon.stub().callsFake((component, element, callback) => {
+        if (callback) {
+          process.nextTick(callback);
+        }
+      }),
+      ...options,
+    };
+
+    const githubPackage = new GithubPackage(packageOptions);
+
+    const contextPool = githubPackage.getContextPool();
+
+    return {
+      atomEnv,
+      ...packageOptions,
+      githubPackage,
+      contextPool,
+    };
   }
 
   async function contextUpdateAfter(githubPackage, chunk) {
     const updatePromise = githubPackage.getSwitchboard().getFinishActiveContextUpdatePromise();
     await chunk();
     return updatePromise;
-  }
-
-  function usesActivePaneContext(githubPackage, context, workdirPath) {
-    it('uses the active pane\'s context', function() {
-      assert.isTrue(context.isPresent());
-      assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
-      assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
-      assert.equal(githubPackage.getActiveWorkdir(), workdirPath);
-    });
-  }
-
-  function usesProjectContext(githubPackage, context, workdirPath) {
-    it('uses the project\'s context', function() {
-      assert.isTrue(context.isPresent());
-      assert.equal(githubPackage.getActiveWorkdir(), workdirPath);
-      assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
-      assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
-    });
   }
 
   describe('construction', function() {
@@ -125,42 +141,15 @@ describe.only('GithubPackage', function() {
 
   describe('activate()', function() {
     let atomEnv, githubPackage;
-    let workspace, project, commands, notificationManager;
-    let tooltips, deserializers, config, keymaps, styles;
-    let grammars, confirm, configDirPath, getLoadSettings;
-    let renderFn, contextPool, currentWindow;
+    let workspace, project, config;
+    let configDirPath, contextPool;
 
     beforeEach(async function() {
-      atomEnv = global.buildAtomEnvironment();
-      await disableFilesystemWatchers(atomEnv);
-
-      workspace = atomEnv.workspace;
-      project = atomEnv.project;
-      commands = atomEnv.commands;
-      deserializers = atomEnv.deserializers;
-      notificationManager = atomEnv.notifications;
-      tooltips = atomEnv.tooltips;
-      config = atomEnv.config;
-      keymaps = atomEnv.keymaps;
-      confirm = atomEnv.confirm.bind(atomEnv);
-      styles = atomEnv.styles;
-      grammars = atomEnv.grammars;
-      getLoadSettings = atomEnv.getLoadSettings.bind(atomEnv);
-      currentWindow = atomEnv.getCurrentWindow();
-      configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
-      renderFn = sinon.stub().callsFake((component, element, callback) => {
-        if (callback) {
-          process.nextTick(callback);
-        }
-      });
-
-      githubPackage = new GithubPackage({
-        workspace, project, commands, notificationManager, tooltips,
-        styles, grammars, keymaps, config, deserializers, confirm,
-        getLoadSettings, currentWindow, configDirPath, renderFn,
-      });
-
-      contextPool = githubPackage.getContextPool();
+      ({
+        atomEnv, githubPackage,
+        workspace, project,
+        config, configDirPath, contextPool,
+      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironmentAndGithubPackage));
     });
 
     afterEach(async function() {
@@ -169,64 +158,32 @@ describe.only('GithubPackage', function() {
       atomEnv.destroy();
     });
 
-    function usesUndeterminedRepositoryContext() {
-      it('uses an undetermined repository context', function() {
-        assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
-      });
-    }
-
-    function usesActivePaneContextFromPath(workdirPath) {
-      const context = contextPool.getContext(workdirPath);
-      usesActivePaneContext(githubPackage, context, workdirPath);
-    }
-
-    function usesProjectContextFromPath(workdirPath) {
-      const context = contextPool.getContext(workdirPath);
-      usesProjectContext(githubPackage, context, workdirPath);
-    }
-
-    function rendersWithStartOpen(value) {
-      if (value) {
-        it('renders with startOpen', function() {
-          assert.isTrue(githubPackage.startOpen);
-        });
-      } else {
-        it('renders without startOpen', function() {
-          assert.isFalse(githubPackage.startOpen);
-        });
-      }
-    }
-
-    function rendersWithStartRevealed(value) {
-      if (value) {
-        it('renders with startRevealed', function() {
-          assert.isTrue(githubPackage.startRevealed);
-        });
-      } else {
-        it('renders without startRevealed', function() {
-          assert.isFalse(githubPackage.startRevealed);
-        });
-      }
-    }
-
     describe('with no project, state, or active pane', function() {
       beforeEach(async function() {
         await contextUpdateAfter(githubPackage, () => githubPackage.activate());
       });
 
-      usesUndeterminedRepositoryContext();
+      it('uses an undetermined repository context', function() {
+        assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
+      });
     });
 
     describe('with only 1 project', function() {
-      let workdirPath;
+      let workdirPath, context;
       beforeEach(async function() {
         workdirPath = await cloneRepository('three-files');
         project.setPaths([workdirPath]);
 
         await contextUpdateAfter(githubPackage, () => githubPackage.activate());
+        context = contextPool.getContext(workdirPath);
       });
 
-      usesProjectContextFromPath(workdirPath);
+      it('uses the project\'s context', function() {
+        assert.isTrue(context.isPresent());
+        assert.equal(githubPackage.getActiveWorkdir(), workdirPath);
+        assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
+        assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
+      });
     });
 
     describe('with only projects', function() {
@@ -242,7 +199,9 @@ describe.only('GithubPackage', function() {
         await contextUpdateAfter(githubPackage, () => githubPackage.activate());
       });
 
-      usesUndeterminedRepositoryContext();
+      it('uses an undetermined repository context', function() {
+        assert.isTrue(githubPackage.getActiveRepository().isUndetermined());
+      });
 
       it('creates contexts from preexisting projects', function() {
         assert.isTrue(contextPool.getContext(workdirPath1).isPresent());
@@ -252,7 +211,7 @@ describe.only('GithubPackage', function() {
     });
 
     describe('with projects and an active pane', function() {
-      let workdirPath1, workdirPath2;
+      let workdirPath1, workdirPath2, context2;
       beforeEach(async function() {
         ([workdirPath1, workdirPath2] = await Promise.all([
           cloneRepository('three-files'),
@@ -262,9 +221,15 @@ describe.only('GithubPackage', function() {
         await workspace.open(path.join(workdirPath2, 'a.txt'));
 
         await contextUpdateAfter(githubPackage, () => githubPackage.activate());
+        context2 = contextPool.getContext(workdirPath2);
       });
 
-      usesActivePaneContextFromPath(workdirPath2);
+      it('uses the active pane\'s context', function() {
+        assert.isTrue(context2.isPresent());
+        assert.strictEqual(context2.getRepository(), githubPackage.getActiveRepository());
+        assert.strictEqual(context2.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
+        assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
+      });
     });
 
     describe('with projects and state', function() {
@@ -292,7 +257,7 @@ describe.only('GithubPackage', function() {
     });
 
     describe('with projects, state, and an active pane', function() {
-      let workdirPath1, workdirPath2;
+      let workdirPath1, workdirPath2, context2;
       beforeEach(async function() {
         ([workdirPath1, workdirPath2] = await Promise.all([
           cloneRepository('three-files'),
@@ -304,13 +269,19 @@ describe.only('GithubPackage', function() {
         await contextUpdateAfter(githubPackage, () => githubPackage.activate({
           activeRepositoryPath: workdirPath1,
         }));
+        context2 = contextPool.getContext(workdirPath2);
       });
 
-      usesActivePaneContextFromPath(workdirPath2);
+      it('uses the active pane\'s context', function() {
+        assert.isTrue(context2.isPresent());
+        assert.strictEqual(context2.getRepository(), githubPackage.getActiveRepository());
+        assert.strictEqual(context2.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
+        assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
+      });
     });
 
     describe('with 1 project and state', function() {
-      let workdirPath1, workdirPath2;
+      let workdirPath1, workdirPath2, context1;
       beforeEach(async function() {
         ([workdirPath1, workdirPath2] = await Promise.all([
           cloneRepository('three-files'),
@@ -321,9 +292,15 @@ describe.only('GithubPackage', function() {
         await contextUpdateAfter(githubPackage, () => githubPackage.activate({
           activeRepositoryPath: workdirPath2,
         }));
+        context1 = contextPool.getContext(workdirPath1);
       });
 
-      usesProjectContextFromPath(workdirPath1);
+      it('uses the project\'s context', function() {
+        assert.isTrue(context1.isPresent());
+        assert.equal(githubPackage.getActiveWorkdir(), workdirPath1);
+        assert.strictEqual(context1.getRepository(), githubPackage.getActiveRepository());
+        assert.strictEqual(context1.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
+      });
     });
 
     describe('with showOnStartup and no config file', function() {
@@ -336,14 +313,20 @@ describe.only('GithubPackage', function() {
         await githubPackage.activate();
       });
 
-      rendersWithStartOpen(true);
+      it('renders with startOpen', function() {
+        assert.isTrue(githubPackage.startOpen);
+      });
 
-      rendersWithStartRevealed(false);
+      it('renders without startRevealed', function() {
+        assert.isFalse(githubPackage.startRevealed);
+      });
 
-      assertFileExists('writes a config', confFile);
+      it('writes a config', async function() {
+        assert.isTrue(await fileExists(confFile));
+      });
     });
 
-    describe('with showOnStartup and no config file', function() {
+    describe('without showOnStartup and no config file', function() {
       let confFile;
       beforeEach(async function() {
         confFile = path.join(configDirPath, 'github.cson');
@@ -353,11 +336,17 @@ describe.only('GithubPackage', function() {
         await githubPackage.activate();
       });
 
-      rendersWithStartOpen(true);
+      it('renders with startOpen', function() {
+        assert.isTrue(githubPackage.startOpen);
+      });
 
-      rendersWithStartRevealed(true);
+      it('renders with startRevealed', function() {
+        assert.isTrue(githubPackage.startRevealed);
+      });
 
-      assertFileExists('writes a config', confFile);
+      it('writes a config', async function() {
+        assert.isTrue(await fileExists(confFile));
+      });
     });
 
     describe('when it\'s not the first run for new projects', function() {
@@ -368,11 +357,17 @@ describe.only('GithubPackage', function() {
         await githubPackage.activate();
       });
 
-      rendersWithStartOpen(true);
+      it('renders with startOpen', function() {
+        assert.isTrue(githubPackage.startOpen);
+      });
 
-      rendersWithStartRevealed(false);
+      it('renders without startRevealed', function() {
+        assert.isFalse(githubPackage.startRevealed);
+      });
 
-      assertFileExists('has a config', confFile);
+      it('has a config', async function() {
+        assert.isTrue(await fileExists(confFile));
+      });
     });
 
     describe('when it\'s not the first run for existing projects', function() {
@@ -383,71 +378,31 @@ describe.only('GithubPackage', function() {
         await githubPackage.activate({newProject: false});
       });
 
-      rendersWithStartOpen(false);
+      it('renders without startOpen', function() {
+        assert.isFalse(githubPackage.startOpen);
+      });
 
-      rendersWithStartRevealed(false);
+      it('renders without startRevealed', function() {
+        assert.isFalse(githubPackage.startRevealed);
+      });
 
-      assertFileExists('has a config', confFile);
+      it('has a config', async function() {
+        assert.isTrue(await fileExists(confFile));
+      });
     });
   });
 
   describe('scheduleActiveContextUpdate()', function() {
     let atomEnv, githubPackage;
-    let workspace, project, commands, notificationManager;
-    let tooltips, deserializers, config, keymaps, styles;
-    let grammars, confirm, configDirPath, getLoadSettings;
-    let renderFn, contextPool, currentWindow;
-    let useLegacyPanels;
-
-    function usesActivePaneContextFromPath(workdirPath) {
-      const context = contextPool.getContext(workdirPath);
-      usesActivePaneContext(githubPackage, context, workdirPath);
-    }
-
-    function usesProjectContextFromPath(workdirPath) {
-      const context = contextPool.getContext(workdirPath);
-      usesProjectContext(githubPackage, context, workdirPath);
-    }
-
-    function assertContextIsInPoolAndPresent(message, workdirPath) {
-      it(message, function() {
-        assert.isTrue(contextPool.getContext(workdirPath).isPresent());
-      });
-    }
+    let workspace, project, commands;
+    let contextPool;
 
     beforeEach(async function() {
-      atomEnv = global.buildAtomEnvironment();
-      await disableFilesystemWatchers(atomEnv);
-
-      workspace = atomEnv.workspace;
-      project = atomEnv.project;
-      commands = atomEnv.commands;
-      deserializers = atomEnv.deserializers;
-      notificationManager = atomEnv.notifications;
-      tooltips = atomEnv.tooltips;
-      config = atomEnv.config;
-      keymaps = atomEnv.keymaps;
-      confirm = atomEnv.confirm.bind(atomEnv);
-      styles = atomEnv.styles;
-      grammars = atomEnv.grammars;
-      getLoadSettings = atomEnv.getLoadSettings.bind(atomEnv);
-      currentWindow = atomEnv.getCurrentWindow();
-      configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
-      renderFn = sinon.stub().callsFake((component, element, callback) => {
-        if (callback) {
-          process.nextTick(callback);
-        }
-      });
-
-      useLegacyPanels = !workspace.getLeftDock;
-
-      githubPackage = new GithubPackage({
-        workspace, project, commands, notificationManager, tooltips,
-        styles, grammars, keymaps, config, deserializers, confirm,
-        getLoadSettings, currentWindow, configDirPath, renderFn,
-      });
-
-      contextPool = githubPackage.getContextPool();
+      ({
+        atomEnv, githubPackage,
+        workspace, project, commands,
+        contextPool,
+      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironmentAndGithubPackage));
     });
 
     afterEach(async function() {
@@ -537,24 +492,6 @@ describe.only('GithubPackage', function() {
       let nonRepositoryPath, workdirNoConflict, workdirMergeConflict;
       const remainingMarkerCount = 3;
 
-      function hasActiveResolutionProgress(value) {
-        if (value) {
-          it('has active resolution progress', function() {
-            assert.isFalse(githubPackage.getActiveResolutionProgress().isEmpty());
-          });
-        } else {
-          it('has no active resolution progress', function() {
-            assert.isTrue(githubPackage.getActiveResolutionProgress().isEmpty());
-          });
-        }
-      }
-
-      function usesProjectActiveResolutionProgress(projectActiveResolutionProgress) {
-        it('uses the project\'s resolution progress', function() {
-          assert.strictEqual(githubPackage.getActiveResolutionProgress(), projectActiveResolutionProgress);
-        });
-      }
-
       beforeEach(async function() {
         workdirMergeConflict = await cloneRepository('merge-conflict');
         workdirNoConflict = await cloneRepository('three-files');
@@ -574,9 +511,13 @@ describe.only('GithubPackage', function() {
           resolutionMergeConflict = contextPool.getContext(workdirMergeConflict).getResolutionProgress();
         });
 
-        usesProjectActiveResolutionProgress(resolutionMergeConflict);
+        it('uses the project\'s resolution progress', function() {
+          assert.strictEqual(githubPackage.getActiveResolutionProgress(), resolutionMergeConflict);
+        });
 
-        hasActiveResolutionProgress(true);
+        it('has active resolution progress', function() {
+          assert.isFalse(githubPackage.getActiveResolutionProgress().isEmpty());
+        });
 
         it('has the correct number of remaining markers', function() {
           assert.equal(githubPackage.getActiveResolutionProgress().getRemaining('modified-on-both-ours.txt'), remainingMarkerCount);
@@ -591,9 +532,13 @@ describe.only('GithubPackage', function() {
           resolutionNoConflict = contextPool.getContext(workdirNoConflict).getResolutionProgress();
         });
 
-        usesProjectActiveResolutionProgress(resolutionNoConflict);
+        it('uses the project\'s resolution progress', function() {
+          assert.strictEqual(githubPackage.getActiveResolutionProgress(), resolutionNoConflict);
+        });
 
-        hasActiveResolutionProgress(false);
+        it('has no active resolution progress', function() {
+          assert.isTrue(githubPackage.getActiveResolutionProgress().isEmpty());
+        });
       });
 
       describe('when opening a non-repository project', function() {
@@ -602,12 +547,14 @@ describe.only('GithubPackage', function() {
           await githubPackage.scheduleActiveContextUpdate();
         });
 
-        hasActiveResolutionProgress(false);
+        it('has no active resolution progress', function() {
+          assert.isTrue(githubPackage.getActiveResolutionProgress().isEmpty());
+        });
       });
     });
 
     describe('with projects, state, and an active pane', function() {
-      let workdirPath1, workdirPath2, workdirPath3;
+      let workdirPath1, workdirPath2, workdirPath3, context2;
       beforeEach(async function() {
         ([workdirPath1, workdirPath2, workdirPath3] = await Promise.all([
           cloneRepository('three-files'),
@@ -620,13 +567,19 @@ describe.only('GithubPackage', function() {
         await githubPackage.scheduleActiveContextUpdate({
           activeRepositoryPath: workdirPath3,
         });
+        context2 = contextPool.getContext(workdirPath2);
       });
 
-      usesActivePaneContextFromPath(workdirPath2);
+      it('uses the active pane\'s context', function() {
+        assert.isTrue(context2.isPresent());
+        assert.strictEqual(context2.getRepository(), githubPackage.getActiveRepository());
+        assert.strictEqual(context2.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
+        assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
+      });
     });
 
     describe('with 1 project and state', function() {
-      let workdirPath1, workdirPath2;
+      let workdirPath1, workdirPath2, context1;
       beforeEach(async function() {
         ([workdirPath1, workdirPath2] = await Promise.all([
           cloneRepository('three-files'),
@@ -637,9 +590,15 @@ describe.only('GithubPackage', function() {
         await githubPackage.scheduleActiveContextUpdate({
           activeRepositoryPath: workdirPath2,
         });
+        context1 = contextPool.getContext(workdirPath1);
       });
 
-      usesProjectContextFromPath(workdirPath1);
+      it('uses the project\'s context', function() {
+        assert.isTrue(context1.isPresent());
+        assert.equal(githubPackage.getActiveWorkdir(), workdirPath1);
+        assert.strictEqual(context1.getRepository(), githubPackage.getActiveRepository());
+        assert.strictEqual(context1.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
+      });
     });
 
     describe('with projects and state', function() {
@@ -671,7 +630,9 @@ describe.only('GithubPackage', function() {
         await githubPackage.getActiveRepository().getLoadPromise();
       });
 
-      assertContextIsInPoolAndPresent('creates a context for the project', nonRepositoryPath);
+      it('creates a context for the project', function() {
+        assert.isTrue(contextPool.getContext(nonRepositoryPath).isPresent());
+      });
 
       it('is not cached', async function() {
         assert.isNull(await githubPackage.workdirCache.find(nonRepositoryPath));
@@ -704,11 +665,7 @@ describe.only('GithubPackage', function() {
     });
 
     describe('with multiple pane items', function() {
-      let workdirPath1, workdirPath2;
-
-      if (useLegacyPanels) {
-        this.skip();
-      }
+      let workdirPath1, workdirPath2, context1;
 
       beforeEach(async function() {
         ([workdirPath1, workdirPath2] = await Promise.all([
@@ -722,9 +679,15 @@ describe.only('GithubPackage', function() {
         workspace.getLeftDock().activate();
 
         await githubPackage.scheduleActiveContextUpdate();
+        context1 = contextPool.getContext(workdirPath1);
       });
 
-      usesActivePaneContextFromPath(workdirPath1);
+      it('uses the active pane\'s context', function() {
+        assert.isTrue(context1.isPresent());
+        assert.strictEqual(context1.getRepository(), githubPackage.getActiveRepository());
+        assert.strictEqual(context1.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
+        assert.equal(githubPackage.getActiveWorkdir(), workdirPath1);
+      });
     });
 
     describe('with an active context', function() {
@@ -771,7 +734,9 @@ describe.only('GithubPackage', function() {
         await githubPackage.scheduleActiveContextUpdate();
       });
 
-      assertContextIsInPoolAndPresent('creates a context for the project', workdirPath);
+      it('creates a context for the project', function() {
+        assert.isTrue(contextPool.getContext(workdirPath).isPresent());
+      });
 
       describe('when the repository is destroyed', function() {
         beforeEach(function() {
@@ -807,42 +772,13 @@ describe.only('GithubPackage', function() {
 
   describe('initialize()', function() {
     let atomEnv, githubPackage;
-    let workspace, project, commands, notificationManager;
-    let tooltips, deserializers, config, keymaps, styles;
-    let grammars, confirm, configDirPath, getLoadSettings;
-    let renderFn, contextPool, currentWindow;
+    let project, contextPool;
 
     beforeEach(async function() {
-      atomEnv = global.buildAtomEnvironment();
-      await disableFilesystemWatchers(atomEnv);
-
-      workspace = atomEnv.workspace;
-      project = atomEnv.project;
-      commands = atomEnv.commands;
-      deserializers = atomEnv.deserializers;
-      notificationManager = atomEnv.notifications;
-      tooltips = atomEnv.tooltips;
-      config = atomEnv.config;
-      keymaps = atomEnv.keymaps;
-      confirm = atomEnv.confirm.bind(atomEnv);
-      styles = atomEnv.styles;
-      grammars = atomEnv.grammars;
-      getLoadSettings = atomEnv.getLoadSettings.bind(atomEnv);
-      currentWindow = atomEnv.getCurrentWindow();
-      configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
-      renderFn = sinon.stub().callsFake((component, element, callback) => {
-        if (callback) {
-          process.nextTick(callback);
-        }
-      });
-
-      githubPackage = new GithubPackage({
-        workspace, project, commands, notificationManager, tooltips,
-        styles, grammars, keymaps, config, deserializers, confirm,
-        getLoadSettings, currentWindow, configDirPath, renderFn,
-      });
-
-      contextPool = githubPackage.getContextPool();
+      ({
+        atomEnv, githubPackage,
+        project, contextPool,
+      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironmentAndGithubPackage));
     });
 
     afterEach(async function() {
@@ -878,40 +814,13 @@ describe.only('GithubPackage', function() {
 
   describe('clone()', function() {
     let atomEnv, githubPackage;
-    let workspace, project, commands, notificationManager;
-    let tooltips, deserializers, config, keymaps, styles;
-    let grammars, confirm, configDirPath, getLoadSettings;
-    let renderFn, currentWindow;
+    let project;
 
     beforeEach(async function() {
-      atomEnv = global.buildAtomEnvironment();
-      await disableFilesystemWatchers(atomEnv);
-
-      workspace = atomEnv.workspace;
-      project = atomEnv.project;
-      commands = atomEnv.commands;
-      deserializers = atomEnv.deserializers;
-      notificationManager = atomEnv.notifications;
-      tooltips = atomEnv.tooltips;
-      config = atomEnv.config;
-      keymaps = atomEnv.keymaps;
-      confirm = atomEnv.confirm.bind(atomEnv);
-      styles = atomEnv.styles;
-      grammars = atomEnv.grammars;
-      getLoadSettings = atomEnv.getLoadSettings.bind(atomEnv);
-      currentWindow = atomEnv.getCurrentWindow();
-      configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
-      renderFn = sinon.stub().callsFake((component, element, callback) => {
-        if (callback) {
-          process.nextTick(callback);
-        }
-      });
-
-      githubPackage = new GithubPackage({
-        workspace, project, commands, notificationManager, tooltips,
-        styles, grammars, keymaps, config, deserializers, confirm,
-        getLoadSettings, currentWindow, configDirPath, renderFn,
-      });
+      ({
+        atomEnv, githubPackage,
+        project,
+      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironmentAndGithubPackage));
     });
 
     afterEach(async function() {
@@ -975,47 +884,11 @@ describe.only('GithubPackage', function() {
 
   describe('createCommitPreviewStub()', function() {
     let atomEnv, githubPackage;
-    let workspace, project, commands, notificationManager;
-    let tooltips, deserializers, config, keymaps, styles;
-    let grammars, confirm, configDirPath, getLoadSettings;
-    let renderFn, currentWindow;
-
-    function createsStubCommitPreviewItem(item) {
-      it('creates a stub item for a commit preview item', function() {
-        assert.strictEqual(item.getTitle(), 'Commit preview');
-        assert.strictEqual(item.getURI(), 'atom-github://commit-preview');
-      });
-    }
 
     beforeEach(async function() {
-      atomEnv = global.buildAtomEnvironment();
-      await disableFilesystemWatchers(atomEnv);
-
-      workspace = atomEnv.workspace;
-      project = atomEnv.project;
-      commands = atomEnv.commands;
-      deserializers = atomEnv.deserializers;
-      notificationManager = atomEnv.notifications;
-      tooltips = atomEnv.tooltips;
-      config = atomEnv.config;
-      keymaps = atomEnv.keymaps;
-      confirm = atomEnv.confirm.bind(atomEnv);
-      styles = atomEnv.styles;
-      grammars = atomEnv.grammars;
-      getLoadSettings = atomEnv.getLoadSettings.bind(atomEnv);
-      currentWindow = atomEnv.getCurrentWindow();
-      configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
-      renderFn = sinon.stub().callsFake((component, element, callback) => {
-        if (callback) {
-          process.nextTick(callback);
-        }
-      });
-
-      githubPackage = new GithubPackage({
-        workspace, project, commands, notificationManager, tooltips,
-        styles, grammars, keymaps, config, deserializers, confirm,
-        getLoadSettings, currentWindow, configDirPath, renderFn,
-      });
+      ({
+        atomEnv, githubPackage,
+      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironmentAndGithubPackage));
 
       sinon.spy(githubPackage, 'rerender');
     });
@@ -1036,7 +909,10 @@ describe.only('GithubPackage', function() {
         assert.isFalse(githubPackage.rerender.called);
       });
 
-      createsStubCommitPreviewItem(item);
+      it('creates a stub item for a commit preview item', function() {
+        assert.strictEqual(item.getTitle(), 'Commit preview');
+        assert.strictEqual(item.getURI(), 'atom-github://commit-preview');
+      });
     });
 
     describe('when called after the initial render', function() {
@@ -1050,53 +926,20 @@ describe.only('GithubPackage', function() {
         assert.isTrue(githubPackage.rerender.called);
       });
 
-      createsStubCommitPreviewItem(item);
+      it('creates a stub item for a commit preview item', function() {
+        assert.strictEqual(item.getTitle(), 'Commit preview');
+        assert.strictEqual(item.getURI(), 'atom-github://commit-preview');
+      });
     });
   });
 
   describe('createCommitDetailStub()', function() {
     let atomEnv, githubPackage;
-    let workspace, project, commands, notificationManager;
-    let tooltips, deserializers, config, keymaps, styles;
-    let grammars, confirm, configDirPath, getLoadSettings;
-    let renderFn, currentWindow;
-
-    function createsStubCommitDetailItem(item) {
-      it('creates a stub item for a commit detail item', function() {
-        assert.strictEqual(item.getTitle(), 'Commit');
-        assert.strictEqual(item.getURI(), 'atom-github://commit-detail?workdir=/home&sha=1234');
-      });
-    }
 
     beforeEach(async function() {
-      atomEnv = global.buildAtomEnvironment();
-      await disableFilesystemWatchers(atomEnv);
-
-      workspace = atomEnv.workspace;
-      project = atomEnv.project;
-      commands = atomEnv.commands;
-      deserializers = atomEnv.deserializers;
-      notificationManager = atomEnv.notifications;
-      tooltips = atomEnv.tooltips;
-      config = atomEnv.config;
-      keymaps = atomEnv.keymaps;
-      confirm = atomEnv.confirm.bind(atomEnv);
-      styles = atomEnv.styles;
-      grammars = atomEnv.grammars;
-      getLoadSettings = atomEnv.getLoadSettings.bind(atomEnv);
-      currentWindow = atomEnv.getCurrentWindow();
-      configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
-      renderFn = sinon.stub().callsFake((component, element, callback) => {
-        if (callback) {
-          process.nextTick(callback);
-        }
-      });
-
-      githubPackage = new GithubPackage({
-        workspace, project, commands, notificationManager, tooltips,
-        styles, grammars, keymaps, config, deserializers, confirm,
-        getLoadSettings, currentWindow, configDirPath, renderFn,
-      });
+      ({
+        atomEnv, githubPackage,
+      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironmentAndGithubPackage));
 
       sinon.spy(githubPackage, 'rerender');
     });
@@ -1117,7 +960,10 @@ describe.only('GithubPackage', function() {
         assert.isFalse(githubPackage.rerender.called);
       });
 
-      createsStubCommitDetailItem(item);
+      it('creates a stub item for a commit detail item', function() {
+        assert.strictEqual(item.getTitle(), 'Commit');
+        assert.strictEqual(item.getURI(), 'atom-github://commit-detail?workdir=/home&sha=1234');
+      });
     });
 
     describe('when called after the initial render', function() {
@@ -1131,63 +977,27 @@ describe.only('GithubPackage', function() {
         assert.isTrue(githubPackage.rerender.called);
       });
 
-      createsStubCommitDetailItem(item);
+      it('creates a stub item for a commit detail item', function() {
+        assert.strictEqual(item.getTitle(), 'Commit');
+        assert.strictEqual(item.getURI(), 'atom-github://commit-detail?workdir=/home&sha=1234');
+      });
     });
   });
 
   describe('with repository projects', function() {
     let atomEnv, githubPackage;
-    let workspace, project, commands, notificationManager;
-    let tooltips, deserializers, config, keymaps, styles;
-    let grammars, confirm, configDirPath, getLoadSettings;
-    let renderFn, contextPool, currentWindow;
+    let project, contextPool;
 
     // Build Atom Environment and create the GitHub Package
     beforeEach(async function() {
-      atomEnv = global.buildAtomEnvironment();
-      await disableFilesystemWatchers(atomEnv);
-
-      workspace = atomEnv.workspace;
-      project = atomEnv.project;
-      commands = atomEnv.commands;
-      deserializers = atomEnv.deserializers;
-      notificationManager = atomEnv.notifications;
-      tooltips = atomEnv.tooltips;
-      config = atomEnv.config;
-      keymaps = atomEnv.keymaps;
-      confirm = atomEnv.confirm.bind(atomEnv);
-      styles = atomEnv.styles;
-      grammars = atomEnv.grammars;
-      getLoadSettings = atomEnv.getLoadSettings.bind(atomEnv);
-      currentWindow = atomEnv.getCurrentWindow();
-      configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
-      renderFn = sinon.stub().callsFake((component, element, callback) => {
-        if (callback) {
-          process.nextTick(callback);
-        }
-      });
-
-      githubPackage = new GithubPackage({
-        workspace, project, commands, notificationManager, tooltips,
-        styles, grammars, keymaps, config, deserializers, confirm,
-        getLoadSettings, currentWindow, configDirPath, renderFn,
-      });
-
-      contextPool = githubPackage.getContextPool();
+      ({
+        atomEnv, githubPackage,
+        project, contextPool,
+      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironmentAndGithubPackage));
     });
 
     let workdirPath1, atomGitRepository1, repository1;
     let workdirPath2, atomGitRepository2, repository2;
-
-    function refreshesRepositories(repository, atomGitRepository) {
-      it('refreshes the corresponding repository', async function() {
-        await assert.async.isTrue(repository.observeFilesystemChange.called);
-      });
-
-      it('refreshes the corresponding Atom GitRepository', async function() {
-        await assert.async.isTrue(atomGitRepository.refreshStatus.called);
-      });
-    }
 
     // Setup file system.
     beforeEach(async function() {
@@ -1246,7 +1056,13 @@ describe.only('GithubPackage', function() {
         fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'some changes', 'utf8');
       });
 
-      refreshesRepositories(repository1, atomGitRepository1);
+      it('refreshes the corresponding repository', async function() {
+        await assert.async.isTrue(repository1.observeFilesystemChange.called);
+      });
+
+      it('refreshes the corresponding Atom GitRepository', async function() {
+        await assert.async.isTrue(atomGitRepository1.refreshStatus.called);
+      });
     });
 
     describe('when a file change is made outside Atom in workspace 2', function() {
@@ -1258,7 +1074,13 @@ describe.only('GithubPackage', function() {
         fs.writeFileSync(path.join(workdirPath2, 'b.txt'), 'other changes', 'utf8');
       });
 
-      refreshesRepositories(repository2, atomGitRepository2);
+      it('refreshes the corresponding repository', async function() {
+        await assert.async.isTrue(repository2.observeFilesystemChange.called);
+      });
+
+      it('refreshes the corresponding Atom GitRepository', async function() {
+        await assert.async.isTrue(atomGitRepository2.refreshStatus.called);
+      });
     });
 
     describe('when a commit is made outside Atom in workspace 1', function() {
@@ -1266,7 +1088,13 @@ describe.only('GithubPackage', function() {
         await repository1.git.exec(['commit', '-am', 'commit in repository1']);
       });
 
-      refreshesRepositories(repository1, atomGitRepository1);
+      it('refreshes the corresponding repository', async function() {
+        await assert.async.isTrue(repository1.observeFilesystemChange.called);
+      });
+
+      it('refreshes the corresponding Atom GitRepository', async function() {
+        await assert.async.isTrue(atomGitRepository1.refreshStatus.called);
+      });
     });
 
     describe('when a commit is made outside Atom in workspace 2', function() {
@@ -1274,7 +1102,13 @@ describe.only('GithubPackage', function() {
         await repository2.git.exec(['commit', '-am', 'commit in repository2']);
       });
 
-      refreshesRepositories(repository2, atomGitRepository2);
+      it('refreshes the corresponding repository', async function() {
+        await assert.async.isTrue(repository2.observeFilesystemChange.called);
+      });
+
+      it('refreshes the corresponding Atom GitRepository', async function() {
+        await assert.async.isTrue(atomGitRepository2.refreshStatus.called);
+      });
     });
   });
 });
