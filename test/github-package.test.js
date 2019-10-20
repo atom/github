@@ -180,7 +180,7 @@ describe.only('GithubPackage', function() {
 
       it('uses the project\'s context', function() {
         assert.isTrue(context.isPresent());
-        assert.equal(githubPackage.getActiveWorkdir(), workdirPath);
+        assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath);
         assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
         assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
       });
@@ -228,7 +228,7 @@ describe.only('GithubPackage', function() {
         assert.isTrue(context2.isPresent());
         assert.strictEqual(context2.getRepository(), githubPackage.getActiveRepository());
         assert.strictEqual(context2.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
-        assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
+        assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath2);
       });
     });
 
@@ -252,7 +252,7 @@ describe.only('GithubPackage', function() {
         assert.isTrue(context.isPresent());
         assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
         assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
-        assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
+        assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath2);
       });
     });
 
@@ -276,7 +276,7 @@ describe.only('GithubPackage', function() {
         assert.isTrue(context2.isPresent());
         assert.strictEqual(context2.getRepository(), githubPackage.getActiveRepository());
         assert.strictEqual(context2.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
-        assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
+        assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath2);
       });
     });
 
@@ -297,7 +297,7 @@ describe.only('GithubPackage', function() {
 
       it('uses the project\'s context', function() {
         assert.isTrue(context1.isPresent());
-        assert.equal(githubPackage.getActiveWorkdir(), workdirPath1);
+        assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath1);
         assert.strictEqual(context1.getRepository(), githubPackage.getActiveRepository());
         assert.strictEqual(context1.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
       });
@@ -520,7 +520,7 @@ describe.only('GithubPackage', function() {
         });
 
         it('has the correct number of remaining markers', function() {
-          assert.equal(githubPackage.getActiveResolutionProgress().getRemaining('modified-on-both-ours.txt'), remainingMarkerCount);
+          assert.strictEqual(githubPackage.getActiveResolutionProgress().getRemaining('modified-on-both-ours.txt'), remainingMarkerCount);
         });
       });
 
@@ -574,7 +574,7 @@ describe.only('GithubPackage', function() {
         assert.isTrue(context2.isPresent());
         assert.strictEqual(context2.getRepository(), githubPackage.getActiveRepository());
         assert.strictEqual(context2.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
-        assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
+        assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath2);
       });
     });
 
@@ -595,7 +595,7 @@ describe.only('GithubPackage', function() {
 
       it('uses the project\'s context', function() {
         assert.isTrue(context1.isPresent());
-        assert.equal(githubPackage.getActiveWorkdir(), workdirPath1);
+        assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath1);
         assert.strictEqual(context1.getRepository(), githubPackage.getActiveRepository());
         assert.strictEqual(context1.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
       });
@@ -616,7 +616,7 @@ describe.only('GithubPackage', function() {
       });
 
       it('uses the state\'s context', function() {
-        assert.equal(githubPackage.getActiveWorkdir(), workdirPath2);
+        assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath2);
       });
     });
 
@@ -686,7 +686,7 @@ describe.only('GithubPackage', function() {
         assert.isTrue(context1.isPresent());
         assert.strictEqual(context1.getRepository(), githubPackage.getActiveRepository());
         assert.strictEqual(context1.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
-        assert.equal(githubPackage.getActiveWorkdir(), workdirPath1);
+        assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath1);
       });
     });
 
@@ -706,7 +706,7 @@ describe.only('GithubPackage', function() {
       });
 
       it('uses the active context', function() {
-        assert.equal(githubPackage.getActiveWorkdir(), workdirPath1);
+        assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath1);
       });
     });
 
@@ -721,7 +721,7 @@ describe.only('GithubPackage', function() {
       });
 
       it('uses the repository\'s project context', function() {
-        assert.equal(githubPackage.getActiveWorkdir(), workdirPath);
+        assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath);
       });
     });
 
