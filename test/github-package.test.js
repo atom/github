@@ -7,7 +7,7 @@ import {cloneRepository, disableFilesystemWatchers} from './helpers';
 import {fileExists, getTempDir} from '../lib/helpers';
 import GithubPackage from '../lib/github-package';
 
-describe.only('GithubPackage', function() {
+describe('GithubPackage', function() {
 
   async function buildAtomEnvironmentAndGithubPackage(buildAtomEnvironment, options = {}) {
     const atomEnv = global.buildAtomEnvironment();
