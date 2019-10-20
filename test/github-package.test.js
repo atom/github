@@ -77,7 +77,7 @@ describe.only('GithubPackage', function() {
 
       const confirm = atomEnv.confirm.bind(atomEnv);
       const currentWindow = atomEnv.getCurrentWindow();
-      const configDirPath = path.join(__dirname, 'fixtures', 'atomenv-config');
+      const configDirPath = path.join(__dirname, 'fixtures/atomenv-config');
       const getLoadSettings = () => ({initialPaths});
 
       project.setPaths(realProjectPaths);
