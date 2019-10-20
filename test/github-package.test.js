@@ -209,7 +209,7 @@ describe.only('GithubPackage', function() {
       }
     }
 
-    context('with no project, state, or active pane', function() {
+    describe('with no project, state, or active pane', function() {
       beforeEach(async function() {
         await contextUpdateAfter(githubPackage, () => githubPackage.activate());
       });
@@ -217,7 +217,7 @@ describe.only('GithubPackage', function() {
       usesUndeterminedRepositoryContext();
     });
 
-    context('with only 1 project', function() {
+    describe('with only 1 project', function() {
       let workdirPath;
       beforeEach(async function() {
         workdirPath = await cloneRepository('three-files');
@@ -229,7 +229,7 @@ describe.only('GithubPackage', function() {
       usesProjectContextFromPath(workdirPath);
     });
 
-    context('with only projects', function() {
+    describe('with only projects', function() {
       let workdirPath1, workdirPath2, nonRepositoryPath;
       beforeEach(async function() {
         ([workdirPath1, workdirPath2, nonRepositoryPath] = await Promise.all([
@@ -251,7 +251,7 @@ describe.only('GithubPackage', function() {
       });
     });
 
-    context('with projects and an active pane', function() {
+    describe('with projects and an active pane', function() {
       let workdirPath1, workdirPath2;
       beforeEach(async function() {
         ([workdirPath1, workdirPath2] = await Promise.all([
@@ -267,7 +267,7 @@ describe.only('GithubPackage', function() {
       usesActivePaneContextFromPath(workdirPath2);
     });
 
-    context('with projects and state', function() {
+    describe('with projects and state', function() {
       let workdirPath1, workdirPath2, workdirPath3;
       beforeEach(async function() {
         ([workdirPath1, workdirPath2, workdirPath3] = await Promise.all([
@@ -291,7 +291,7 @@ describe.only('GithubPackage', function() {
       });
     });
 
-    context('with projects, state, and an active pane', function() {
+    describe('with projects, state, and an active pane', function() {
       let workdirPath1, workdirPath2;
       beforeEach(async function() {
         ([workdirPath1, workdirPath2] = await Promise.all([
@@ -309,7 +309,7 @@ describe.only('GithubPackage', function() {
       usesActivePaneContextFromPath(workdirPath2);
     });
 
-    context('with 1 project and state', function() {
+    describe('with 1 project and state', function() {
       let workdirPath1, workdirPath2;
       beforeEach(async function() {
         ([workdirPath1, workdirPath2] = await Promise.all([
@@ -326,7 +326,7 @@ describe.only('GithubPackage', function() {
       usesProjectContextFromPath(workdirPath1);
     });
 
-    context('with showOnStartup and no config file', function() {
+    describe('with showOnStartup and no config file', function() {
       let confFile;
       beforeEach(async function() {
         confFile = path.join(configDirPath, 'github.cson');
@@ -343,7 +343,7 @@ describe.only('GithubPackage', function() {
       assertFileExists('writes a config', confFile);
     });
 
-    context('with showOnStartup and no config file', function() {
+    describe('with showOnStartup and no config file', function() {
       let confFile;
       beforeEach(async function() {
         confFile = path.join(configDirPath, 'github.cson');
@@ -360,7 +360,7 @@ describe.only('GithubPackage', function() {
       assertFileExists('writes a config', confFile);
     });
 
-    context('when it\'s not the first run for new projects', function() {
+    describe('when it\'s not the first run for new projects', function() {
       let confFile;
       beforeEach(async function() {
         confFile = path.join(configDirPath, 'github.cson');
@@ -375,7 +375,7 @@ describe.only('GithubPackage', function() {
       assertFileExists('has a config', confFile);
     });
 
-    context('when it\'s not the first run for existing projects', function() {
+    describe('when it\'s not the first run for existing projects', function() {
       let confFile;
       beforeEach(async function() {
         confFile = path.join(configDirPath, 'github.cson');
@@ -456,7 +456,7 @@ describe.only('GithubPackage', function() {
       atomEnv.destroy();
     });
 
-    context('with no projects', function() {
+    describe('with no projects', function() {
       beforeEach(async function() {
         await contextUpdateAfter(githubPackage, () => githubPackage.activate());
       });
@@ -466,7 +466,7 @@ describe.only('GithubPackage', function() {
       });
     });
 
-    context('with existing projects', function() {
+    describe('with existing projects', function() {
       let workdirPath1, workdirPath2, workdirPath3;
       beforeEach(async function() {
         ([workdirPath1, workdirPath2, workdirPath3] = await Promise.all([
@@ -487,7 +487,7 @@ describe.only('GithubPackage', function() {
         assert.isFalse(contextPool.getContext(workdirPath3).isPresent());
       });
 
-      context('when opening a new project', function() {
+      describe('when opening a new project', function() {
         beforeEach(async function() {
           await contextUpdateAfter(githubPackage, () => project.setPaths([workdirPath1, workdirPath2, workdirPath3]));
         });
@@ -497,7 +497,7 @@ describe.only('GithubPackage', function() {
         });
       });
 
-      context('when removing a project', function() {
+      describe('when removing a project', function() {
         beforeEach(async function() {
           await contextUpdateAfter(githubPackage, () => project.setPaths([workdirPath1]));
         });
@@ -507,7 +507,7 @@ describe.only('GithubPackage', function() {
         });
       });
 
-      context('when removing all projects', function() {
+      describe('when removing all projects', function() {
         beforeEach(async function() {
           await contextUpdateAfter(githubPackage, () => project.setPaths([]));
         });
@@ -521,7 +521,7 @@ describe.only('GithubPackage', function() {
         });
       });
 
-      context('when an active pane is opened', function() {
+      describe('when an active pane is opened', function() {
         beforeEach(async function() {
           await contextUpdateAfter(githubPackage, () => workspace.open(path.join(workdirPath2, 'b.txt')));
         });
@@ -533,7 +533,7 @@ describe.only('GithubPackage', function() {
       });
     });
 
-    context('with non-repository, no-conflict, and in-progress merge-conflict projects', function() {
+    describe('with non-repository, no-conflict, and in-progress merge-conflict projects', function() {
       let nonRepositoryPath, workdirNoConflict, workdirMergeConflict;
       const remainingMarkerCount = 3;
 
@@ -566,7 +566,7 @@ describe.only('GithubPackage', function() {
         resolutionMergeConflict.reportMarkerCount('modified-on-both-ours.txt', remainingMarkerCount);
       });
 
-      context('when opening an in-progress merge-conflict project', function() {
+      describe('when opening an in-progress merge-conflict project', function() {
         let resolutionMergeConflict;
         beforeEach(async function() {
           await workspace.open(path.join(workdirMergeConflict, 'modified-on-both-ours.txt'));
@@ -583,7 +583,7 @@ describe.only('GithubPackage', function() {
         });
       });
 
-      context('when opening a no-conflict repository project', function() {
+      describe('when opening a no-conflict repository project', function() {
         let resolutionNoConflict;
         beforeEach(async function() {
           await workspace.open(path.join(workdirNoConflict, 'b.txt'));
@@ -596,7 +596,7 @@ describe.only('GithubPackage', function() {
         hasActiveResolutionProgress(false);
       });
 
-      context('when opening a non-repository project', function() {
+      describe('when opening a non-repository project', function() {
         beforeEach(async function() {
           await workspace.open(path.join(nonRepositoryPath, 'c.txt'));
           await githubPackage.scheduleActiveContextUpdate();
@@ -606,7 +606,7 @@ describe.only('GithubPackage', function() {
       });
     });
 
-    context('with projects, state, and an active pane', function() {
+    describe('with projects, state, and an active pane', function() {
       let workdirPath1, workdirPath2, workdirPath3;
       beforeEach(async function() {
         ([workdirPath1, workdirPath2, workdirPath3] = await Promise.all([
@@ -625,7 +625,7 @@ describe.only('GithubPackage', function() {
       usesActivePaneContextFromPath(workdirPath2);
     });
 
-    context('with 1 project and state', function() {
+    describe('with 1 project and state', function() {
       let workdirPath1, workdirPath2;
       beforeEach(async function() {
         ([workdirPath1, workdirPath2] = await Promise.all([
@@ -642,7 +642,7 @@ describe.only('GithubPackage', function() {
       usesProjectContextFromPath(workdirPath1);
     });
 
-    context('with projects and state', function() {
+    describe('with projects and state', function() {
       let workdirPath1, workdirPath2;
       beforeEach(async function() {
         ([workdirPath1, workdirPath2] = await Promise.all([
@@ -661,7 +661,7 @@ describe.only('GithubPackage', function() {
       });
     });
 
-    context('with a non-repository project', function() {
+    describe('with a non-repository project', function() {
       let nonRepositoryPath;
       beforeEach(async function() {
         nonRepositoryPath = await getTempDir();
@@ -686,7 +686,7 @@ describe.only('GithubPackage', function() {
       });
     });
 
-    context('with an active pane in a non-repository project', function() {
+    describe('with an active pane in a non-repository project', function() {
       beforeEach(async function() {
         const nonRepositoryPath = await fs.realpath(temp.mkdirSync());
         const workdir = await cloneRepository('three-files');
@@ -703,7 +703,7 @@ describe.only('GithubPackage', function() {
       });
     });
 
-    context('with multiple pane items', function() {
+    describe('with multiple pane items', function() {
       let workdirPath1, workdirPath2;
 
       if (useLegacyPanels) {
@@ -727,7 +727,7 @@ describe.only('GithubPackage', function() {
       usesActivePaneContextFromPath(workdirPath1);
     });
 
-    context('with an active context', function() {
+    describe('with an active context', function() {
       let workdirPath1, workdirPath2;
       beforeEach(async function() {
         ([workdirPath1, workdirPath2] = await Promise.all([
@@ -747,7 +747,7 @@ describe.only('GithubPackage', function() {
       });
     });
 
-    context('with a repository project\'s subdirectory', function() {
+    describe('with a repository project\'s subdirectory', function() {
       let workdirPath;
       beforeEach(async function() {
         workdirPath = await cloneRepository('three-files');
@@ -762,7 +762,7 @@ describe.only('GithubPackage', function() {
       });
     });
 
-    context('with a repository project', function() {
+    describe('with a repository project', function() {
       let workdirPath;
       beforeEach(async function() {
         workdirPath = await cloneRepository('three-files');
@@ -773,7 +773,7 @@ describe.only('GithubPackage', function() {
 
       assertContextIsInPoolAndPresent('creates a context for the project', workdirPath);
 
-      context('when the repository is destroyed', function() {
+      describe('when the repository is destroyed', function() {
         beforeEach(function() {
           const repository = contextPool.getContext(workdirPath).getRepository();
           repository.destroy();
@@ -785,7 +785,7 @@ describe.only('GithubPackage', function() {
       });
     });
 
-    context('with a symlinked repository project', function() {
+    describe('with a symlinked repository project', function() {
       beforeEach(async function() {
         if (process.platform === 'win32') {
           this.skip();
@@ -851,7 +851,7 @@ describe.only('GithubPackage', function() {
       atomEnv.destroy();
     });
 
-    context('with a non-repository project', function() {
+    describe('with a non-repository project', function() {
       let nonRepositoryPath;
       beforeEach(async function() {
         nonRepositoryPath = await getTempDir();
@@ -920,7 +920,7 @@ describe.only('GithubPackage', function() {
       atomEnv.destroy();
     });
 
-    context('with an existing project', function() {
+    describe('with an existing project', function() {
       let existingPath, sourcePath;
 
       // Setup files and the GitHub Package
@@ -944,7 +944,7 @@ describe.only('GithubPackage', function() {
       });
     });
 
-    context('with no projects', function() {
+    describe('with no projects', function() {
       let newPath, sourcePath, originalRepo;
 
       // Setup files and the GitHub Package
@@ -1026,7 +1026,7 @@ describe.only('GithubPackage', function() {
       atomEnv.destroy();
     });
 
-    context('when called before the initial render', function() {
+    describe('when called before the initial render', function() {
       let item;
       beforeEach(function() {
         item = githubPackage.createCommitPreviewStub({uri: 'atom-github://commit-preview'});
@@ -1039,7 +1039,7 @@ describe.only('GithubPackage', function() {
       createsStubCommitPreviewItem(item);
     });
 
-    context('when called after the initial render', function() {
+    describe('when called after the initial render', function() {
       let item;
       beforeEach(function() {
         githubPackage.controller = Symbol('controller');
@@ -1107,7 +1107,7 @@ describe.only('GithubPackage', function() {
       atomEnv.destroy();
     });
 
-    context('when called before the initial render', function() {
+    describe('when called before the initial render', function() {
       let item;
       beforeEach(function() {
         item = githubPackage.createCommitDetailStub({uri: 'atom-github://commit-detail?workdir=/home&sha=1234'});
@@ -1120,7 +1120,7 @@ describe.only('GithubPackage', function() {
       createsStubCommitDetailItem(item);
     });
 
-    context('when called after the initial render', function() {
+    describe('when called after the initial render', function() {
       let item;
       beforeEach(function() {
         githubPackage.controller = Symbol('controller');
@@ -1135,7 +1135,7 @@ describe.only('GithubPackage', function() {
     });
   });
 
-  context('with repository projects', function() {
+  describe('with repository projects', function() {
     let atomEnv, githubPackage;
     let workspace, project, commands, notificationManager;
     let tooltips, deserializers, config, keymaps, styles;
@@ -1237,7 +1237,7 @@ describe.only('GithubPackage', function() {
       atomEnv.destroy();
     });
 
-    context('when a file change is made outside Atom in workspace 1', function() {
+    describe('when a file change is made outside Atom in workspace 1', function() {
       beforeEach(function() {
         if (process.platform === 'linux') {
           this.skip();
@@ -1249,7 +1249,7 @@ describe.only('GithubPackage', function() {
       refreshesRepositories(repository1, atomGitRepository1);
     });
 
-    context('when a file change is made outside Atom in workspace 2', function() {
+    describe('when a file change is made outside Atom in workspace 2', function() {
       beforeEach(function() {
         if (process.platform === 'linux') {
           this.skip();
@@ -1261,7 +1261,7 @@ describe.only('GithubPackage', function() {
       refreshesRepositories(repository2, atomGitRepository2);
     });
 
-    context('when a commit is made outside Atom in workspace 1', function() {
+    describe('when a commit is made outside Atom in workspace 1', function() {
       beforeEach(async function() {
         await repository1.git.exec(['commit', '-am', 'commit in repository1']);
       });
@@ -1269,7 +1269,7 @@ describe.only('GithubPackage', function() {
       refreshesRepositories(repository1, atomGitRepository1);
     });
 
-    context('when a commit is made outside Atom in workspace 2', function() {
+    describe('when a commit is made outside Atom in workspace 2', function() {
       beforeEach(async function() {
         await repository2.git.exec(['commit', '-am', 'commit in repository2']);
       });
