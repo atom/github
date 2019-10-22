@@ -139,36 +139,27 @@ describe('Marker', function() {
     describe('fails on construction', function() {
       let errors;
 
-      // This consumes the errors rather than printing them to console.
+      // This consumes the error rather than printing it to console.
       const onError = function(e) {
-        errors.push(e.error);
-        e.preventDefault();
+        if (e.message === 'Uncaught Error: Invalid marker ID: 67') {
+          errors.push(e.error);
+          e.preventDefault();
+        }
       };
 
       beforeEach(function() {
         errors = [];
-        // register error consumer
         window.addEventListener('error', onError);
       });
 
       afterEach(function() {
         errors = [];
-        // deregister error consumer (important)
         window.removeEventListener('error', onError);
       });
 
-      specify('if its ID is invalid', function() {
+      it('if its ID is invalid', function() {
         mount(<ErrorBoundary><Marker editor={editor} id={67} /></ErrorBoundary>);
-        if (errors.length === 1) {
-          assert(errors[0], 'Error: Invalid marker ID: 67');
-        } else {
-          window.removeEventListener('error', onError);
-          for (const error of errors) {
-            // eslint-disable-next-line no-console
-            console.error(error);
-          }
-          assert.fail();
-        }
+        assert(errors[0], 'Error: Invalid marker ID: 67');
       });
     });
 

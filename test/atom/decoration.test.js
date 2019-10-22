@@ -9,7 +9,7 @@ import Marker from '../../lib/atom/marker';
 import MarkerLayer from '../../lib/atom/marker-layer';
 import ErrorBoundary from '../../lib/error-boundary';
 
-describe('Decoration', function() {
+describe.only('Decoration', function() {
   let atomEnv, workspace, editor, marker;
 
   beforeEach(async function() {
@@ -132,25 +132,25 @@ describe('Decoration', function() {
     describe('throws an error', function() {
       let errors;
 
-      // This consumes the errors rather than printing them to console.
+      // This consumes the error rather than printing it to console.
       const onError = function(e) {
-        errors.push(e.error);
-        e.preventDefault();
+        if (e.message === 'Uncaught Error: You are trying to decorate a gutter but did not supply gutterName prop.') {
+          errors.push(e.error);
+          e.preventDefault();
+        }
       };
 
       beforeEach(function() {
         errors = [];
-        // register error consumer
         window.addEventListener('error', onError);
       });
 
       afterEach(function() {
         errors = [];
-        // deregister error consumer (important)
         window.removeEventListener('error', onError);
       });
 
-      specify('if `gutterName` prop is not supplied for gutter decorations', function() {
+      it('if `gutterName` prop is not supplied for gutter decorations', function() {
         const app = (
           <ErrorBoundary>
             <Decoration editor={editor} decorable={marker} type="gutter">
@@ -161,16 +161,7 @@ describe('Decoration', function() {
           </ErrorBoundary>
         );
         mount(app);
-        if (errors.length === 1) {
-          assert(errors[0], 'You are trying to decorate a gutter but did not supply gutterName prop.');
-        } else {
-          window.removeEventListener('error', onError);
-          for (const error of errors) {
-            // eslint-disable-next-line no-console
-            console.error(error);
-          }
-          assert.fail();
-        }
+        assert(errors[0], 'You are trying to decorate a gutter but did not supply gutterName prop.');
       });
     });
   });
