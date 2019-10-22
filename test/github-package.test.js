@@ -210,28 +210,6 @@ describe('GithubPackage', function() {
       });
     });
 
-    describe('with projects and an active pane', function() {
-      let workdirPath1, workdirPath2, context2;
-      beforeEach(async function() {
-        ([workdirPath1, workdirPath2] = await Promise.all([
-          cloneRepository('three-files'),
-          cloneRepository('three-files'),
-        ]));
-        project.setPaths([workdirPath1, workdirPath2]);
-        await workspace.open(path.join(workdirPath2, 'a.txt'));
-
-        await contextUpdateAfter(githubPackage, () => githubPackage.activate());
-        context2 = contextPool.getContext(workdirPath2);
-      });
-
-      it('uses the active pane\'s context', function() {
-        assert.isTrue(context2.isPresent());
-        assert.strictEqual(context2.getRepository(), githubPackage.getActiveRepository());
-        assert.strictEqual(context2.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
-        assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath2);
-      });
-    });
-
     describe('with projects and state', function() {
       let workdirPath1, workdirPath2, workdirPath3;
       beforeEach(async function() {
@@ -661,52 +639,6 @@ describe('GithubPackage', function() {
 
       it('uses and absent context', function() {
         assert.isTrue(githubPackage.getActiveRepository().isAbsent());
-      });
-    });
-
-    describe('with multiple pane items', function() {
-      let workdirPath1, workdirPath2, context1;
-
-      beforeEach(async function() {
-        ([workdirPath1, workdirPath2] = await Promise.all([
-          cloneRepository('three-files'),
-          cloneRepository('three-files'),
-        ]));
-        project.setPaths([workdirPath2]);
-
-        await workspace.open(path.join(workdirPath1, 'a.txt'));
-        commands.dispatch(atomEnv.views.getView(workspace), 'tree-view:toggle-focus');
-        workspace.getLeftDock().activate();
-
-        await githubPackage.scheduleActiveContextUpdate();
-        context1 = contextPool.getContext(workdirPath1);
-      });
-
-      it('uses the active pane\'s context', function() {
-        assert.isTrue(context1.isPresent());
-        assert.strictEqual(context1.getRepository(), githubPackage.getActiveRepository());
-        assert.strictEqual(context1.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
-        assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath1);
-      });
-    });
-
-    describe('with an active context', function() {
-      let workdirPath1, workdirPath2;
-      beforeEach(async function() {
-        ([workdirPath1, workdirPath2] = await Promise.all([
-          cloneRepository('three-files'),
-          cloneRepository('three-files'),
-        ]));
-        project.setPaths([workdirPath1, workdirPath2]);
-
-        contextPool.set([workdirPath1, workdirPath2]);
-        githubPackage.setActiveContext(contextPool.getContext(workdirPath1));
-
-        await githubPackage.scheduleActiveContextUpdate();
-      });
-
-      it('uses the active context', function() {
-        assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath1);
       });
     });
 
