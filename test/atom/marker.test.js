@@ -136,7 +136,7 @@ describe('Marker', function() {
       assert.strictEqual(instance.markerHolder.get(), external);
     });
 
-    context('fails on construction', function() {
+    describe('fails on construction', function() {
       let errors;
 
       // This consumes the errors rather than printing them to console.

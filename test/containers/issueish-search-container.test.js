@@ -87,7 +87,7 @@ describe('IssueishSearchContainer', function() {
     await promise;
   });
 
-  context('when the query errors', function() {
+  describe('when the query errors', function() {
     let stub;
     // Consumes the failing Relay Query console error
     before(function() {

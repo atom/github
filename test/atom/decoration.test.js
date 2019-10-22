@@ -129,7 +129,7 @@ describe('Decoration', function() {
       assert.isNull(editor.gutterWithName(gutterName));
     });
 
-    context('throws an error', function() {
+    describe('throws an error', function() {
       let errors;
 
       // This consumes the errors rather than printing them to console.
