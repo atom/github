@@ -141,14 +141,12 @@ describe('GithubPackage', function() {
 
   describe('activate()', function() {
     let atomEnv, githubPackage;
-    let project, config;
-    let configDirPath, contextPool;
+    let project, config, configDirPath, contextPool;
 
     beforeEach(async function() {
       ({
         atomEnv, githubPackage,
-        workspace, project,
-        config, configDirPath, contextPool,
+        project, config, configDirPath, contextPool,
       } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironmentAndGithubPackage));
     });
 
@@ -358,8 +356,7 @@ describe('GithubPackage', function() {
     beforeEach(async function() {
       ({
         atomEnv, githubPackage,
-        workspace, project, commands,
-        contextPool,
+        project, contextPool,
       } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironmentAndGithubPackage));
     });
 
