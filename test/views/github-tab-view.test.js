@@ -66,7 +66,7 @@ describe('GitHubTabView', function() {
 
   it('calls changeProjectWorkingDirectory when a project is selected', function() {
     const select = sinon.spy();
-    const path = 'test/path'
+    const path = 'test/path';
     const wrapper = mount(buildApp({changeProjectWorkingDirectory: select}));
     wrapper.find('.github-Project-path.input-select').simulate('change', {target: {value: path}});
     assert.isTrue(select.calledWith(path));
