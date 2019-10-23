@@ -141,7 +141,7 @@ describe('GithubPackage', function() {
 
   describe('activate()', function() {
     let atomEnv, githubPackage;
-    let workspace, project, config;
+    let project, config;
     let configDirPath, contextPool;
 
     beforeEach(async function() {
@@ -353,8 +353,7 @@ describe('GithubPackage', function() {
 
   describe('scheduleActiveContextUpdate()', function() {
     let atomEnv, githubPackage;
-    let workspace, project, commands;
-    let contextPool;
+    let project, contextPool;
 
     beforeEach(async function() {
       ({
