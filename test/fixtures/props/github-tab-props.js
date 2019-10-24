@@ -15,7 +15,7 @@ export function gitHubTabItemProps(atomEnv, repository, overrides = {}) {
     project: {
       getPaths: () => [],
     },
-    changeProjectWorkingDirectory: () => {},
+    changeWorkingDirectory: () => {},
     ...overrides,
   };
 }
@@ -60,7 +60,7 @@ export function gitHubTabViewProps(atomEnv, repository, overrides = {}) {
 
     handlePushBranch: () => {},
     handleRemoteSelect: () => {},
-    changeProjectWorkingDirectory: () => {},
+    changeWorkingDirectory: () => {},
 
     ...overrides,
   };

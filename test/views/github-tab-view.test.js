@@ -64,10 +64,10 @@ describe('GitHubTabView', function() {
     assert.isTrue(wrapper.find('.github-GitHub-noRemotes').exists());
   });
 
-  it('calls changeProjectWorkingDirectory when a project is selected', function() {
+  it('calls changeWorkingDirectory when a project is selected', function() {
     const select = sinon.spy();
     const path = 'test/path';
-    const wrapper = mount(buildApp({changeProjectWorkingDirectory: select}));
+    const wrapper = mount(buildApp({changeWorkingDirectory: select}));
     wrapper.find('.github-Project-path.input-select').simulate('change', {target: {value: path}});
     assert.isTrue(select.calledWith(path));
     wrapper.unmount();

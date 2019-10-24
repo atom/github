@@ -283,10 +283,10 @@ describe('GitTabView', function() {
     assert.isTrue(setFocus.calledWith(GitTabView.focus.RECENT_COMMIT));
   });
 
-  it('calls changeProjectWorkingDirectory when a project is selected', async function() {
+  it('calls changeWorkingDirectory when a project is selected', async function() {
     const select = sinon.spy();
     const path = 'test/path';
-    const wrapper = mount(await buildApp({changeProjectWorkingDirectory: select}));
+    const wrapper = mount(await buildApp({changeWorkingDirectory: select}));
     wrapper.find('.github-Project-path.input-select').simulate('change', {target: {value: path}});
     assert.isTrue(select.calledWith(path));
     wrapper.unmount();
