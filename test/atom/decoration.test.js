@@ -161,7 +161,7 @@ describe('Decoration', function() {
           </ErrorBoundary>
         );
         mount(app);
-        assert(errors[0], 'You are trying to decorate a gutter but did not supply gutterName prop.');
+        assert.strictEqual(errors[0], 'You are trying to decorate a gutter but did not supply gutterName prop.');
       });
     });
   });
