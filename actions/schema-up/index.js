@@ -65,7 +65,12 @@ Toolkit.run(async tools => {
   if (hasRelayChanges !== 0 && !relayFailed) {
     await tools.runInWorkspace('git', ['commit', '--all', '--message', ':gear: relay-compiler changes']);
   }
-  await tools.runInWorkspace('git', ['push', 'origin', branchName]);
+
+  const actor = process.env.GITHUB_ACTOR;
+  const token = process.env.GITHUB_TOKEN;
+  const repository = process.env.GITHUB_REPOSITORY;
+
+  await tools.runInWorkspace('git', ['push', `https://${actor}:${token}@github.com/${repository}.git`, branchName]);
 
   tools.log.info('Creating a pull request.');
 

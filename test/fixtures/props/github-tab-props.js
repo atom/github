@@ -12,6 +12,10 @@ export function gitHubTabItemProps(atomEnv, repository, overrides = {}) {
     workspace: atomEnv.workspace,
     repository,
     loginModel: new GithubLoginModel(InMemoryStrategy),
+    project: {
+      getPaths: () => [],
+    },
+    changeProjectWorkingDirectory: () => {},
     ...overrides,
   };
 }
@@ -39,6 +43,7 @@ export function gitHubTabControllerProps(atomEnv, repository, overrides = {}) {
 
 export function gitHubTabViewProps(atomEnv, repository, overrides = {}) {
   return {
+    project: atomEnv.project,
     workspace: atomEnv.workspace,
     remoteOperationObserver: new OperationStateObserver(repository, PUSH, PULL, FETCH),
     loginModel: new GithubLoginModel(InMemoryStrategy),
@@ -55,6 +60,7 @@ export function gitHubTabViewProps(atomEnv, repository, overrides = {}) {
 
     handlePushBranch: () => {},
     handleRemoteSelect: () => {},
+    changeProjectWorkingDirectory: () => {},
 
     ...overrides,
   };

@@ -184,8 +184,10 @@ describe('CommentDecorationsContainer', function() {
 
     it('renders nothing if query errors', function() {
       const tokenWrapper = localRepoWrapper.find(ObserveModel).renderProp('children')('1234');
+      const stub = sinon.stub(console, 'warn');
       const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({
         error: 'oh noes', props: null, retry: () => {}});
+      stub.restore();
       assert.isTrue(resultWrapper.isEmptyRender());
     });
 
@@ -254,11 +256,14 @@ describe('CommentDecorationsContainer', function() {
       const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({
         error: null, props, retry: () => {},
       });
+      const stub = sinon.stub(console, 'warn');
       const reviewsWrapper = resultWrapper.find(AggregatedReviewsContainer).renderProp('children')({
         errors: [new Error('ahhhh')],
         summaries: [],
         commentThreads: [],
       });
+
+      stub.restore();
 
       assert.isTrue(reviewsWrapper.isEmptyRender());
     });
@@ -341,9 +346,11 @@ describe('CommentDecorationsContainer', function() {
           {thread: {id: 'thread0'}, comments: [{id: 'comment0', path: 'a.txt'}, {id: 'comment1', path: 'a.txt'}]},
         ],
       });
+      const stub = sinon.stub(console, 'warn');
       const patchWrapper = reviewsWrapper.find(PullRequestPatchContainer).renderProp('children')(
         new Error('oops'), null,
       );
+      stub.restore();
       assert.isTrue(patchWrapper.isEmptyRender());
     });
 

@@ -26,6 +26,7 @@ describe('IssueishSearchContainer', function() {
 
         onOpenIssueish={() => {}}
         onOpenSearch={() => {}}
+        onOpenReviews={() => {}}
 
         {...overrideProps}
       />
@@ -86,31 +87,49 @@ describe('IssueishSearchContainer', function() {
     await promise;
   });
 
-  it('passes an empty result list and an error prop to the controller when errored', async function() {
-    expectRelayQuery({
-      name: 'issueishSearchContainerQuery',
-      variables: {
-        query: 'type:pr',
-        first: 20,
-        checkSuiteCount: CHECK_SUITE_PAGE_SIZE,
-        checkSuiteCursor: null,
-        checkRunCount: CHECK_RUN_PAGE_SIZE,
-        checkRunCursor: null,
-      },
-    }, op => {
-      return relayResponseBuilder(op)
-        .addError('uh oh')
-        .build();
-    }).resolve();
+  describe('when the query errors', function() {
+    let stub;
+    // Consumes the failing Relay Query console error
+    before(function() {
+      stub = sinon.stub(console, 'error');
+      // eslint-disable-next-line no-console
+      console.error.withArgs(
+        'Error encountered in subquery',
+        sinon.match.defined.and(sinon.match.hasNested('errors[0].message', sinon.match('uh oh'))),
+      ).callsFake(() => {});
+      // eslint-disable-next-line no-console
+      console.error.callThrough();
+    });
 
-    const wrapper = mount(buildApp({}));
+    it('passes an empty result list and an error prop to the controller', async function() {
+      expectRelayQuery({
+        name: 'issueishSearchContainerQuery',
+        variables: {
+          query: 'type:pr',
+          first: 20,
+          checkSuiteCount: CHECK_SUITE_PAGE_SIZE,
+          checkSuiteCursor: null,
+          checkRunCount: CHECK_RUN_PAGE_SIZE,
+          checkRunCursor: null,
+        },
+      }, op => {
+        return relayResponseBuilder(op)
+          .addError('uh oh')
+          .build();
+      }).resolve();
 
-    await assert.async.isTrue(
-      wrapper.update().find('BareIssueishListController').filterWhere(n => !n.prop('isLoading')).exists(),
-    );
-    const controller = wrapper.find('BareIssueishListController');
-    assert.deepEqual(controller.prop('error').errors, [{message: 'uh oh'}]);
-    assert.lengthOf(controller.prop('results'), 0);
+      const wrapper = mount(buildApp({}));
+      await assert.async.isTrue(
+        wrapper.update().find('BareIssueishListController').filterWhere(n => !n.prop('isLoading')).exists(),
+      );
+      const controller = wrapper.find('BareIssueishListController');
+      assert.deepEqual(controller.prop('error').errors, [{message: 'uh oh'}]);
+      assert.lengthOf(controller.prop('results'), 0);
+    });
+
+    after(function() {
+      stub.restore();
+    });
   });
 
   it('passes results to the controller', async function() {

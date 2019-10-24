@@ -1,5 +1,5 @@
 import React from 'react';
-import {shallow} from 'enzyme';
+import {shallow, mount} from 'enzyme';
 
 import {gitHubTabViewProps} from '../fixtures/props/github-tab-props';
 import Repository from '../../lib/models/repository';
@@ -62,5 +62,14 @@ describe('GitHubTabView', function() {
   it('renders a static message when no remotes are available', function() {
     const wrapper = shallow(buildApp({currentRemote: nullRemote, isSelectingRemote: false}));
     assert.isTrue(wrapper.find('.github-GitHub-noRemotes').exists());
+  });
+
+  it('calls changeProjectWorkingDirectory when a project is selected', function() {
+    const select = sinon.spy();
+    const path = 'test/path';
+    const wrapper = mount(buildApp({changeProjectWorkingDirectory: select}));
+    wrapper.find('.github-Project-path.input-select').simulate('change', {target: {value: path}});
+    assert.isTrue(select.calledWith(path));
+    wrapper.unmount();
   });
 });
