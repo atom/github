@@ -159,7 +159,7 @@ describe('Marker', function() {
 
       it('if its ID is invalid', function() {
         mount(<ErrorBoundary><Marker editor={editor} id={67} /></ErrorBoundary>);
-        assert(errors[0], 'Error: Invalid marker ID: 67');
+        assert.strictEqual(errors[0], 'Error: Invalid marker ID: 67');
       });
     });
 
