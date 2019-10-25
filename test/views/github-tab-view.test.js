@@ -1,5 +1,5 @@
 import React from 'react';
-import {shallow, mount} from 'enzyme';
+import {shallow} from 'enzyme';
 
 import {gitHubTabViewProps} from '../fixtures/props/github-tab-props';
 import Repository from '../../lib/models/repository';
