@@ -9,7 +9,7 @@ import Marker from '../../lib/atom/marker';
 import MarkerLayer from '../../lib/atom/marker-layer';
 import ErrorBoundary from '../../lib/error-boundary';
 
-describe('Decoration', function() {
+describe.only('Decoration', function() {
   let atomEnv, workspace, editor, marker;
 
   beforeEach(async function() {
@@ -161,7 +161,7 @@ describe('Decoration', function() {
           </ErrorBoundary>
         );
         mount(app);
-        assert.strictEqual(errors[0], 'You are trying to decorate a gutter but did not supply gutterName prop.');
+        assert.strictEqual(errors[0].message, 'You are trying to decorate a gutter but did not supply gutterName prop.');
       });
     });
   });
