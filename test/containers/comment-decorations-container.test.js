@@ -187,7 +187,6 @@ describe('CommentDecorationsContainer', function() {
       const stub = sinon.stub(console, 'warn');
       const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({
         error: 'oh noes', props: null, retry: () => {}});
-      stub.restore();
       assert.isTrue(resultWrapper.isEmptyRender());
     });
 
@@ -262,8 +261,6 @@ describe('CommentDecorationsContainer', function() {
         summaries: [],
         commentThreads: [],
       });
-
-      stub.restore();
 
       assert.isTrue(reviewsWrapper.isEmptyRender());
     });
@@ -350,7 +347,6 @@ describe('CommentDecorationsContainer', function() {
       const patchWrapper = reviewsWrapper.find(PullRequestPatchContainer).renderProp('children')(
         new Error('oops'), null,
       );
-      stub.restore();
       assert.isTrue(patchWrapper.isEmptyRender());
     });
 

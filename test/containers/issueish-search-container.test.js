@@ -90,7 +90,7 @@ describe('IssueishSearchContainer', function() {
   describe('when the query errors', function() {
     let stub;
     // Consumes the failing Relay Query console error
-    before(function() {
+    beforeEach(function() {
       stub = sinon.stub(console, 'error');
       // eslint-disable-next-line no-console
       console.error.withArgs(
@@ -125,10 +125,6 @@ describe('IssueishSearchContainer', function() {
       const controller = wrapper.find('BareIssueishListController');
       assert.deepEqual(controller.prop('error').errors, [{message: 'uh oh'}]);
       assert.lengthOf(controller.prop('results'), 0);
-    });
-
-    after(function() {
-      stub.restore();
     });
   });
 
