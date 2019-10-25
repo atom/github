@@ -284,11 +284,9 @@ describe('GitTabView', function() {
   });
 
   it('calls changeWorkingDirectory when a project is selected', async function() {
-    const select = sinon.spy();
-    const path = 'test/path';
-    const wrapper = mount(await buildApp({changeWorkingDirectory: select}));
-    wrapper.find('.github-Project-path.input-select').simulate('change', {target: {value: path}});
-    assert.isTrue(select.calledWith(path));
-    wrapper.unmount();
+    const changeWorkingDirectory = sinon.spy();
+    const wrapper = shallow(await buildApp({changeWorkingDirectory}));
+    wrapper.find('HeaderView').prop('handleProjectSelect')({target: {value: 'some-path'}});
+    assert.strictEqual(changeWorkingDirectory.calledWith('some-path'));
   });
 });
