@@ -34,16 +34,16 @@ describe('CommentDecorationsController', function() {
     const branch = new Branch('featureBranch', upstreamBranch, upstreamBranch, true);
     const {commentThreads} = aggregatedReviewsBuilder()
       .addReviewThread(t => {
-        t.addComment(c => c.id("0").path('file0.txt').position(2).bodyHTML('one'));
+        t.addComment(c => c.id('0').path('file0.txt').position(2).bodyHTML('one'));
       })
       .addReviewThread(t => {
-        t.addComment(c => c.id("1").path('file1.txt').position(15).bodyHTML('two'));
+        t.addComment(c => c.id('1').path('file1.txt').position(15).bodyHTML('two'));
       })
       .addReviewThread(t => {
-        t.addComment(c => c.id("2").path('file2.txt').position(7).bodyHTML('three'));
+        t.addComment(c => c.id('2').path('file2.txt').position(7).bodyHTML('three'));
       })
       .addReviewThread(t => {
-        t.addComment(c => c.id("3").path('file2.txt').position(10).bodyHTML('four'));
+        t.addComment(c => c.id('3').path('file2.txt').position(10).bodyHTML('four'));
       })
       .build();
 
@@ -145,11 +145,11 @@ describe('CommentDecorationsController', function() {
   it('skips comment thread with only minimized comments', async function() {
     const {commentThreads} = aggregatedReviewsBuilder()
       .addReviewThread(t => {
-        t.addComment(c => c.id("0").path('file0.txt').position(2).bodyHTML('one').isMinimized(true));
-        t.addComment(c => c.id("2").path('file0.txt').position(2).bodyHTML('two').isMinimized(true));
+        t.addComment(c => c.id('0').path('file0.txt').position(2).bodyHTML('one').isMinimized(true));
+        t.addComment(c => c.id('2').path('file0.txt').position(2).bodyHTML('two').isMinimized(true));
       })
       .addReviewThread(t => {
-        t.addComment(c => c.id("1").path('file1.txt').position(15).bodyHTML('three'));
+        t.addComment(c => c.id('1').path('file1.txt').position(15).bodyHTML('three'));
       })
       .build();
     await atomEnv.workspace.open(path.join(__dirname, 'file0.txt'));

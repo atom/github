@@ -88,6 +88,7 @@ describe('IssueishSearchContainer', function() {
   });
 
   describe('when the query errors', function() {
+    // eslint-disable-next-line no-unused-vars
     let stub;
     // Consumes the failing Relay Query console error
     beforeEach(function() {
