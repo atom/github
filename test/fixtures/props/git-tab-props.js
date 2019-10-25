@@ -101,6 +101,10 @@ export async function gitTabViewProps(atomEnv, repository, overrides = {}) {
     discardWorkDirChangesForPaths: () => {},
     openFiles: () => {},
 
+    changeWorkingDirectory: () => {},
+    onDidChangeWorkDirs: () => {},
+    getCurrentWorkDirs: () => [],
+
     ...overrides,
   };
 

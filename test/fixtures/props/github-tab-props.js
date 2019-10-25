@@ -63,6 +63,8 @@ export function gitHubTabViewProps(atomEnv, repository, overrides = {}) {
     handlePushBranch: () => {},
     handleRemoteSelect: () => {},
     changeWorkingDirectory: () => {},
+    onDidChangeWorkDirs: () => {},
+    getCurrentWorkDirs: () => [],
 
     ...overrides,
   };
