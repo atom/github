@@ -2,9 +2,9 @@ import React from 'react';
 import {shallow} from 'enzyme';
 import path from 'path';
 
-import HeaderView from '../../lib/views/header-view';
+import TabHeaderView from '../../lib/views/tab-header-view';
 
-describe('HeaderView', function() {
+describe('TabHeaderView', function() {
   let wrapper, select;
   const path1 = 'test/path/project1';
   const path2 = '2nd-test/path/project2';
@@ -12,7 +12,7 @@ describe('HeaderView', function() {
 
   beforeEach(function() {
     select = sinon.spy();
-    wrapper = shallow(<HeaderView handleProjectSelect={select} projectPaths={paths} currentProject={path2} />);
+    wrapper = shallow(<TabHeaderView handleProjectSelect={select} projectPaths={paths} currentProject={path2} />);
   });
 
   it('renders an option for all given project paths', function() {
