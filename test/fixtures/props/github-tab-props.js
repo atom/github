@@ -16,6 +16,8 @@ export function gitHubTabItemProps(atomEnv, repository, overrides = {}) {
       getPaths: () => [],
     },
     changeWorkingDirectory: () => {},
+    onDidChangeWorkDirs: () => {},
+    getCurrentWorkDirs: () => [],
     ...overrides,
   };
 }
