@@ -287,6 +287,6 @@ describe('GitTabView', function() {
     const changeWorkingDirectory = sinon.spy();
     const wrapper = shallow(await buildApp({changeWorkingDirectory}));
     wrapper.find('TabHeaderView').prop('handleProjectSelect')({target: {value: 'some-path'}});
-    assert.strictEqual(changeWorkingDirectory.calledWith('some-path'));
+    assert.isTrue(changeWorkingDirectory.calledWith('some-path'));
   });
 });
