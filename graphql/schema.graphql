@@ -19443,6 +19443,9 @@ type Sponsorship implements Node {
   The entity that is sponsoring. Returns null if the sponsorship is private
   """
   sponsor: User
+
+  """The associated sponsorship tier"""
+  tier: SponsorsTier
 }
 
 """The connection type for Sponsorship."""
@@ -19501,6 +19504,58 @@ type SponsorsListing implements Node {
 
   """The short name of the listing."""
   slug: String!
+}
+
+"""A GitHub Sponsors tier associated with a GitHub Sponsors listing."""
+type SponsorsTier implements Node {
+  """Identifies the date and time when the object was created."""
+  createdAt: DateTime!
+
+  """The description of the tier."""
+  description: String!
+
+  """The tier description rendered to HTML"""
+  descriptionHTML: HTML!
+  id: ID!
+
+  """How much this tier costs per month in cents."""
+  monthlyPriceInCents: Int!
+
+  """How much this tier costs per month in dollars."""
+  monthlyPriceInDollars: Int!
+
+  """The name of the tier."""
+  name: String!
+
+  """The sponsors listing that this tier belongs to."""
+  sponsorsListing: SponsorsListing!
+
+  """Identifies the date and time when the object was last updated."""
+  updatedAt: DateTime!
+}
+
+"""The connection type for SponsorsTier."""
+type SponsorsTierConnection {
+  """A list of edges."""
+  edges: [SponsorsTierEdge]
+
+  """A list of nodes."""
+  nodes: [SponsorsTier]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+
+"""An edge in a connection."""
+type SponsorsTierEdge {
+  """A cursor for use in pagination."""
+  cursor: String!
+
+  """The item at the end of the edge."""
+  node: SponsorsTier
 }
 
 """The connection type for User."""
