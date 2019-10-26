@@ -12,8 +12,8 @@ describe('TabHeaderView', function() {
       handleWorkDirSelect: undefined,
       getCurrentWorkDirs: () => [],
       ...options,
-    }
-    return shallow(<TabHeaderView {...props}/>);
+    };
+    return shallow(<TabHeaderView {...props} />);
   }
 
   describe('with a select listener and paths', function() {
@@ -48,7 +48,7 @@ describe('TabHeaderView', function() {
       paths.push(path3);
       wrapper.instance().updateWorkDirs();
       assert.strictEqual(wrapper.find('option').length, 3);
-    })
+    });
   });
 
   describe('with onDidChangeWorkDirs', function() {
