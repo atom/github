@@ -256,4 +256,116 @@ describe('WorkdirContextPool', function() {
       assert.isFalse(pool.getContext(dir2).isPresent());
     });
   });
+
+  describe('emitter', function() {
+    describe('did-change-contexts', function() {
+      let dir0, dir1, dir2, emitterSpy;
+
+      beforeEach(async function() {
+        [dir0, dir1, dir2] = await Promise.all([
+          cloneRepository('three-files'),
+          cloneRepository('three-files'),
+          cloneRepository('three-files'),
+        ]);
+
+        pool.add(dir0);
+
+        emitterSpy = sinon.spy();
+
+        pool.onDidChangePoolContexts(emitterSpy);
+      });
+
+      it('emits only once for set', function() {
+        pool.set(new Set([dir1, dir2]));
+        assert.isTrue(emitterSpy.calledOnce);
+        assert.deepEqual(
+          emitterSpy.getCall(0).args[0],
+          {added: new Set([dir1, dir2]), removed: new Set([dir0])}
+        );
+      });
+
+      it('does not emit for set when no changes are made', function() {
+        pool.set(new Set([dir0]));
+        assert.isFalse(emitterSpy.called);
+      });
+
+      it('emits only once for clear', function() {
+        pool.clear();
+        assert.isTrue(emitterSpy.calledOnce);
+        assert.deepEqual(
+          emitterSpy.getCall(0).args[0],
+          {removed: new Set([dir0])}
+        );
+      });
+
+      it('does not emit for clear when no changes are made', function() {
+        pool.clear();
+        emitterSpy.resetHistory();
+        pool.clear(); // Should not emit
+        assert.isFalse(emitterSpy.called);
+      });
+
+      it('emits only once for replace', function() {
+        pool.replace(dir0);
+        assert.isTrue(emitterSpy.calledOnce);
+        assert.deepEqual(
+          emitterSpy.getCall(0).args[0],
+          {altered: new Set([dir0])}
+        );
+      });
+
+      it('emits for every new add', function() {
+        pool.remove(dir0);
+        emitterSpy.resetHistory();
+        pool.add(dir0);
+        pool.add(dir1);
+        pool.add(dir2);
+        assert.isTrue(emitterSpy.calledThrice);
+        assert.deepEqual(
+          emitterSpy.getCall(0).args[0],
+          {added: new Set([dir0])}
+        );
+        assert.deepEqual(
+          emitterSpy.getCall(1).args[0],
+          {added: new Set([dir1])}
+        );
+        assert.deepEqual(
+          emitterSpy.getCall(2).args[0],
+          {added: new Set([dir2])}
+        );
+      });
+
+      it('does not emit for add when a context already exists', function() {
+        pool.add(dir0);
+        assert.isFalse(emitterSpy.called);
+      });
+
+      it('emits for every remove', function() {
+        pool.add(dir1);
+        pool.add(dir2);
+        emitterSpy.resetHistory();
+        pool.remove(dir0);
+        pool.remove(dir1);
+        pool.remove(dir2);
+        assert.isTrue(emitterSpy.calledThrice);
+        assert.deepEqual(
+          emitterSpy.getCall(0).args[0],
+          {removed: new Set([dir0])}
+        );
+        assert.deepEqual(
+          emitterSpy.getCall(1).args[0],
+          {removed: new Set([dir1])}
+        );
+        assert.deepEqual(
+          emitterSpy.getCall(2).args[0],
+          {removed: new Set([dir2])}
+        );
+      });
+
+      it('does not emit for remove when a context did not exist', function() {
+        pool.remove(dir1);
+        assert.isFalse(emitterSpy.called);
+      });
+    })
+  });
 });
