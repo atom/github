@@ -280,7 +280,7 @@ describe('WorkdirContextPool', function() {
         assert.isTrue(emitterSpy.calledOnce);
         assert.deepEqual(
           emitterSpy.getCall(0).args[0],
-          {added: new Set([dir1, dir2]), removed: new Set([dir0])}
+          {added: new Set([dir1, dir2]), removed: new Set([dir0])},
         );
       });
 
@@ -294,7 +294,7 @@ describe('WorkdirContextPool', function() {
         assert.isTrue(emitterSpy.calledOnce);
         assert.deepEqual(
           emitterSpy.getCall(0).args[0],
-          {removed: new Set([dir0])}
+          {removed: new Set([dir0])},
         );
       });
 
@@ -310,7 +310,7 @@ describe('WorkdirContextPool', function() {
         assert.isTrue(emitterSpy.calledOnce);
         assert.deepEqual(
           emitterSpy.getCall(0).args[0],
-          {altered: new Set([dir0])}
+          {altered: new Set([dir0])},
         );
       });
 
@@ -323,15 +323,15 @@ describe('WorkdirContextPool', function() {
         assert.isTrue(emitterSpy.calledThrice);
         assert.deepEqual(
           emitterSpy.getCall(0).args[0],
-          {added: new Set([dir0])}
+          {added: new Set([dir0])},
         );
         assert.deepEqual(
           emitterSpy.getCall(1).args[0],
-          {added: new Set([dir1])}
+          {added: new Set([dir1])},
         );
         assert.deepEqual(
           emitterSpy.getCall(2).args[0],
-          {added: new Set([dir2])}
+          {added: new Set([dir2])},
         );
       });
 
@@ -350,15 +350,15 @@ describe('WorkdirContextPool', function() {
         assert.isTrue(emitterSpy.calledThrice);
         assert.deepEqual(
           emitterSpy.getCall(0).args[0],
-          {removed: new Set([dir0])}
+          {removed: new Set([dir0])},
         );
         assert.deepEqual(
           emitterSpy.getCall(1).args[0],
-          {removed: new Set([dir1])}
+          {removed: new Set([dir1])},
         );
         assert.deepEqual(
           emitterSpy.getCall(2).args[0],
-          {removed: new Set([dir2])}
+          {removed: new Set([dir2])},
         );
       });
 
@@ -366,6 +366,6 @@ describe('WorkdirContextPool', function() {
         pool.remove(dir1);
         assert.isFalse(emitterSpy.called);
       });
-    })
+    });
   });
 });
