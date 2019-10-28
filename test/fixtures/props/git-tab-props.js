@@ -25,6 +25,9 @@ export function gitTabItemProps(atomEnv, repository, overrides = {}) {
     discardWorkDirChangesForPaths: noop,
     openFiles: noop,
     openInitializeDialog: noop,
+    changeWorkingDirectory: noop,
+    onDidChangeWorkDirs: noop,
+    getCurrentWorkDirs: () => [],
     ...overrides
   };
 }
@@ -97,6 +100,10 @@ export async function gitTabViewProps(atomEnv, repository, overrides = {}) {
     attemptFileStageOperation: () => {},
     discardWorkDirChangesForPaths: () => {},
     openFiles: () => {},
+
+    changeWorkingDirectory: () => {},
+    onDidChangeWorkDirs: () => {},
+    getCurrentWorkDirs: () => [],
 
     ...overrides,
   };

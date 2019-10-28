@@ -63,4 +63,11 @@ describe('GitHubTabView', function() {
     const wrapper = shallow(buildApp({currentRemote: nullRemote, manyRemotesAvailable: false}));
     assert.isTrue(wrapper.find('.github-GitHub-noRemotes').exists());
   });
+
+  it('calls changeWorkingDirectory when a project is selected', async function() {
+    const changeWorkingDirectory = sinon.spy();
+    const wrapper = shallow(await buildApp({changeWorkingDirectory}));
+    wrapper.find('TabHeaderView').prop('handleWorkDirSelect')({target: {value: 'some-path'}});
+    assert.isTrue(changeWorkingDirectory.calledWith('some-path'));
+  });
 });
