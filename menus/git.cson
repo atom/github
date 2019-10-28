@@ -46,16 +46,6 @@
       'command': 'github:jump-to-file'
     }
   ]
-  '.github-FilePatchView': [
-    {
-      'type': 'separator'
-    }
-    {
-      'label': 'Jump to File'
-      'command': 'github:jump-to-file'
-      'after': ['core:confirm']
-    }
-  ]
   '.github-FilePatchView--staged': [
     {
       'type': 'separator'
