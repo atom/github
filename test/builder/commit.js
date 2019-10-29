@@ -1,6 +1,7 @@
 import moment from 'moment';
 
 import Commit from '../../lib/models/commit';
+import Author from '../../lib/models/author';
 import {multiFilePatchBuilder} from './patch';
 
 class CommitBuilder {
@@ -61,8 +62,7 @@ class CommitBuilder {
   build() {
     const commit = new Commit({
       sha: this._sha,
-      authorEmail: this._authorEmail,
-      authorName: this._authorName,
+      author: new Author(this._authorEmail, this._authorName),
       authorDate: this._authorDate,
       coAuthors: this._coAuthors,
       messageSubject: this._messageSubject,
