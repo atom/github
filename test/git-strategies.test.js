@@ -11,6 +11,7 @@ import {GitProcess} from 'dugite';
 import CompositeGitStrategy from '../lib/composite-git-strategy';
 import GitShellOutStrategy, {LargeRepoError} from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
+import Author from '../lib/models/author';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
 import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
