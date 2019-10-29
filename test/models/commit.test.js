@@ -148,7 +148,7 @@ describe('Commit', function() {
 
   it('returns the author name', function() {
     const authorName = 'Tilde Ann Thurium';
-    const commit = commitBuilder().authorName(authorName).build();
+    const commit = commitBuilder().addAuthor('email', authorName).build();
     assert.strictEqual(commit.getAuthorName(), authorName);
   });
 
@@ -160,7 +160,7 @@ describe('Commit', function() {
         .authorDate(0)
         .messageSubject('subject')
         .messageBody('body')
-        .addCoAuthor('name', 'me@email.com')
+        .addCoAuthor('me@email.com', 'name')
         .setMultiFileDiff()
         .build();
 
@@ -170,7 +170,7 @@ describe('Commit', function() {
         .authorDate(0)
         .messageSubject('subject')
         .messageBody('body')
-        .addCoAuthor('name', 'me@email.com')
+        .addCoAuthor('me@email.com', 'name')
         .setMultiFileDiff()
         .build();
 
@@ -192,12 +192,12 @@ describe('Commit', function() {
     });
 
     it('returns false if a co-author differs', function() {
-      const a = commitBuilder().addCoAuthor('me', 'me@email.com').build();
+      const a = commitBuilder().addCoAuthor('me@email.com', 'me').build();
 
-      const b0 = commitBuilder().addCoAuthor('me', 'me@email.com').addCoAuthor('extra', 'extra@email.com').build();
+      const b0 = commitBuilder().addCoAuthor('me@email.com', 'me').addCoAuthor('extra@email.com', 'extra').build();
       assert.isFalse(a.isEqual(b0));
 
-      const b1 = commitBuilder().addCoAuthor('different', 'me@email.com').build();
+      const b1 = commitBuilder().addCoAuthor('me@email.com', 'different').build();
       assert.isFalse(a.isEqual(b1));
     });
 

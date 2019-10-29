@@ -48,8 +48,8 @@ class CommitBuilder {
     return this;
   }
 
-  addCoAuthor(name, email) {
-    this._coAuthors.push(new Author(name, email));
+  addCoAuthor(email, name) {
+    this._coAuthors.push(new Author(email, name));
     return this;
   }
 

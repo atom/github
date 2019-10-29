@@ -99,8 +99,8 @@ describe('RecentCommitsView', function() {
     const commits = [
       commitBuilder()
         .addAuthor('thr&ee@z.com', 'thr&ee')
-        .addCoAuthor('One', 'two@y.com')
-        .addCoAuthor('Two', 'one@x.com')
+        .addCoAuthor('two@y.com', 'One')
+        .addCoAuthor('one@x.com', 'Two')
         .build(),
     ];
 
