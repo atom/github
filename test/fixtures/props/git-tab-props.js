@@ -3,6 +3,7 @@ import {InMemoryStrategy} from '../../../lib/shared/keytar-strategy';
 import GithubLoginModel from '../../../lib/models/github-login-model';
 import RefHolder from '../../../lib/models/ref-holder';
 import UserStore from '../../../lib/models/user-store';
+import {nullAuthor} from '../../../lib/models/author';
 
 function noop() {}
 
@@ -26,8 +27,10 @@ export function gitTabItemProps(atomEnv, repository, overrides = {}) {
     openFiles: noop,
     openInitializeDialog: noop,
     changeWorkingDirectory: noop,
-    onDidChangeWorkDirs: noop,
+    onDidChangeWorkDirs: () => ({dispose: () => {}}),
     getCurrentWorkDirs: () => [],
+    onDidUpdateRepo: () => ({dispose: () => {}}),
+    getCommitter: () => nullAuthor,
     ...overrides
   };
 }
@@ -102,8 +105,10 @@ export async function gitTabViewProps(atomEnv, repository, overrides = {}) {
     openFiles: () => {},
 
     changeWorkingDirectory: () => {},
-    onDidChangeWorkDirs: () => {},
+    onDidChangeWorkDirs: () => ({dispose: () => {}}),
     getCurrentWorkDirs: () => [],
+    onDidUpdateRepo: () => ({dispose: () => {}}),
+    getCommitter: () => nullAuthor,
 
     ...overrides,
   };

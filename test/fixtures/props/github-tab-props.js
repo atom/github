@@ -6,6 +6,7 @@ import RemoteSet from '../../../lib/models/remote-set';
 import {nullRemote} from '../../../lib/models/remote';
 import BranchSet from '../../../lib/models/branch-set';
 import {nullBranch} from '../../../lib/models/branch';
+import {nullAuthor} from '../../../lib/models/author';
 
 export function gitHubTabItemProps(atomEnv, repository, overrides = {}) {
   return {
@@ -13,8 +14,10 @@ export function gitHubTabItemProps(atomEnv, repository, overrides = {}) {
     repository,
     loginModel: new GithubLoginModel(InMemoryStrategy),
     changeWorkingDirectory: () => {},
-    onDidChangeWorkDirs: () => {},
+    onDidChangeWorkDirs: () => ({dispose: () => {}}),
     getCurrentWorkDirs: () => [],
+    onDidUpdateRepo: () => ({dispose: () => {}}),
+    getCommitter: () => nullAuthor,
     ...overrides,
   };
 }
@@ -59,8 +62,10 @@ export function gitHubTabViewProps(atomEnv, repository, overrides = {}) {
     handlePushBranch: () => {},
     handleRemoteSelect: () => {},
     changeWorkingDirectory: () => {},
-    onDidChangeWorkDirs: () => {},
+    onDidChangeWorkDirs: () => ({dispose: () => {}}),
     getCurrentWorkDirs: () => [],
+    onDidUpdateRepo: () => ({dispose: () => {}}),
+    getCommitter: () => nullAuthor,
 
     ...overrides,
   };
