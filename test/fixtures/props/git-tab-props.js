@@ -63,12 +63,7 @@ export async function gitTabViewProps(atomEnv, repository, overrides = {}) {
     refRoot: new RefHolder(),
     refStagingView: new RefHolder(),
 
-    repository: {
-      getCommitter: () => nullAuthor,
-      isDestroyed: () => {},
-      onDidUpdate: () => ({dispose: () => {}}),
-      ...repository,
-    },
+    repository,
     isLoading: false,
 
     lastCommit: await repository.getLastCommit(),
