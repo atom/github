@@ -160,7 +160,7 @@ describe('CommitDetailView', function() {
     describe('when there are no co-authors', function() {
       it('returns only the author', function() {
         const commit = commitBuilder()
-          .addAuthor('Steven Universe', 'steven@universe.com')
+          .addAuthor('steven@universe.com', 'Steven Universe')
           .build();
         const wrapper = shallow(buildApp({commit}));
         assert.strictEqual(wrapper.instance().getAuthorInfo(), 'Steven Universe');
