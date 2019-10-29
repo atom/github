@@ -584,7 +584,7 @@ describe('GitTabController', function() {
           const commitMessageWithCoAuthors = dedent`
             ${message}
 
-            Co-authored-by: ${author.name} <${author.email}>
+            Co-authored-by: ${author.getFullName()} <${author.getEmail()}>
           `;
 
           await repository.git.exec(['commit', '--amend', '-m', commitMessageWithCoAuthors]);

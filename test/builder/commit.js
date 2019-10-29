@@ -49,14 +49,14 @@ class CommitBuilder {
   }
 
   addCoAuthor(name, email) {
-    this._coAuthors.push({name, email});
+    this._coAuthors.push(new Author(name, email));
     return this;
   }
 
   build() {
     const commit = new Commit({
       sha: this._sha,
-      author: new Author(this._authorEmail, this._authorName),
+      author: this._author,
       authorDate: this._authorDate,
       coAuthors: this._coAuthors,
       messageSubject: this._messageSubject,
