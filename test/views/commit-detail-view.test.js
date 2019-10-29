@@ -61,7 +61,7 @@ describe('CommitDetailView', function() {
   it('renders commit details properly', function() {
     const commit = commitBuilder()
       .sha('420')
-      .authorEmail('very@nice.com')
+      .addAuthor('very@nice.com', 'very')
       .authorName('Forthe Win')
       .authorDate(moment().subtract(2, 'days').unix())
       .messageSubject('subject')
@@ -83,7 +83,7 @@ describe('CommitDetailView', function() {
 
   it('renders multiple avatars for co-authored commit', function() {
     const commit = commitBuilder()
-      .authorEmail('blaze@it.com')
+      .addAuthor('blaze@it.com', 'blaze')
       .addCoAuthor('two', 'two@coauthor.com')
       .addCoAuthor('three', 'three@coauthor.com')
       .build();
@@ -100,7 +100,7 @@ describe('CommitDetailView', function() {
 
   it('handles noreply email addresses', function() {
     const commit = commitBuilder()
-      .authorEmail('1234+username@users.noreply.github.com')
+      .addAuthor('1234+username@users.noreply.github.com', 'noreply')
       .build();
     const wrapper = shallow(buildApp({commit}));
 
@@ -161,8 +161,7 @@ describe('CommitDetailView', function() {
     describe('when there are no co-authors', function() {
       it('returns only the author', function() {
         const commit = commitBuilder()
-          .authorName('Steven Universe')
-          .authorEmail('steven@universe.com')
+          .addAuthor('Steven Universe', 'steven@universe.com')
           .build();
         const wrapper = shallow(buildApp({commit}));
         assert.strictEqual(wrapper.instance().getAuthorInfo(), 'Steven Universe');

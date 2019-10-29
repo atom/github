@@ -156,7 +156,7 @@ describe('Commit', function() {
     it('returns true when commits are identical', function() {
       const a = commitBuilder()
         .sha('01234')
-        .authorEmail('me@email.com')
+        .addAuthor('me@email.com', 'me')
         .authorDate(0)
         .messageSubject('subject')
         .messageBody('body')
@@ -166,7 +166,7 @@ describe('Commit', function() {
 
       const b = commitBuilder()
         .sha('01234')
-        .authorEmail('me@email.com')
+        .addAuthor('me@email.com', 'me')
         .authorDate(0)
         .messageSubject('subject')
         .messageBody('body')
@@ -185,9 +185,9 @@ describe('Commit', function() {
     });
 
     it('returns false if author differs', function() {
-      const a = commitBuilder().authorName('Tilde Ann Thurium').build();
+      const a = commitBuilder().addAuthor('Tilde Ann Thurium', 'tthurium@gmail.com').build();
 
-      const b = commitBuilder().authorName('Vanessa Yuen').build();
+      const b = commitBuilder().addAuthor('Vanessa Yuen', 'vyuen@gmail.com').build();
       assert.isFalse(a.isEqual(b));
     });
 

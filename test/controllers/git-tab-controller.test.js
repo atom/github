@@ -547,7 +547,7 @@ describe('GitTabController', function() {
           await repository.commit.returnValues[0];
           await updateWrapper(repository, wrapper);
 
-          assert.deepEqual(getLastCommit().coAuthors, [{email: author.getEmail(), name: author.getFullName()}]);
+          assert.deepEqual(getLastCommit().coAuthors, [author]);
           assert.strictEqual(getLastCommit().getMessageSubject(), commitBeforeAmend.getMessageSubject());
         });
 
@@ -574,13 +574,13 @@ describe('GitTabController', function() {
           await updateWrapper(repository, wrapper);
 
           // verify that commit message has coauthor
-          assert.deepEqual(getLastCommit().coAuthors, [{email: author.getEmail(), name: author.getFullName()}]);
+          assert.deepEqual(getLastCommit().coAuthors, [author]);
           assert.strictEqual(getLastCommit().getMessageSubject(), newMessage);
         });
 
         it('successfully removes a co-author', async function() {
           const message = 'We did this together!';
-          const author = {email: 'mona@lisa.com', name: 'Mona Lisa'};
+          const author = new Author('mona@lisa.com', 'Mona Lisa');
           const commitMessageWithCoAuthors = dedent`
             ${message}
 
