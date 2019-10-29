@@ -29,6 +29,7 @@ export function gitTabItemProps(atomEnv, repository, overrides = {}) {
     changeWorkingDirectory: noop,
     onDidChangeWorkDirs: () => ({dispose: () => {}}),
     getCurrentWorkDirs: () => [],
+    isRepoDestroyed: () => {},
     onDidUpdateRepo: () => ({dispose: () => {}}),
     getCommitter: () => nullAuthor,
     ...overrides
@@ -107,6 +108,7 @@ export async function gitTabViewProps(atomEnv, repository, overrides = {}) {
     changeWorkingDirectory: () => {},
     onDidChangeWorkDirs: () => ({dispose: () => {}}),
     getCurrentWorkDirs: () => [],
+    isRepoDestroyed: () => {},
     onDidUpdateRepo: () => ({dispose: () => {}}),
     getCommitter: () => nullAuthor,
 

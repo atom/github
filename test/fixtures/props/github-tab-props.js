@@ -17,6 +17,7 @@ export function gitHubTabItemProps(atomEnv, repository, overrides = {}) {
     onDidChangeWorkDirs: () => ({dispose: () => {}}),
     getCurrentWorkDirs: () => [],
     onDidUpdateRepo: () => ({dispose: () => {}}),
+    isRepoDestroyed: () => {},
     getCommitter: () => nullAuthor,
     ...overrides,
   };
@@ -64,6 +65,7 @@ export function gitHubTabViewProps(atomEnv, repository, overrides = {}) {
     changeWorkingDirectory: () => {},
     onDidChangeWorkDirs: () => ({dispose: () => {}}),
     getCurrentWorkDirs: () => [],
+    isRepoDestroyed: () => {},
     onDidUpdateRepo: () => ({dispose: () => {}}),
     getCommitter: () => nullAuthor,
 
