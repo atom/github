@@ -51,6 +51,11 @@
       'type': 'separator'
     }
     {
+      'label': 'Jump to File'
+      'command': 'github:jump-to-file'
+      'after': ['core:confirm']
+    }
+    {
       'label': 'Unstage Selection'
       'command': 'core:confirm'
       'beforeGroupContaining': ['core:undo']
@@ -59,6 +64,11 @@
   '.github-FilePatchView--unstaged': [
     {
       'type': 'separator'
+    }
+    {
+      'label': 'Jump to File'
+      'command': 'github:jump-to-file'
+      'after': ['core:confirm']
     }
     {
       'label': 'Stage Selection'
