@@ -37,4 +37,51 @@ describe('Author', function() {
     assert.strictEqual('https://avatars.githubusercontent.com/u/0000000?s=32', a1.getAvatarUrl());
     assert.strictEqual('', nullAuthor.getAvatarUrl());
   });
+
+  it('returns name and email as a string', function() {
+    const a0 = new Author('same@same.com', 'Zero');
+    assert.strictEqual('Zero <same@same.com>', a0.toString());
+  });
+
+  it('returns name, email, and login as a string', function() {
+    const a0 = new Author('same@same.com', 'Zero', 'handle');
+    assert.strictEqual('Zero <same@same.com> @handle', a0.toString());
+  });
+
+  it('compares names by alphabetical order', function() {
+    const a0 = new Author('same@same.com', 'Zero');
+    const a1 = new Author('same@same.com', 'One');
+    const a2 = new Author('same@same.com', 'Two', 'two');
+
+    assert.strictEqual(Author.compare(a0, a0), 0);
+    assert.strictEqual(Author.compare(a0, a1), 1);
+    assert.strictEqual(Author.compare(a1, a2), -1);
+    assert.strictEqual(Author.compare(a0, nullAuthor), 1);
+  });
+
+  it('returns null author as a string', function() {
+    assert.strictEqual(nullAuthor.toString(), 'null author');
+  });
+
+  it('assumes 2 null authors are equal', function() {
+    const nullAuthor2 = require('../../lib/models/author').nullAuthor;
+    assert.isTrue(nullAuthor.matches(nullAuthor2));
+  });
+
+  it('assumes nullAuthors are never present', function() {
+    assert.isFalse(nullAuthor.isPresent());
+  });
+
+  it('assumes nullAuthors are never new', function() {
+    assert.isFalse(nullAuthor.isNew());
+  });
+
+  it('assumes nullAuthors don\'t have logins', function() {
+    assert.isFalse(nullAuthor.hasLogin());
+    assert.strictEqual(nullAuthor.getLogin(), null);
+  });
+
+  it('assumes nullAuthors don\'t use a no reply email', function() {
+    assert.isFalse(nullAuthor.isNoReply());
+  });
 });
