@@ -35,5 +35,6 @@ describe('Author', function() {
 
     assert.strictEqual('https://avatars.githubusercontent.com/u/e?email=same%40same.com&s=32', a0.getAvatarUrl());
     assert.strictEqual('https://avatars.githubusercontent.com/u/0000000?s=32', a1.getAvatarUrl());
+    assert.strictEqual('', nullAuthor.getAvatarUrl());
   });
 });
