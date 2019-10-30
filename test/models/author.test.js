@@ -28,4 +28,12 @@ describe('Author', function() {
     assert.isFalse(a0.matches(a3));
     assert.isFalse(a0.matches(nullAuthor));
   });
+
+  it('creates the correct avatar urls', function() {
+    const a0 = new Author('same@same.com', 'Zero');
+    const a1 = new Author('0000000+testing@users.noreply.github.com', 'One');
+
+    assert.strictEqual('https://avatars.githubusercontent.com/u/e?email=same%40same.com&s=32', a0.getAvatarUrl());
+    assert.strictEqual('https://avatars.githubusercontent.com/u/0000000?s=32', a1.getAvatarUrl());
+  });
 });
