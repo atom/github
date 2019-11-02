@@ -48,6 +48,7 @@ export function gitHubTabViewProps(atomEnv, repository, overrides = {}) {
     rootHolder: new RefHolder(),
 
     workingDirectory: repository.getWorkingDirectoryPath(),
+    repository,
     branches: new BranchSet(),
     currentBranch: nullBranch,
     remotes: new RemoteSet(),
@@ -55,6 +56,7 @@ export function gitHubTabViewProps(atomEnv, repository, overrides = {}) {
     manyRemotesAvailable: false,
     aheadCount: 0,
     pushInProgress: false,
+    isLoading: false,
 
     handlePushBranch: () => {},
     handleRemoteSelect: () => {},

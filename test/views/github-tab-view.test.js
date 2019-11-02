@@ -1,5 +1,6 @@
 import React from 'react';
 import {shallow} from 'enzyme';
+import temp from 'temp';
 
 import {gitHubTabViewProps} from '../fixtures/props/github-tab-props';
 import Repository from '../../lib/models/repository';
@@ -7,6 +8,8 @@ import Remote, {nullRemote} from '../../lib/models/remote';
 import RemoteSet from '../../lib/models/remote-set';
 import Branch from '../../lib/models/branch';
 import GitHubTabView from '../../lib/views/github-tab-view';
+
+import {buildRepository} from '../helpers';
 
 describe('GitHubTabView', function() {
   let atomEnv;
@@ -27,6 +30,14 @@ describe('GitHubTabView', function() {
   it('renders a LoadingView if data is still loading', function() {
     const wrapper = shallow(buildApp({isLoading: true}));
     assert.isTrue(wrapper.find('LoadingView').exists());
+  });
+
+  it('renders a uninitialized view when a local repository is not initialized', async function() {
+    const workdir = temp.mkdirSync();
+    const repository = await buildRepository(workdir);
+
+    const wrapper = shallow(buildApp({repository}));
+    assert.isTrue(wrapper.exists('GitHubBlankUninitialized'));
   });
 
   it('renders a RemoteContainer if a remote has been chosen', function() {
