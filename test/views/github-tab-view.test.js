@@ -9,7 +9,7 @@ import RemoteSet from '../../lib/models/remote-set';
 import Branch from '../../lib/models/branch';
 import GitHubTabView from '../../lib/views/github-tab-view';
 
-import {buildRepository} from '../helpers';
+import {buildRepository, cloneRepository} from '../helpers';
 
 describe('GitHubTabView', function() {
   let atomEnv;
@@ -32,6 +32,13 @@ describe('GitHubTabView', function() {
     assert.isTrue(wrapper.find('LoadingView').exists());
   });
 
+  it('renders a no-local view when no local repository is found', function() {
+    const wrapper = shallow(buildApp({
+      repository: Repository.absent(),
+    }));
+    assert.isTrue(wrapper.exists('GitHubBlankNoLocal'));
+  });
+
   it('renders a uninitialized view when a local repository is not initialized', async function() {
     const workdir = temp.mkdirSync();
     const repository = await buildRepository(workdir);
@@ -40,11 +47,19 @@ describe('GitHubTabView', function() {
     assert.isTrue(wrapper.exists('GitHubBlankUninitialized'));
   });
 
-  it('renders a RemoteContainer if a remote has been chosen', function() {
+  it('renders a no-remote view when the local repository has no remotes', async function() {
+    const repository = await buildRepository(await cloneRepository());
+
+    const wrapper = shallow(buildApp({repository, currentRemote: nullRemote, manyRemotesAvailable: false}));
+    assert.isTrue(wrapper.exists('GitHubBlankNoRemote'));
+  });
+
+  it('renders a RemoteContainer if a remote has been chosen', async function() {
+    const repository = await buildRepository(await cloneRepository());
     const currentRemote = new Remote('aaa', 'git@github.com:aaa/bbb.git');
     const currentBranch = new Branch('bbb');
     const handlePushBranch = sinon.spy();
-    const wrapper = shallow(buildApp({currentRemote, currentBranch, handlePushBranch}));
+    const wrapper = shallow(buildApp({repository, currentRemote, currentBranch, handlePushBranch}));
 
     const container = wrapper.find('RemoteContainer');
     assert.isTrue(container.exists());
@@ -53,10 +68,12 @@ describe('GitHubTabView', function() {
     assert.isTrue(handlePushBranch.calledWith(currentBranch, currentRemote));
   });
 
-  it('renders a RemoteSelectorView when many remote choices are available', function() {
+  it('renders a RemoteSelectorView when many remote choices are available', async function() {
+    const repository = await buildRepository(await cloneRepository());
     const remotes = new RemoteSet();
     const handleRemoteSelect = sinon.spy();
     const wrapper = shallow(buildApp({
+      repository,
       remotes,
       currentRemote: nullRemote,
       manyRemotesAvailable: true,
@@ -68,11 +85,6 @@ describe('GitHubTabView', function() {
     assert.strictEqual(selector.prop('remotes'), remotes);
     selector.prop('selectRemote')();
     assert.isTrue(handleRemoteSelect.called);
-  });
-
-  it('renders a static message when no remotes are available', function() {
-    const wrapper = shallow(buildApp({currentRemote: nullRemote, manyRemotesAvailable: false}));
-    assert.isTrue(wrapper.find('.github-GitHub-noRemotes').exists());
   });
 
   it('calls changeWorkingDirectory when a project is selected', async function() {
