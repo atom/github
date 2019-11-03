@@ -3,8 +3,10 @@ import {mount} from 'enzyme';
 
 import PaneItem from '../../lib/atom/pane-item';
 import GitHubTabItem from '../../lib/items/github-tab-item';
+import GithubLoginModel from '../../lib/models/github-login-model';
+import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
+
 import {cloneRepository, buildRepository} from '../helpers';
-import {gitHubTabItemProps} from '../fixtures/props/github-tab-props';
 
 describe('GitHubTabItem', function() {
   let atomEnv, repository;
@@ -20,14 +22,26 @@ describe('GitHubTabItem', function() {
     atomEnv.destroy();
   });
 
-  function buildApp(overrideProps = {}) {
-    const props = gitHubTabItemProps(atomEnv, repository, overrideProps);
+  function buildApp(props = {}) {
+    const workspace = props.workspace || atomEnv.workspace;
 
     return (
-      <PaneItem workspace={props.workspace} uriPattern={GitHubTabItem.uriPattern}>
+      <PaneItem workspace={workspace} uriPattern={GitHubTabItem.uriPattern}>
         {({itemHolder}) => (
           <GitHubTabItem
             ref={itemHolder.setter}
+
+            workspace={workspace}
+            repository={repository}
+            loginModel={new GithubLoginModel(InMemoryStrategy)}
+
+            changeWorkingDirectory={() => {}}
+            onDidChangeWorkDirs={() => {}}
+            getCurrentWorkDirs={() => []}
+            openCreateDialog={() => {}}
+            openPublishDialog={() => {}}
+            openCloneDialog={() => {}}
+            openGitTab={() => {}}
             {...props}
           />
         )}

@@ -1,32 +1,60 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import {gitHubTabControllerProps} from '../fixtures/props/github-tab-props';
 import GitHubTabController from '../../lib/controllers/github-tab-controller';
 import Repository from '../../lib/models/repository';
 import BranchSet from '../../lib/models/branch-set';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import RemoteSet from '../../lib/models/remote-set';
 import Remote from '../../lib/models/remote';
+import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
+import GithubLoginModel from '../../lib/models/github-login-model';
+import RefHolder from '../../lib/models/ref-holder';
+import OperationStateObserver, {PUSH, PULL, FETCH} from '../../lib/models/operation-state-observer';
+
+import {buildRepository, cloneRepository} from '../helpers';
 
 describe('GitHubTabController', function() {
-  let atomEnv;
+  let atomEnv, repository;
 
-  beforeEach(function() {
+  beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
+    repository = await buildRepository(await cloneRepository());
   });
 
   afterEach(function() {
     atomEnv.destroy();
   });
 
-  function buildApp(overrideProps = {}) {
-    const props = {
-      repository: Repository.absent(),
-      ...overrideProps,
-    };
+  function buildApp(props = {}) {
+    const repo = props.repository || repository;
 
-    return <GitHubTabController {...gitHubTabControllerProps(atomEnv, props.repository, props)} />;
+    return (
+      <GitHubTabController
+        workspace={atomEnv.workspace}
+        remoteOperationObserver={new OperationStateObserver(repo, PUSH, PULL, FETCH)}
+        loginModel={new GithubLoginModel(InMemoryStrategy)}
+        rootHolder={new RefHolder()}
+
+        workingDirectory={repo.getWorkingDirectoryPath()}
+        repository={repo}
+        allRemotes={new RemoteSet()}
+        branches={new BranchSet()}
+        pushInProgress={false}
+        isLoading={false}
+        currentWorkDir={repo.getWorkingDirectoryPath()}
+
+        changeWorkingDirectory={() => {}}
+        onDidChangeWorkDirs={() => {}}
+        getCurrentWorkDirs={() => []}
+        openCreateDialog={() => {}}
+        openPublishDialog={() => {}}
+        openCloneDialog={() => {}}
+        openGitTab={() => {}}
+
+        {...props}
+      />
+    );
   }
 
   describe('derived view props', function() {

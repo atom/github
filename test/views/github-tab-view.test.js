@@ -2,12 +2,16 @@ import React from 'react';
 import {shallow} from 'enzyme';
 import temp from 'temp';
 
-import {gitHubTabViewProps} from '../fixtures/props/github-tab-props';
 import Repository from '../../lib/models/repository';
 import Remote, {nullRemote} from '../../lib/models/remote';
 import RemoteSet from '../../lib/models/remote-set';
-import Branch from '../../lib/models/branch';
+import Branch, {nullBranch} from '../../lib/models/branch';
+import BranchSet from '../../lib/models/branch-set';
 import GitHubTabView from '../../lib/views/github-tab-view';
+import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
+import GithubLoginModel from '../../lib/models/github-login-model';
+import RefHolder from '../../lib/models/ref-holder';
+import OperationStateObserver, {PUSH, PULL, FETCH} from '../../lib/models/operation-state-observer';
 
 import {buildRepository, cloneRepository} from '../helpers';
 
@@ -22,9 +26,39 @@ describe('GitHubTabView', function() {
     atomEnv.destroy();
   });
 
-  function buildApp(overrideProps = {}) {
-    const props = gitHubTabViewProps(atomEnv, overrideProps.repository || Repository.absent(), overrideProps);
-    return <GitHubTabView {...props} />;
+  function buildApp(props) {
+    const repo = props.repository || Repository.absent();
+
+    return (
+      <GitHubTabView
+        workspace={atomEnv.workspace}
+        remoteOperationObserver={new OperationStateObserver(repo, PUSH, PULL, FETCH)}
+        loginModel={new GithubLoginModel(InMemoryStrategy)}
+        rootHolder={new RefHolder()}
+
+        workingDirectory={repo.getWorkingDirectoryPath()}
+        repository={repo}
+        branches={new BranchSet()}
+        currentBranch={nullBranch}
+        remotes={new RemoteSet()}
+        currentRemote={nullRemote}
+        manyRemotesAvailable={false}
+        pushInProgress={false}
+        isLoading={false}
+
+        handlePushBranch={() => {}}
+        handleRemoteSelect={() => {}}
+        changeWorkingDirectory={() => {}}
+        onDidChangeWorkDirs={() => {}}
+        getCurrentWorkDirs={() => []}
+        openCreateDialog={() => {}}
+        openPublishDialog={() => {}}
+        openCloneDialog={() => {}}
+        openGitTab={() => {}}
+
+        {...props}
+      />
+    );
   }
 
   it('renders a LoadingView if data is still loading', function() {

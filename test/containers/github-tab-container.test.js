@@ -4,28 +4,46 @@ import {mount} from 'enzyme';
 import {cloneRepository} from '../helpers';
 import GitHubTabContainer from '../../lib/containers/github-tab-container';
 import Repository from '../../lib/models/repository';
-import {gitHubTabContainerProps} from '../fixtures/props/github-tab-props';
+import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
+import GithubLoginModel from '../../lib/models/github-login-model';
+import RefHolder from '../../lib/models/ref-holder';
 
 describe('GitHubTabContainer', function() {
-  let atomEnv;
+  let atomEnv, repository;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
+    repository = Repository.absent();
   });
 
   afterEach(function() {
     atomEnv.destroy();
   });
 
-  function buildApp(overrideProps = {}) {
-    const repository = Repository.absent();
-    return <GitHubTabContainer {...gitHubTabContainerProps(atomEnv, repository, overrideProps)} />;
+  function buildApp(props = {}) {
+    return (
+      <GitHubTabContainer
+        workspace={atomEnv.workspace}
+        repository={repository}
+        loginModel={new GithubLoginModel(InMemoryStrategy)}
+        rootHolder={new RefHolder()}
+
+        changeWorkingDirectory={() => {}}
+        onDidChangeWorkDirs={() => {}}
+        getCurrentWorkDirs={() => []}
+        openCreateDialog={() => {}}
+        openPublishDialog={() => {}}
+        openCloneDialog={() => {}}
+        openGitTab={() => {}}
+
+        {...props}
+      />
+    );
   }
 
   describe('operation state observer', function() {
     it('creates an observer on the current repository', function() {
-      const repository = Repository.absent();
-      const wrapper = mount(buildApp({repository}));
+      const wrapper = mount(buildApp());
 
       const observer = wrapper.state('remoteOperationObserver');
       assert.strictEqual(observer.repository, repository);
@@ -48,9 +66,9 @@ describe('GitHubTabContainer', function() {
 
   describe('while loading', function() {
     it('passes isLoading to its view', async function() {
-      const repository = new Repository(await cloneRepository());
-      assert.isTrue(repository.isLoading());
-      const wrapper = mount(buildApp({repository}));
+      const loadingRepo = new Repository(await cloneRepository());
+      assert.isTrue(loadingRepo.isLoading());
+      const wrapper = mount(buildApp({repository: loadingRepo}));
 
       assert.isTrue(wrapper.find('GitHubTabController').prop('isLoading'));
     });
@@ -59,9 +77,9 @@ describe('GitHubTabContainer', function() {
   describe('once loaded', function() {
     it('renders the controller', async function() {
       const workdir = await cloneRepository();
-      const repository = new Repository(workdir);
-      await repository.getLoadPromise();
-      const wrapper = mount(buildApp({repository}));
+      const presentRepo = new Repository(workdir);
+      await presentRepo.getLoadPromise();
+      const wrapper = mount(buildApp({repository: presentRepo}));
 
       await assert.async.isFalse(wrapper.update().find('GitHubTabController').prop('isLoading'));
       assert.strictEqual(wrapper.find('GitHubTabController').prop('workingDirectory'), workdir);
