@@ -4,9 +4,9 @@ import path from 'path';
 import Author, {nullAuthor} from '../../lib/models/author';
 import {Disposable} from 'atom';
 
-import TabHeaderView from '../../lib/views/tab-header-view';
+import GitTabHeaderView from '../../lib/views/git-tab-header-view';
 
-describe('TabHeaderView', function() {
+describe('GitTabHeaderView', function() {
   function build(options = {}) {
     const props = {
       currentWorkDir: undefined,
@@ -18,7 +18,7 @@ describe('TabHeaderView', function() {
       isRepoDestroyed: () => false,
       ...options,
     };
-    return shallow(<TabHeaderView {...props} />);
+    return shallow(<GitTabHeaderView {...props} />);
   }
 
   describe('with a select listener and paths', function() {
