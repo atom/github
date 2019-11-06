@@ -127,6 +127,14 @@ describe('GitHubTabController', function() {
 
       assert.isTrue(event.preventDefault.called);
       assert.isTrue(repository.setConfig.calledWith('atomGithub.currentRemote', 'aaa'));
+
+    it('opens the publish dialog on the active repository', async function() {
+      const someRepo = await buildRepository(await cloneRepository());
+      const openPublishDialog = sinon.spy();
+      const wrapper = shallow(buildApp({repository: someRepo, openPublishDialog}));
+
+      wrapper.find('GitHubTabView').prop('openBoundPublishDialog')();
+      assert.isTrue(openPublishDialog.calledWith(someRepo));
     });
   });
 });
