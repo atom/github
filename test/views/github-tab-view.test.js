@@ -52,7 +52,7 @@ describe('GitHubTabView', function() {
         onDidChangeWorkDirs={() => {}}
         getCurrentWorkDirs={() => []}
         openCreateDialog={() => {}}
-        openPublishDialog={() => {}}
+        openBoundPublishDialog={() => {}}
         openCloneDialog={() => {}}
         openGitTab={() => {}}
 
