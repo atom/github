@@ -292,6 +292,40 @@ describe('CreateDialog', function() {
       assert.isTrue(repository.push.calledWith('other-branch', {remote: CREATED_REMOTE, setUpstream: true}));
     });
 
+    it('initializes an empty repository', async function() {
+      expectRelayQuery({
+        name: createRepositoryQuery.operation.name,
+        variables: {input: {name: 'repo-name', ownerId: 'user0', visibility: 'PUBLIC'}},
+      }, op => {
+        return relayResponseBuilder(op)
+          .createRepository(m => {
+            m.repository(r => {
+              r.sshUrl('ssh@github.com:user0/repo-name.git');
+              r.url('https://github.com/user0/repo-name');
+            });
+          })
+          .build();
+      }).resolve();
+
+      const empty = await buildRepository(temp.mkdirSync());
+      assert.isTrue(empty.isEmpty());
+
+      sinon.stub(empty, 'addRemote').resolves(CREATED_REMOTE);
+      sinon.stub(empty, 'push');
+
+      await publishRepository({
+        ownerID: 'user0',
+        name: 'repo-name',
+        visibility: 'PUBLIC',
+        protocol: 'https',
+        sourceRemoteName: 'origin',
+      }, {repository: empty, relayEnvironment});
+
+      assert.isTrue(empty.isPresent());
+      assert.isTrue(empty.addRemote.calledWith('origin', 'https://github.com/user0/repo-name'));
+      assert.isFalse(empty.push.called);
+    });
+
     it('fails if the source repository has no "master" or current branches', async function() {
       await repository.checkout('other-branch', {createNew: true});
       await repository.checkout('HEAD^');
