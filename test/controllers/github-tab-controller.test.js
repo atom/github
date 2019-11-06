@@ -105,28 +105,29 @@ describe('GitHubTabController', function() {
 
   describe('actions', function() {
     it('pushes a branch', async function() {
-      const repository = Repository.absent();
-      sinon.stub(repository, 'push').resolves(true);
-      const wrapper = shallow(buildApp({repository}));
+      const absent = Repository.absent();
+      sinon.stub(absent, 'push').resolves(true);
+      const wrapper = shallow(buildApp({repository: absent}));
 
       const branch = new Branch('abc');
       const remote = new Remote('def', 'git@github.com:def/ghi.git');
       assert.isTrue(await wrapper.find('GitHubTabView').prop('handlePushBranch')(branch, remote));
 
-      assert.isTrue(repository.push.calledWith('abc', {remote, setUpstream: true}));
+      assert.isTrue(absent.push.calledWith('abc', {remote, setUpstream: true}));
     });
 
     it('chooses a remote', async function() {
-      const repository = Repository.absent();
-      sinon.stub(repository, 'setConfig').resolves(true);
-      const wrapper = shallow(buildApp({repository}));
+      const absent = Repository.absent();
+      sinon.stub(absent, 'setConfig').resolves(true);
+      const wrapper = shallow(buildApp({repository: absent}));
 
       const remote = new Remote('aaa', 'git@github.com:aaa/aaa.git');
       const event = {preventDefault: sinon.spy()};
       assert.isTrue(await wrapper.find('GitHubTabView').prop('handleRemoteSelect')(event, remote));
 
       assert.isTrue(event.preventDefault.called);
-      assert.isTrue(repository.setConfig.calledWith('atomGithub.currentRemote', 'aaa'));
+      assert.isTrue(absent.setConfig.calledWith('atomGithub.currentRemote', 'aaa'));
+    });
 
     it('opens the publish dialog on the active repository', async function() {
       const someRepo = await buildRepository(await cloneRepository());
