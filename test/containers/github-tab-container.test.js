@@ -1,19 +1,29 @@
 import React from 'react';
-import {mount} from 'enzyme';
+import {mount, shallow} from 'enzyme';
 
-import {cloneRepository} from '../helpers';
+import {buildRepository, cloneRepository} from '../helpers';
 import GitHubTabContainer from '../../lib/containers/github-tab-container';
+import GitHubTabController from '../../lib/controllers/github-tab-controller';
 import Repository from '../../lib/models/repository';
 import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import RefHolder from '../../lib/models/ref-holder';
 
 describe('GitHubTabContainer', function() {
-  let atomEnv, repository;
+  let atomEnv, repository, defaultRepositoryData;
 
-  beforeEach(function() {
+  beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
-    repository = Repository.absent();
+    repository = await buildRepository(await cloneRepository());
+
+    defaultRepositoryData = {
+      workingDirectory: repository.getWorkingDirectoryPath(),
+      allRemotes: await repository.getRemotes(),
+      branches: await repository.getBranches(),
+      selectedRemoteName: 'origin',
+      aheadCount: 0,
+      pushInProgress: false,
+    };
   });
 
   afterEach(function() {
@@ -41,26 +51,66 @@ describe('GitHubTabContainer', function() {
     );
   }
 
-  describe('operation state observer', function() {
-    it('creates an observer on the current repository', function() {
-      const wrapper = mount(buildApp());
+  describe('refresher', function() {
+    let wrapper, retry;
 
-      const observer = wrapper.state('remoteOperationObserver');
-      assert.strictEqual(observer.repository, repository);
+    function stubRepository(repo) {
+      sinon.stub(repo.getOperationStates(), 'isFetchInProgress').returns(false);
+      sinon.stub(repo.getOperationStates(), 'isPushInProgress').returns(false);
+      sinon.stub(repo.getOperationStates(), 'isPullInProgress').returns(false);
+    }
 
-      wrapper.setProps({});
-      assert.strictEqual(wrapper.state('remoteOperationObserver'), observer);
+    function simulateOperation(repo, name, middle = () => {}) {
+      const accessor = `is${name[0].toUpperCase()}${name.slice(1)}InProgress`;
+      const methodStub = repo.getOperationStates()[accessor];
+      methodStub.returns(true);
+      repo.state.didUpdate();
+      middle();
+      methodStub.returns(false);
+      repo.state.didUpdate();
+    }
+
+    beforeEach(function() {
+      wrapper = shallow(buildApp());
+      const childWrapper = wrapper.find('ObserveModel').renderProp('children')(defaultRepositoryData);
+
+      retry = sinon.spy();
+      const refresher = childWrapper.find(GitHubTabController).prop('refresher');
+      refresher.setRetryCallback(Symbol('key'), retry);
+
+      stubRepository(repository);
     });
 
-    it('creates a new observer when the repository changes', function() {
-      const repository0 = Repository.absent();
-      const wrapper = mount(buildApp({repository: repository0}));
+    it('triggers a refresh when the current repository completes a fetch, push, or pull', function() {
+      assert.isFalse(retry.called);
 
-      const observer0 = wrapper.state('remoteOperationObserver');
+      simulateOperation(repository, 'fetch', () => assert.isFalse(retry.called));
+      assert.strictEqual(retry.callCount, 1);
 
-      const repository1 = Repository.absent();
-      wrapper.setProps({repository: repository1});
-      assert.notStrictEqual(wrapper.state('remoteOperationObserver'), observer0);
+      simulateOperation(repository, 'push', () => assert.strictEqual(retry.callCount, 1));
+      assert.strictEqual(retry.callCount, 2);
+
+      simulateOperation(repository, 'pull', () => assert.strictEqual(retry.callCount, 2));
+      assert.strictEqual(retry.callCount, 3);
+    });
+
+    it('un-observes an old repository and observes a new one', async function() {
+      const other = await buildRepository(await cloneRepository());
+      stubRepository(other);
+      wrapper.setProps({repository: other});
+
+      simulateOperation(repository, 'fetch');
+      assert.isFalse(retry.called);
+
+      simulateOperation(other, 'fetch');
+      assert.isTrue(retry.called);
+    });
+
+    it('un-observes the repository when unmounting', function() {
+      wrapper.unmount();
+
+      simulateOperation(repository, 'fetch');
+      assert.isFalse(retry.called);
     });
   });
 
