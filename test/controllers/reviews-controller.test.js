@@ -291,7 +291,7 @@ describe('ReviewsController', function() {
   });
 
   describe('adding a single comment', function() {
-    it('creates a review, attaches the comment, and submits it', async function() {
+    it.only('creates a review, attaches the comment, and submits it', async function() {
       expectRelayQuery({
         name: addPrReviewMutation.operation.name,
         variables: {
@@ -347,7 +347,7 @@ describe('ReviewsController', function() {
       assert.isFalse(didFailComment.called);
     });
 
-    it('creates a notification when the review cannot be created', async function() {
+    it.only('creates a notification when the review cannot be created', async function() {
       const reportRelayError = sinon.spy();
 
       expectRelayQuery({
@@ -378,7 +378,7 @@ describe('ReviewsController', function() {
       assert.isTrue(didFailComment.called);
     });
 
-    it('creates a notification and deletes the review when the comment cannot be added', async function() {
+    it.only('creates a notification and deletes the review when the comment cannot be added', async function() {
       const reportRelayError = sinon.spy();
 
       expectRelayQuery({
