@@ -31,7 +31,7 @@ import unresolveThreadMutation from '../../lib/mutations/__generated__/unresolve
 import updateReviewCommentMutation from '../../lib/mutations/__generated__/updatePrReviewCommentMutation.graphql';
 import updatePrReviewMutation from '../../lib/mutations/__generated__/updatePrReviewSummaryMutation.graphql';
 
-describe.only('ReviewsController', function() {
+describe('ReviewsController', function() {
   let atomEnv, relayEnv, localRepository, noop, clock;
 
   beforeEach(async function() {
