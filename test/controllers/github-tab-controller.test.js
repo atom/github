@@ -10,7 +10,7 @@ import Remote from '../../lib/models/remote';
 import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import RefHolder from '../../lib/models/ref-holder';
-import OperationStateObserver, {PUSH, PULL, FETCH} from '../../lib/models/operation-state-observer';
+import Refresher from '../../lib/models/refresher';
 
 import {buildRepository, cloneRepository} from '../helpers';
 
@@ -32,7 +32,7 @@ describe('GitHubTabController', function() {
     return (
       <GitHubTabController
         workspace={atomEnv.workspace}
-        remoteOperationObserver={new OperationStateObserver(repo, PUSH, PULL, FETCH)}
+        refresher={new Refresher()}
         loginModel={new GithubLoginModel(InMemoryStrategy)}
         rootHolder={new RefHolder()}
 

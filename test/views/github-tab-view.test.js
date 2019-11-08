@@ -11,7 +11,7 @@ import GitHubTabView from '../../lib/views/github-tab-view';
 import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import RefHolder from '../../lib/models/ref-holder';
-import OperationStateObserver, {PUSH, PULL, FETCH} from '../../lib/models/operation-state-observer';
+import Refresher from '../../lib/models/refresher';
 
 import {buildRepository, cloneRepository} from '../helpers';
 
@@ -32,7 +32,7 @@ describe('GitHubTabView', function() {
     return (
       <GitHubTabView
         workspace={atomEnv.workspace}
-        remoteOperationObserver={new OperationStateObserver(repo, PUSH, PULL, FETCH)}
+        refresher={new Refresher()}
         loginModel={new GithubLoginModel(InMemoryStrategy)}
         rootHolder={new RefHolder()}
 
@@ -121,9 +121,9 @@ describe('GitHubTabView', function() {
     assert.isTrue(handleRemoteSelect.called);
   });
 
-  it('calls changeWorkingDirectory when a project is selected', async function() {
+  it('calls changeWorkingDirectory when a project is selected', function() {
     const changeWorkingDirectory = sinon.spy();
-    const wrapper = shallow(await buildApp({changeWorkingDirectory}));
+    const wrapper = shallow(buildApp({changeWorkingDirectory}));
     wrapper.find('TabHeaderView').prop('handleWorkDirSelect')({target: {value: 'some-path'}});
     assert.isTrue(changeWorkingDirectory.calledWith('some-path'));
   });
