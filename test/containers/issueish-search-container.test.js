@@ -88,18 +88,13 @@ describe('IssueishSearchContainer', function() {
   });
 
   describe('when the query errors', function() {
-    // eslint-disable-next-line no-unused-vars
-    let stub;
+
     // Consumes the failing Relay Query console error
     beforeEach(function() {
-      stub = sinon.stub(console, 'error');
-      // eslint-disable-next-line no-console
-      console.error.withArgs(
+      sinon.stub(console, 'error').withArgs(
         'Error encountered in subquery',
         sinon.match.defined.and(sinon.match.hasNested('errors[0].message', sinon.match('uh oh'))),
-      ).callsFake(() => {});
-      // eslint-disable-next-line no-console
-      console.error.callThrough();
+      ).callsFake(() => {}).callThrough();
     });
 
     it('passes an empty result list and an error prop to the controller', async function() {
@@ -169,74 +164,5 @@ describe('IssueishSearchContainer', function() {
     assert.strictEqual(controller.prop('total'), 2);
     assert.isTrue(controller.prop('results').some(node => node.number === 1));
     assert.isTrue(controller.prop('results').some(node => node.number === 2));
-  });
-
-  it('performs the query again when a remote operation completes', async function() {
-    const {promise: promise0, resolve: resolve0, disable: disable0} = expectRelayQuery({
-      name: 'issueishSearchContainerQuery',
-      variables: {
-        query: 'type:pr author:me',
-        first: 20,
-        checkSuiteCount: CHECK_SUITE_PAGE_SIZE,
-        checkSuiteCursor: null,
-        checkRunCount: CHECK_RUN_PAGE_SIZE,
-        checkRunCursor: null,
-      },
-    }, op => {
-      return relayResponseBuilder(op)
-        .search(s => {
-          s.issueCount(1);
-          s.addNode(n => n.bePullRequest(pr => {
-            pr.number(1);
-            pr.commits(conn => conn.addNode());
-          }));
-        })
-        .build();
-    });
-
-    const search = new Search('pull requests', 'type:pr author:me');
-    const wrapper = mount(buildApp({search}));
-    resolve0();
-    await promise0;
-
-    assert.isTrue(
-      wrapper.update().find('BareIssueishListController').prop('results').some(node => node.number === 1),
-    );
-
-    disable0();
-    const {promise: promise1, resolve: resolve1} = expectRelayQuery({
-      name: 'issueishSearchContainerQuery',
-      variables: {
-        query: 'type:pr author:me',
-        first: 20,
-        checkSuiteCount: CHECK_SUITE_PAGE_SIZE,
-        checkSuiteCursor: null,
-        checkRunCount: CHECK_RUN_PAGE_SIZE,
-        checkRunCursor: null,
-      },
-    }, op => {
-      return relayResponseBuilder(op)
-        .search(s => {
-          s.issueCount(1);
-          s.addNode(n => n.bePullRequest(pr => {
-            pr.number(2);
-            pr.commits(conn => conn.addNode());
-          }));
-        })
-        .build();
-    });
-
-    resolve1();
-    await promise1;
-
-    assert.isTrue(
-      wrapper.update().find('BareIssueishListController').prop('results').some(node => node.number === 1),
-    );
-
-    observer.trigger();
-
-    await assert.async.isTrue(
-      wrapper.update().find('BareIssueishListController').prop('results').some(node => node.number === 2),
-    );
   });
 });
