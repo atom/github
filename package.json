@@ -82,7 +82,7 @@
     "babel-plugin-istanbul": "5.2.0",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
-    "codecov": "3.5.0",
+    "codecov": "3.6.1",
     "cross-unzip": "0.2.1",
     "dedent-js": "1.0.1",
     "electron-devtools-installer": "2.2.4",
