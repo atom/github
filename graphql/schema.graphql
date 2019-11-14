@@ -9618,6 +9618,9 @@ type Organization implements Node & Actor & RegistryPackageOwner & RegistryPacka
   """The Organization's SAML identity providers"""
   samlIdentityProvider: OrganizationIdentityProvider
 
+  """The GitHub Sponsors listing for this user."""
+  sponsorsListing: SponsorsListing
+
   """This object's sponsorships as the maintainer."""
   sponsorshipsAsMaintainer(
     """Returns the elements in the list that come after the specified cursor."""
@@ -14408,12 +14411,6 @@ type Query {
     """Returns the last _n_ elements from the list."""
     last: Int
   ): SecurityVulnerabilityConnection!
-
-  """Look up a single Sponsors Listing"""
-  sponsorsListing(
-    """Select the Sponsors listing which matches this slug"""
-    slug: String!
-  ): SponsorsListing
 
   """Look up a topic by name."""
   topic(
@@ -19377,6 +19374,9 @@ type SmimeSignature implements GitSignature {
 
 """Entities that can be sponsored through GitHub Sponsors"""
 interface Sponsorable {
+  """The GitHub Sponsors listing for this user."""
+  sponsorsListing: SponsorsListing
+
   """This object's sponsorships as the maintainer."""
   sponsorshipsAsMaintainer(
     """Returns the elements in the list that come after the specified cursor."""
@@ -19474,8 +19474,17 @@ type SponsorshipEdge {
 
 """Ordering options for sponsorship connections."""
 input SponsorshipOrder {
+  """The field to order sponsorship by."""
+  field: SponsorshipOrderField!
+
   """The ordering direction."""
   direction: OrderDirection!
+}
+
+"""Properties by which sponsorship connections can be ordered."""
+enum SponsorshipOrderField {
+  """Order sponsorship by creation time."""
+  CREATED_AT
 }
 
 """The privacy of a sponsorship"""
@@ -19504,10 +19513,35 @@ type SponsorsListing implements Node {
 
   """The short name of the listing."""
   slug: String!
+
+  """The published tiers for this GitHub Sponsors listing."""
+  tiers(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for Sponsors tiers returned from the connection."""
+    orderBy: SponsorsTierOrder = {field: MONTHLY_PRICE_IN_CENTS, direction: ASC}
+  ): SponsorsTierConnection
 }
 
 """A GitHub Sponsors tier associated with a GitHub Sponsors listing."""
 type SponsorsTier implements Node {
+  """
+  SponsorsTier information only visible to users that can administer the associated Sponsors listing.
+  """
+  adminInfo: SponsorsTierAdminInfo
+
   """Identifies the date and time when the object was created."""
   createdAt: DateTime!
 
@@ -19534,6 +19568,37 @@ type SponsorsTier implements Node {
   updatedAt: DateTime!
 }
 
+"""
+SponsorsTier information only visible to users that can administer the associated Sponsors listing.
+"""
+type SponsorsTierAdminInfo {
+  """The sponsorships associated with this tier."""
+  sponsorships(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Whether or not to include private sponsorships in the result set"""
+    includePrivate: Boolean = false
+
+    """
+    Ordering options for sponsorships returned from this connection. If left
+    blank, the sponsorships will be ordered based on relevancy to the viewer.
+    """
+    orderBy: SponsorshipOrder
+  ): SponsorshipConnection!
+}
+
 """The connection type for SponsorsTier."""
 type SponsorsTierConnection {
   """A list of edges."""
@@ -19556,6 +19621,24 @@ type SponsorsTierEdge {
 
   """The item at the end of the edge."""
   node: SponsorsTier
+}
+
+"""Ordering options for Sponsors tiers connections."""
+input SponsorsTierOrder {
+  """The field to order tiers by."""
+  field: SponsorsTierOrderField!
+
+  """The ordering direction."""
+  direction: OrderDirection!
+}
+
+"""Properties by which Sponsors tiers connections can be ordered."""
+enum SponsorsTierOrderField {
+  """Order tiers by creation time."""
+  CREATED_AT
+
+  """Order tiers by their monthly price in cents"""
+  MONTHLY_PRICE_IN_CENTS
 }
 
 """The connection type for User."""
@@ -23210,6 +23293,9 @@ type User implements Node & Actor & RegistryPackageOwner & RegistryPackageSearch
     """The field to order saved replies by."""
     orderBy: SavedReplyOrder = {field: UPDATED_AT, direction: DESC}
   ): SavedReplyConnection
+
+  """The GitHub Sponsors listing for this user."""
+  sponsorsListing: SponsorsListing
 
   """This object's sponsorships as the maintainer."""
   sponsorshipsAsMaintainer(

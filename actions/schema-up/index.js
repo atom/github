@@ -21,7 +21,7 @@ Toolkit.run(async tools => {
   );
   if (hasSchemaChanges === 0) {
     tools.log.info('No schema changes to fetch.');
-    tools.exit.neutral('Nothing to do.');
+    tools.exit.success('Nothing to do.');
   }
 
   tools.log.info('Checking for unmerged schema update pull requests.');
@@ -39,7 +39,7 @@ Toolkit.run(async tools => {
   const repositoryId = openPullRequestsQuery.repository.id;
 
   if (openPullRequestsQuery.repository.pullRequests.totalCount > 0) {
-    tools.exit.neutral('One or more schema update pull requests are already open. Please resolve those first.');
+    tools.exit.success('One or more schema update pull requests are already open. Please resolve those first.');
   }
 
   const branchName = `schema-update/${Date.now()}`;

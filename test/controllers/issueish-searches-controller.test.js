@@ -9,7 +9,6 @@ import Branch from '../../lib/models/branch';
 import BranchSet from '../../lib/models/branch-set';
 import Issueish from '../../lib/models/issueish';
 import {getEndpoint} from '../../lib/models/endpoint';
-import {nullOperationStateObserver} from '../../lib/models/operation-state-observer';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 import remoteContainerQuery from '../../lib/containers/__generated__/remoteContainerQuery.graphql';
@@ -38,7 +37,6 @@ describe('IssueishSearchesController', function() {
         endpoint={getEndpoint('github.com')}
         repository={queryBuilder(remoteContainerQuery).build().repository}
 
-        remoteOperationObserver={nullOperationStateObserver}
         workingDirectory={__dirname}
         workspace={atomEnv.workspace}
         remote={origin}

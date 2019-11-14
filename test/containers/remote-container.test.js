@@ -10,8 +10,8 @@ import RemoteSet from '../../lib/models/remote-set';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import BranchSet from '../../lib/models/branch-set';
 import GithubLoginModel from '../../lib/models/github-login-model';
-import {nullOperationStateObserver} from '../../lib/models/operation-state-observer';
 import {getEndpoint} from '../../lib/models/endpoint';
+import Refresher from '../../lib/models/refresher';
 import {InMemoryStrategy, INSUFFICIENT, UNAUTHENTICATED} from '../../lib/shared/keytar-strategy';
 
 import remoteQuery from '../../lib/containers/__generated__/remoteContainerQuery.graphql';
@@ -39,7 +39,7 @@ describe('RemoteContainer', function() {
         loginModel={model}
         endpoint={getEndpoint('github.com')}
 
-        remoteOperationObserver={nullOperationStateObserver}
+        refresher={new Refresher()}
         workingDirectory={__dirname}
         notifications={atomEnv.notifications}
         workspace={atomEnv.workspace}
