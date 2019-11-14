@@ -1,8 +1,7 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 import path from 'path';
-import Author, {nullAuthor} from '../../lib/models/author';
-import {Disposable} from 'atom';
+import {nullAuthor} from '../../lib/models/author';
 
 import GitTabHeaderView from '../../lib/views/git-tab-header-view';
 
