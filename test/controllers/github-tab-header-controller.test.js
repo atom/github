@@ -4,8 +4,6 @@ import {shallow} from 'enzyme';
 import GithubTabHeaderController from '../../lib/controllers/github-tab-header-controller';
 import {nullAuthor} from '../../lib/models/author';
 
-import {buildRepository, cloneRepository} from '../helpers';
-
 describe.only('GithubTabHeaderController', function() {
 
   function buildApp(overrides) {
@@ -22,19 +20,19 @@ describe.only('GithubTabHeaderController', function() {
   }
 
   it('get currentWorkDirs initializes workdirs state', function() {
-    const paths = ['should be equal']
+    const paths = ['should be equal'];
     const wrapper = shallow(buildApp({getCurrentWorkDirs: () => paths}));
     assert.strictEqual(wrapper.state(['currentWorkDirs'])[0], paths[0]);
   });
 
   it('calls onDidChangeWorkDirs after mount', function() {
     const onDidChangeWorkDirs = sinon.spy();
-    const wrapper = shallow(buildApp({onDidChangeWorkDirs}));
+    shallow(buildApp({onDidChangeWorkDirs}));
     assert.isTrue(onDidChangeWorkDirs.calledOnce);
   });
 
   it('does not call onDidChangeWorkDirs on update', function() {
-    let onDidChangeWorkDirs = sinon.spy();
+    const onDidChangeWorkDirs = sinon.spy();
     const wrapper = shallow(buildApp({onDidChangeWorkDirs}));
     wrapper.setProps({onDidChangeWorkDirs});
     assert.isTrue(onDidChangeWorkDirs.calledOnce);
