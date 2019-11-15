@@ -122,9 +122,10 @@ describe('GitHubTabView', function() {
   });
 
   it('calls changeWorkingDirectory when a project is selected', async function() {
+    const currentRemote = new Remote('aaa', 'git@github.com:aaa/bbb.git');
     const changeWorkingDirectory = sinon.spy();
-    const wrapper = shallow(await buildApp({changeWorkingDirectory}));
-    wrapper.find('GithubTabHeaderView').prop('handleWorkDirSelect')({target: {value: 'some-path'}});
+    const wrapper = shallow(await buildApp({currentRemote, changeWorkingDirectory}));
+    wrapper.find('GithubTabHeaderContainer').prop('handleWorkDirSelect')({target: {value: 'some-path'}});
     assert.isTrue(changeWorkingDirectory.calledWith('some-path'));
   });
 });

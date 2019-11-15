@@ -286,7 +286,7 @@ describe('GitTabView', function() {
   it('calls changeWorkingDirectory when a project is selected', async function() {
     const changeWorkingDirectory = sinon.spy();
     const wrapper = shallow(await buildApp({changeWorkingDirectory}));
-    wrapper.find('GitTabHeaderView').prop('handleWorkDirSelect')({target: {value: 'some-path'}});
+    wrapper.find('GitTabHeaderController').prop('handleWorkDirSelect')({target: {value: 'some-path'}});
     assert.isTrue(changeWorkingDirectory.calledWith('some-path'));
   });
 });
