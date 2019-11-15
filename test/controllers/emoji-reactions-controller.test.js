@@ -1,6 +1,6 @@
 import React from 'react';
 import {shallow} from 'enzyme';
-import {create as createRecord} from 'relay-runtime/lib/RelayModernRecord';
+import {create as createRecord} from 'relay-runtime/lib/store/RelayModernRecord';
 
 import {BareEmojiReactionsController} from '../../lib/controllers/emoji-reactions-controller';
 import EmojiReactionsView from '../../lib/views/emoji-reactions-view';

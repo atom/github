@@ -2,6 +2,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import {BareCrossReferencedEventsView} from '../../../lib/views/timeline-items/cross-referenced-events-view';
+import CrossReferencedEventView from '../../../lib/views/timeline-items/cross-referenced-event-view';
 import {createCrossReferencedEventResult} from '../../fixtures/factories/cross-referenced-event-result';
 
 describe('CrossReferencedEventsView', function() {
@@ -15,7 +16,7 @@ describe('CrossReferencedEventsView', function() {
 
   it('renders a child component for each grouped child event', function() {
     const wrapper = shallow(buildApp({nodeOpts: [{}, {}, {}]}));
-    assert.lengthOf(wrapper.find('ForwardRef(Relay(BareCrossReferencedEventView))'), 3);
+    assert.lengthOf(wrapper.find(CrossReferencedEventView), 3);
   });
 
   it('generates a summary based on a single pull request cross-reference', function() {
