@@ -1,32 +1,60 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import {gitHubTabControllerProps} from '../fixtures/props/github-tab-props';
 import GitHubTabController from '../../lib/controllers/github-tab-controller';
 import Repository from '../../lib/models/repository';
 import BranchSet from '../../lib/models/branch-set';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import RemoteSet from '../../lib/models/remote-set';
 import Remote from '../../lib/models/remote';
+import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
+import GithubLoginModel from '../../lib/models/github-login-model';
+import RefHolder from '../../lib/models/ref-holder';
+import Refresher from '../../lib/models/refresher';
+
+import {buildRepository, cloneRepository} from '../helpers';
 
 describe('GitHubTabController', function() {
-  let atomEnv;
+  let atomEnv, repository;
 
-  beforeEach(function() {
+  beforeEach(async function() {
     atomEnv = global.buildAtomEnvironment();
+    repository = await buildRepository(await cloneRepository());
   });
 
   afterEach(function() {
     atomEnv.destroy();
   });
 
-  function buildApp(overrideProps = {}) {
-    const props = {
-      repository: Repository.absent(),
-      ...overrideProps,
-    };
+  function buildApp(props = {}) {
+    const repo = props.repository || repository;
 
-    return <GitHubTabController {...gitHubTabControllerProps(atomEnv, props.repository, props)} />;
+    return (
+      <GitHubTabController
+        workspace={atomEnv.workspace}
+        refresher={new Refresher()}
+        loginModel={new GithubLoginModel(InMemoryStrategy)}
+        rootHolder={new RefHolder()}
+
+        workingDirectory={repo.getWorkingDirectoryPath()}
+        repository={repo}
+        allRemotes={new RemoteSet()}
+        branches={new BranchSet()}
+        pushInProgress={false}
+        isLoading={false}
+        currentWorkDir={repo.getWorkingDirectoryPath()}
+
+        changeWorkingDirectory={() => {}}
+        onDidChangeWorkDirs={() => {}}
+        getCurrentWorkDirs={() => []}
+        openCreateDialog={() => {}}
+        openPublishDialog={() => {}}
+        openCloneDialog={() => {}}
+        openGitTab={() => {}}
+
+        {...props}
+      />
+    );
   }
 
   describe('derived view props', function() {
@@ -77,28 +105,37 @@ describe('GitHubTabController', function() {
 
   describe('actions', function() {
     it('pushes a branch', async function() {
-      const repository = Repository.absent();
-      sinon.stub(repository, 'push').resolves(true);
-      const wrapper = shallow(buildApp({repository}));
+      const absent = Repository.absent();
+      sinon.stub(absent, 'push').resolves(true);
+      const wrapper = shallow(buildApp({repository: absent}));
 
       const branch = new Branch('abc');
       const remote = new Remote('def', 'git@github.com:def/ghi.git');
       assert.isTrue(await wrapper.find('GitHubTabView').prop('handlePushBranch')(branch, remote));
 
-      assert.isTrue(repository.push.calledWith('abc', {remote, setUpstream: true}));
+      assert.isTrue(absent.push.calledWith('abc', {remote, setUpstream: true}));
     });
 
     it('chooses a remote', async function() {
-      const repository = Repository.absent();
-      sinon.stub(repository, 'setConfig').resolves(true);
-      const wrapper = shallow(buildApp({repository}));
+      const absent = Repository.absent();
+      sinon.stub(absent, 'setConfig').resolves(true);
+      const wrapper = shallow(buildApp({repository: absent}));
 
       const remote = new Remote('aaa', 'git@github.com:aaa/aaa.git');
       const event = {preventDefault: sinon.spy()};
       assert.isTrue(await wrapper.find('GitHubTabView').prop('handleRemoteSelect')(event, remote));
 
       assert.isTrue(event.preventDefault.called);
-      assert.isTrue(repository.setConfig.calledWith('atomGithub.currentRemote', 'aaa'));
+      assert.isTrue(absent.setConfig.calledWith('atomGithub.currentRemote', 'aaa'));
+    });
+
+    it('opens the publish dialog on the active repository', async function() {
+      const someRepo = await buildRepository(await cloneRepository());
+      const openPublishDialog = sinon.spy();
+      const wrapper = shallow(buildApp({repository: someRepo, openPublishDialog}));
+
+      wrapper.find('GitHubTabView').prop('openBoundPublishDialog')();
+      assert.isTrue(openPublishDialog.calledWith(someRepo));
     });
   });
 });

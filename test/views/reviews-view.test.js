@@ -235,7 +235,7 @@ describe('ReviewsView', function() {
       .addReviewThread(t => {
         t.thread(t0 => t0.id('abcd'));
         t.addComment(c =>
-          c.id(0).path('dir/file0').position(10).bodyHTML('i have opinions.').author(a => a.login('user0').avatarUrl('user0.jpg')),
+          c.id(0).path('dir/file0').position(10).bodyHTML('i have a bad windows file path.').author(a => a.login('user0').avatarUrl('user0.jpg')),
         );
         t.addComment(c =>
           c.id(1).path('file0').position(10).bodyHTML('i disagree.').author(a => a.login('user1').avatarUrl('user1.jpg')).isMinimized(true),
@@ -267,7 +267,7 @@ describe('ReviewsView', function() {
         const rootComment = thread.comments[0];
         const diffToFilePosition = new Map();
         diffToFilePosition.set(rootComment.position, rootComment.position);
-        commentTranslations.set(rootComment.path, {diffToFilePosition});
+        commentTranslations.set(path.normalize(rootComment.path), {diffToFilePosition});
       });
 
       wrapper = shallow(buildApp({openIssueish, summaries, commentThreads, resolveThread, unresolveThread, addSingleComment, commentTranslations}));

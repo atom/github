@@ -20,7 +20,8 @@
     "no-param-reassign": 0,
     "jsx-a11y/alt-text": 2,
     "jsx-a11y/anchor-is-valid": 2,
-    "indent": ["error", 2]
+    "indent": ["error", 2],
+    "max-len": [1, 120, {tabWidth: 2, ignoreUrls: true}]
   },
   "globals": {
     "atom": true,

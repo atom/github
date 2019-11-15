@@ -46,7 +46,7 @@
       'command': 'github:jump-to-file'
     }
   ]
-  '.github-FilePatchView': [
+  '.github-FilePatchView--staged': [
     {
       'type': 'separator'
     }
@@ -54,11 +54,6 @@
       'label': 'Jump to File'
       'command': 'github:jump-to-file'
       'after': ['core:confirm']
-    }
-  ]
-  '.github-FilePatchView--staged': [
-    {
-      'type': 'separator'
     }
     {
       'label': 'Unstage Selection'
@@ -69,6 +64,11 @@
   '.github-FilePatchView--unstaged': [
     {
       'type': 'separator'
+    }
+    {
+      'label': 'Jump to File'
+      'command': 'github:jump-to-file'
+      'after': ['core:confirm']
     }
     {
       'label': 'Stage Selection'

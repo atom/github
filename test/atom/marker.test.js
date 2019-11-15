@@ -6,6 +6,7 @@ import Marker from '../../lib/atom/marker';
 import AtomTextEditor from '../../lib/atom/atom-text-editor';
 import RefHolder from '../../lib/models/ref-holder';
 import MarkerLayer from '../../lib/atom/marker-layer';
+import ErrorBoundary from '../../lib/error-boundary';
 
 describe('Marker', function() {
   let atomEnv, workspace, editor, marker, markerID;
@@ -135,8 +136,31 @@ describe('Marker', function() {
       assert.strictEqual(instance.markerHolder.get(), external);
     });
 
-    it('fails on construction if its ID is invalid', function() {
-      assert.throws(() => mount(<Marker editor={editor} id={67} />), /Invalid marker ID: 67/);
+    describe('fails on construction', function() {
+      let errors;
+
+      // This consumes the error rather than printing it to console.
+      const onError = function(e) {
+        if (e.message === 'Uncaught Error: Invalid marker ID: 67') {
+          errors.push(e.error);
+          e.preventDefault();
+        }
+      };
+
+      beforeEach(function() {
+        errors = [];
+        window.addEventListener('error', onError);
+      });
+
+      afterEach(function() {
+        errors = [];
+        window.removeEventListener('error', onError);
+      });
+
+      it('if its ID is invalid', function() {
+        mount(<ErrorBoundary><Marker editor={editor} id={67} /></ErrorBoundary>);
+        assert.strictEqual(errors[0].message, 'Invalid marker ID: 67');
+      });
     });
 
     it('does not destroy its marker on unmount', function() {
