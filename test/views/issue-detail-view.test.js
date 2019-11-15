@@ -3,6 +3,7 @@ import {shallow} from 'enzyme';
 
 import {BareIssueDetailView} from '../../lib/views/issue-detail-view';
 import EmojiReactionsController from '../../lib/controllers/emoji-reactions-controller';
+import IssueTimelineController from '../../lib/controllers/issue-timeline-controller';
 import {issueDetailViewProps} from '../fixtures/props/issueish-pane-props';
 import * as reporterProxy from '../../lib/reporter-proxy';
 import {GHOST_USER} from '../../lib/helpers';
@@ -50,8 +51,8 @@ describe('IssueDetailView', function() {
 
     assert.lengthOf(wrapper.find(EmojiReactionsController), 1);
 
-    assert.isNotNull(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('issue'));
-    assert.notOk(wrapper.find('ForwardRef(Relay(IssueishTimelineView))').prop('pullRequest'));
+    assert.isNotNull(wrapper.find(IssueTimelineController).prop('issue'));
+    assert.notOk(wrapper.find(IssueTimelineController).prop('pullRequest'));
   });
 
   it('displays ghost author if author is null', function() {
