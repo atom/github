@@ -15,7 +15,7 @@ import Refresher from '../../lib/models/refresher';
 
 import {buildRepository, cloneRepository} from '../helpers';
 
-describe.only('GitHubTabView', function() {
+describe('GitHubTabView', function() {
   let atomEnv;
 
   beforeEach(function() {
@@ -121,7 +121,7 @@ describe.only('GitHubTabView', function() {
     assert.isTrue(handleRemoteSelect.called);
   });
 
-  it.only('calls changeWorkingDirectory when a project is selected', function() {
+  it('calls changeWorkingDirectory when a project is selected', function() {
     const currentRemote = new Remote('aaa', 'git@github.com:aaa/bbb.git');
     const changeWorkingDirectory = sinon.spy();
     const wrapper = shallow(buildApp({currentRemote, changeWorkingDirectory}));
