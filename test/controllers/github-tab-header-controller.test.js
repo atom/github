@@ -4,7 +4,7 @@ import {shallow} from 'enzyme';
 import GithubTabHeaderController from '../../lib/controllers/github-tab-header-controller';
 import {nullAuthor} from '../../lib/models/author';
 
-describe.only('GithubTabHeaderController', function() {
+describe('GithubTabHeaderController', function() {
 
   function buildApp(overrides) {
     const props = {
