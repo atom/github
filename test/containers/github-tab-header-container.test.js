@@ -3,15 +3,9 @@ import {shallow} from 'enzyme';
 import {QueryRenderer} from 'react-relay';
 
 import GithubTabHeaderContainer from '../../lib/containers/github-tab-header-container';
-import * as reporterProxy from '../../lib/reporter-proxy';
 import {queryBuilder} from '../builder/graphql/query';
-import Remote from '../../lib/models/remote';
-import RemoteSet from '../../lib/models/remote-set';
-import Branch, {nullBranch} from '../../lib/models/branch';
-import BranchSet from '../../lib/models/branch-set';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import {getEndpoint} from '../../lib/models/endpoint';
-import Refresher from '../../lib/models/refresher';
 import {InMemoryStrategy, INSUFFICIENT, UNAUTHENTICATED} from '../../lib/shared/keytar-strategy';
 
 import tabHeaderQuery from '../../lib/containers/__generated__/githubTabHeaderContainerQuery.graphql';
@@ -29,11 +23,6 @@ describe.only('GithubTabHeaderContainer', function() {
   });
 
   function buildApp(overrideProps = {}) {
-    const origin = new Remote('origin', 'git@github.com:atom/github.git');
-    const remotes = new RemoteSet([origin]);
-    const branch = new Branch('master', nullBranch, nullBranch, true);
-    const branches = new BranchSet([branch]);
-
     return (
       <GithubTabHeaderContainer
         loginModel={model}
