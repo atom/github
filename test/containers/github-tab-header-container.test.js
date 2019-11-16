@@ -84,7 +84,7 @@ describe('GithubTabHeaderContainer', function() {
         v.name('user');
         v.email('us3r@email.com');
         v.avatarUrl('https://imageurl.com/test.jpg');
-        v.login('@us3rh4nd13');
+        v.login('us3rh4nd13');
       })
       .build();
     const resultWrapper = tokenWrapper.find(QueryRenderer).renderProp('render')({error: null, props, retry: () => {}});
