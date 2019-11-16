@@ -18,6 +18,8 @@ export const UserBuilder = createSpecBuilderClass('User', {
     const login = f.login || 'login';
     return `https://github.com/${login}`;
   }},
+  name: {default: 'Someone Somewhere'},
+  email: {default: 'someone@somewhereovertherain.bow'},
   company: {default: 'GitHub'},
   repositories: {linked: RepositoryConnectionBuilder},
   organizations: {linked: OrganizationConnectionBuilder},
