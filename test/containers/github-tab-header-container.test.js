@@ -10,7 +10,7 @@ import {InMemoryStrategy, INSUFFICIENT, UNAUTHENTICATED} from '../../lib/shared/
 
 import tabHeaderQuery from '../../lib/containers/__generated__/githubTabHeaderContainerQuery.graphql';
 
-describe.only('GithubTabHeaderContainer', function() {
+describe('GithubTabHeaderContainer', function() {
   let atomEnv, model;
 
   beforeEach(function() {
