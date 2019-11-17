@@ -105,7 +105,6 @@ export async function gitTabViewProps(atomEnv, repository, overrides = {}) {
     changeWorkingDirectory: () => {},
     onDidChangeWorkDirs: () => ({dispose: () => {}}),
     getCurrentWorkDirs: () => [],
-    isRepoDestroyed: () => {},
     onDidUpdateRepo: () => ({dispose: () => {}}),
     getCommitter: () => nullAuthor,
 

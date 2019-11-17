@@ -9,7 +9,6 @@ describe('GitTabHeaderController', function() {
   function buildApp(overrides) {
     const props = {
       getCommitter: () => nullAuthor,
-      isRepoDestroyed: () => true,
       getCurrentWorkDirs: () => null,
       ...overrides,
     };
