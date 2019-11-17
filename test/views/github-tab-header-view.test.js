@@ -1,14 +1,13 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 import path from 'path';
-import Author, {nullAuthor} from '../../lib/models/author';
-import {Disposable} from 'atom';
+import {nullAuthor} from '../../lib/models/author';
 
 import GithubTabHeaderView from '../../lib/views/github-tab-header-view';
 
 describe('GithubTabHeaderView', function() {
-  function* createWorkdirs(workdirs) {
-    for(let workdir of workdirs) {
+  function *createWorkdirs(workdirs) {
+    for (const workdir of workdirs) {
       yield workdir;
     }
   }

@@ -6,12 +6,12 @@ import {nullAuthor} from '../../lib/models/author';
 import GitTabHeaderView from '../../lib/views/git-tab-header-view';
 
 describe('GitTabHeaderView', function() {
-  function* createWorkdirs(workdirs) {
-    for(let workdir of workdirs) {
+  function *createWorkdirs(workdirs) {
+    for (const workdir of workdirs) {
       yield workdir;
     }
   }
-  
+
   function build(options = {}) {
     const props = {
       committer: nullAuthor,
