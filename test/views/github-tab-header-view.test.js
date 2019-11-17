@@ -7,10 +7,16 @@ import {Disposable} from 'atom';
 import GithubTabHeaderView from '../../lib/views/github-tab-header-view';
 
 describe('GithubTabHeaderView', function() {
+  function* createWorkdirs(workdirs) {
+    for(let workdir of workdirs) {
+      yield workdir;
+    }
+  }
+
   function build(options = {}) {
     const props = {
       user: nullAuthor,
-      workdirs: [],
+      workdirs: createWorkdirs([]),
       ...options,
     };
     return shallow(<GithubTabHeaderView {...props} />);
@@ -24,7 +30,7 @@ describe('GithubTabHeaderView', function() {
 
     beforeEach(function() {
       select = sinon.spy();
-      wrapper = build({handleWorkDirSelect: select, workdirs: paths, workdir: path2});
+      wrapper = build({handleWorkDirSelect: select, workdirs: createWorkdirs(paths), workdir: path2});
     });
 
     it('renders an option for all given working directories', function() {
@@ -42,42 +48,6 @@ describe('GithubTabHeaderView', function() {
       wrapper.find('select').simulate('change', {target: {value: path1}});
       assert.isTrue(select.calledWith({target: {value: path1}}));
     });
-
-    it.skip('updates paths', function() {
-      const path3 = 'test3/path/project3';
-      paths.push(path3);
-      wrapper.instance().updateWorkDirs();
-      assert.strictEqual(wrapper.find('option').length, 3);
-    });
-  });
-
-  describe.skip('with onDidChangeWorkDirs', function() {
-    let wrapper, changeSpy, disposeSpy;
-
-    beforeEach(function() {
-      disposeSpy = sinon.spy();
-      const stub = function(updateWorkDirs) {
-        updateWorkDirs();
-        return {dispose: disposeSpy};
-      };
-      changeSpy = sinon.spy(stub);
-      wrapper = build({onDidChangeWorkDirs: changeSpy});
-    });
-
-    it('calls onDidChangeWorkDirs with updateWorkDirs', function() {
-      assert.isTrue(changeSpy.calledWith(wrapper.instance().updateWorkDirs));
-    });
-
-    it('calls dispose on unmount', function() {
-      wrapper.unmount();
-      assert.isTrue(disposeSpy.called);
-    });
-
-    it('does nothing on unmount without a disposable', function() {
-      wrapper.instance().disposable = undefined;
-      wrapper.unmount();
-      assert.isFalse(disposeSpy.called);
-    });
   });
 
   describe('with falsish props', function() {
@@ -93,63 +63,6 @@ describe('GithubTabHeaderView', function() {
 
     it('renders an avatar placeholder', function() {
       assert.strictEqual(wrapper.find('img.github-Project-avatar').prop('src'), 'atom://github/img/avatar.svg');
-    });
-  });
-
-  describe.skip('when updating with changed props', function() {
-    let wrapper, changeSpy, disposeSpy, committerSpy;
-
-    beforeEach(function() {
-      disposeSpy = sinon.spy();
-      committerSpy = sinon.spy(() => nullAuthor);
-      const stub = function(callback) {
-        callback();
-        return {dispose: disposeSpy};
-      };
-      changeSpy = sinon.spy(() => (new Disposable()));
-      wrapper = build({onDidChangeWorkDirs: stub, onDidUpdateRepo: stub});
-      wrapper.setProps({
-        onDidChangeWorkDirs: changeSpy,
-        onDidUpdateRepo: changeSpy,
-        getCommitter: committerSpy,
-      });
-    });
-
-    it('calls dispose for all subscriptions', function() {
-      assert.isTrue(disposeSpy.calledTwice);
-    });
-
-    it('calls getCommitter', function() {
-      assert.isTrue(committerSpy.calledOnce);
-    });
-
-    it('calls all reactive functions', function() {
-      assert.isTrue(changeSpy.calledTwice);
-    });
-  });
-
-  describe.skip('when updating with falsish props', function() {
-    let wrapper;
-
-    beforeEach(function() {
-      wrapper = build({
-        onDidChangeWorkDirs: () => new Disposable(),
-        onDidUpdateRepo: () => new Disposable(),
-        getCommitter: () => new Author('dao', 'dai'),
-      });
-      wrapper.setProps({
-        onDidChangeWorkDirs: undefined,
-        onDidUpdateRepo: undefined,
-        getCommitter: () => null,
-      });
-    });
-
-    it('does not make any new disposables', function() {
-      assert.strictEqual(wrapper.instance().disposable.disposables.size, 0);
-    });
-
-    it('uses nullAuthor instead of null', function() {
-      assert.strictEqual(wrapper.state('committer'), nullAuthor);
     });
   });
 });

@@ -11,6 +11,7 @@ describe('GitTabHeaderView', function() {
       yield workdir;
     }
   }
+  
   function build(options = {}) {
     const props = {
       committer: nullAuthor,
