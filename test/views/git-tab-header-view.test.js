@@ -6,10 +6,15 @@ import {nullAuthor} from '../../lib/models/author';
 import GitTabHeaderView from '../../lib/views/git-tab-header-view';
 
 describe('GitTabHeaderView', function() {
+  function* createWorkdirs(workdirs) {
+    for(let workdir of workdirs) {
+      yield workdir;
+    }
+  }
   function build(options = {}) {
     const props = {
       committer: nullAuthor,
-      workdirs: [],
+      workdirs: createWorkdirs([]),
       ...options,
     };
     return shallow(<GitTabHeaderView {...props} />);
@@ -23,7 +28,7 @@ describe('GitTabHeaderView', function() {
 
     beforeEach(function() {
       select = sinon.spy();
-      wrapper = build({handleWorkDirSelect: select, workdirs: paths, workdir: path2});
+      wrapper = build({handleWorkDirSelect: select, workdirs: createWorkdirs(paths), workdir: path2});
     });
 
     it('renders an option for all given working directories', function() {
