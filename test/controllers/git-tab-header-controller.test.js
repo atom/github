@@ -3,13 +3,22 @@ import {shallow} from 'enzyme';
 
 import GitTabHeaderController from '../../lib/controllers/git-tab-header-controller';
 import Author, {nullAuthor} from '../../lib/models/author';
+import {Disposable} from 'atom';
 
 describe('GitTabHeaderController', function() {
+  function *createWorkdirs(workdirs) {
+    for (const workdir of workdirs) {
+      yield workdir;
+    }
+  }
 
   function buildApp(overrides) {
     const props = {
       getCommitter: () => nullAuthor,
-      getCurrentWorkDirs: () => null,
+      getCurrentWorkDirs: () => createWorkdirs([]),
+      onDidUpdateRepo: () => new Disposable(),
+      onDidChangeWorkDirs: () => new Disposable(),
+      handleWorkDirSelect: () => null,
       ...overrides,
     };
     return (
@@ -21,8 +30,8 @@ describe('GitTabHeaderController', function() {
 
   it('get currentWorkDirs initializes workdirs state', function() {
     const paths = ['should be equal'];
-    const wrapper = shallow(buildApp({getCurrentWorkDirs: () => paths}));
-    assert.strictEqual(wrapper.state(['currentWorkDirs'])[0], paths[0]);
+    const wrapper = shallow(buildApp({getCurrentWorkDirs: () => createWorkdirs(paths)}));
+    assert.strictEqual(wrapper.state(['currentWorkDirs']).next().value, paths[0]);
   });
 
   it('calls onDidChangeWorkDirs after mount', function() {
@@ -42,16 +51,6 @@ describe('GitTabHeaderController', function() {
     const wrapper = shallow(buildApp({onDidChangeWorkDirs}));
     wrapper.setProps({onDidChangeWorkDirs});
     assert.isTrue(onDidChangeWorkDirs.calledOnce);
-  });
-
-  it('does not call onDidUpdateRepo on update', function() {
-    let onDidUpdateRepo = sinon.spy(() => ({dispose: () => null}));
-    const wrapper = shallow(buildApp({onDidUpdateRepo}));
-    wrapper.setProps({onDidUpdateRepo});
-    assert.isTrue(onDidUpdateRepo.calledOnce);
-    onDidUpdateRepo = sinon.spy(() => ({dispose: () => null}));
-    wrapper.setProps({onDidUpdateRepo});
-    assert.isTrue(onDidUpdateRepo.notCalled);
   });
 
   it('calls onDidChangeWorkDirs on update to setup new listener', function() {
@@ -91,9 +90,10 @@ describe('GitTabHeaderController', function() {
   });
 
   it('updates workdirs', function() {
-    const getCurrentWorkDirs = sinon.spy();
+    let getCurrentWorkDirs = () => createWorkdirs([]);
+    getCurrentWorkDirs = sinon.spy(getCurrentWorkDirs);
     const wrapper = shallow(buildApp({getCurrentWorkDirs}));
-    wrapper.instance().updateWorkDirs();
+    wrapper.instance().resetWorkDirs();
     assert.isTrue(getCurrentWorkDirs.calledTwice);
   });
 

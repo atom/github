@@ -3,13 +3,22 @@ import {shallow} from 'enzyme';
 
 import GithubTabHeaderController from '../../lib/controllers/github-tab-header-controller';
 import {nullAuthor} from '../../lib/models/author';
+import {Disposable} from 'atom';
 
 describe('GithubTabHeaderController', function() {
+  function *createWorkdirs(workdirs) {
+    for (const workdir of workdirs) {
+      yield workdir;
+    }
+  }
 
   function buildApp(overrides) {
     const props = {
       user: nullAuthor,
-      getCurrentWorkDirs: () => null,
+      getCurrentWorkDirs: () => createWorkdirs([]),
+      onDidUpdateRepo: () => new Disposable(),
+      onDidChangeWorkDirs: () => new Disposable(),
+      handleWorkDirSelect: () => null,
       ...overrides,
     };
     return (
@@ -21,8 +30,8 @@ describe('GithubTabHeaderController', function() {
 
   it('get currentWorkDirs initializes workdirs state', function() {
     const paths = ['should be equal'];
-    const wrapper = shallow(buildApp({getCurrentWorkDirs: () => paths}));
-    assert.strictEqual(wrapper.state(['currentWorkDirs'])[0], paths[0]);
+    const wrapper = shallow(buildApp({getCurrentWorkDirs: () => createWorkdirs(paths)}));
+    assert.strictEqual(wrapper.state(['currentWorkDirs']).next().value, paths[0]);
   });
 
   it('calls onDidChangeWorkDirs after mount', function() {
@@ -56,20 +65,11 @@ describe('GithubTabHeaderController', function() {
     assert.isTrue(disposeSpy.calledOnce);
   });
 
-  it('disposes old listener and clears disposable on update', function() {
-    const disposeSpy = sinon.spy();
-    let onDidChangeWorkDirs = () => ({dispose: disposeSpy});
-    const wrapper = shallow(buildApp({onDidChangeWorkDirs}));
-    onDidChangeWorkDirs = null;
-    wrapper.setProps({onDidChangeWorkDirs});
-    assert.strictEqual(wrapper.instance().disposable, undefined);
-    assert.isTrue(disposeSpy.calledOnce);
-  });
-
   it('updates workdirs', function() {
-    const getCurrentWorkDirs = sinon.spy();
+    let getCurrentWorkDirs = () => createWorkdirs([]);
+    getCurrentWorkDirs = sinon.spy(getCurrentWorkDirs);
     const wrapper = shallow(buildApp({getCurrentWorkDirs}));
-    wrapper.instance().updateWorkDirs();
+    wrapper.instance().resetWorkDirs();
     assert.isTrue(getCurrentWorkDirs.calledTwice);
   });
 
