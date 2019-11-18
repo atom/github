@@ -1,13 +1,13 @@
 import moment from 'moment';
 
 import Commit from '../../lib/models/commit';
+import Author from '../../lib/models/author';
 import {multiFilePatchBuilder} from './patch';
 
 class CommitBuilder {
   constructor() {
     this._sha = '0123456789abcdefghij0123456789abcdefghij';
-    this._authorEmail = 'default@email.com';
-    this._authorName = 'Tilde Ann Thurium';
+    this._author = new Author('default@email.com', 'Tilde Ann Thurium');
     this._authorDate = moment('2018-11-28T12:00:00', moment.ISO_8601).unix();
     this._coAuthors = [];
     this._messageSubject = 'subject';
@@ -21,13 +21,8 @@ class CommitBuilder {
     return this;
   }
 
-  authorEmail(newEmail) {
-    this._authorEmail = newEmail;
-    return this;
-  }
-
-  authorName(newName) {
-    this._authorName = newName;
+  addAuthor(newEmail, newName) {
+    this._author = new Author(newEmail, newName);
     return this;
   }
 
@@ -53,16 +48,15 @@ class CommitBuilder {
     return this;
   }
 
-  addCoAuthor(name, email) {
-    this._coAuthors.push({name, email});
+  addCoAuthor(email, name) {
+    this._coAuthors.push(new Author(email, name));
     return this;
   }
 
   build() {
     const commit = new Commit({
       sha: this._sha,
-      authorEmail: this._authorEmail,
-      authorName: this._authorName,
+      author: this._author,
       authorDate: this._authorDate,
       coAuthors: this._coAuthors,
       messageSubject: this._messageSubject,

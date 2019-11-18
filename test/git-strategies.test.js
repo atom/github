@@ -11,6 +11,7 @@ import {GitProcess} from 'dugite';
 import CompositeGitStrategy from '../lib/composite-git-strategy';
 import GitShellOutStrategy, {LargeRepoError} from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
+import Author from '../lib/models/author';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
 import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
@@ -270,8 +271,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
         assert.deepEqual(commits[0], {
           sha: '90b17a8e3fa0218f42afc1dd24c9003e285f4a82',
-          authorEmail: 'kuychaco@github.com',
-          authorName: 'Katrina Uychaco',
+          author: new Author('kuychaco@github.com', 'Katrina Uychaco'),
           authorDate: 1471113656,
           messageSubject: 'third commit',
           messageBody: '',
@@ -281,8 +281,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         });
         assert.deepEqual(commits[1], {
           sha: '18920c900bfa6e4844853e7e246607a31c3e2e8c',
-          authorEmail: 'kuychaco@github.com',
-          authorName: 'Katrina Uychaco',
+          author: new Author('kuychaco@github.com', 'Katrina Uychaco'),
           authorDate: 1471113642,
           messageSubject: 'second commit',
           messageBody: '',
@@ -292,8 +291,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         });
         assert.deepEqual(commits[2], {
           sha: '46c0d7179fc4e348c3340ff5e7957b9c7d89c07f',
-          authorEmail: 'kuychaco@github.com',
-          authorName: 'Katrina Uychaco',
+          author: new Author('kuychaco@github.com', 'Katrina Uychaco'),
           authorDate: 1471113625,
           messageSubject: 'first commit',
           messageBody: '',
@@ -334,18 +332,9 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const commits = await git.getCommits({max: 1});
         assert.lengthOf(commits, 1);
         assert.deepEqual(commits[0].coAuthors, [
-          {
-            name: 'name',
-            email: 'name@example.com',
-          },
-          {
-            name: 'another-name',
-            email: 'another-name@example.com',
-          },
-          {
-            name: 'yet-another',
-            email: 'yet-another@example.com',
-          },
+          new Author('name@example.com', 'name'),
+          new Author('another-name@example.com', 'another-name'),
+          new Author('yet-another@example.com', 'yet-another'),
         ]);
       });
 
