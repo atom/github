@@ -10,6 +10,7 @@ import {cloneRepository, buildRepository} from '../helpers';
 import {multiFilePatchBuilder} from '../builder/patch';
 import Repository from '../../lib/models/repository';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
+import WorkdirCache from '../../lib/models/workdir-cache';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import RemoteSet from '../../lib/models/remote-set';
 import Remote from '../../lib/models/remote';
@@ -33,7 +34,8 @@ import RootController from '../../lib/controllers/root-controller';
 describe('RootController', function() {
   let atomEnv, app;
   let workspace, commands, notificationManager, tooltips, config, confirm, deserializers, grammars, project;
-  let workdirContextPool;
+  let workdirContextPool, workdirCache;
+  let changeWorkingDirectory;
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();
@@ -46,6 +48,7 @@ describe('RootController', function() {
     config = atomEnv.config;
     project = atomEnv.project;
 
+    workdirCache = new WorkdirCache();
     workdirContextPool = new WorkdirContextPool();
 
     const loginModel = new GithubLoginModel(InMemoryStrategy);
@@ -53,6 +56,7 @@ describe('RootController', function() {
     const emptyResolutionProgress = new ResolutionProgress();
 
     confirm = sinon.stub(atomEnv, 'confirm');
+    changeWorkingDirectory = sinon.spy();
     app = (
       <RootController
         workspace={workspace}
@@ -69,6 +73,7 @@ describe('RootController', function() {
 
         loginModel={loginModel}
         workdirContextPool={workdirContextPool}
+        workdirCache={workdirCache}
         repository={absentRepository}
         resolutionProgress={emptyResolutionProgress}
 
@@ -77,6 +82,8 @@ describe('RootController', function() {
 
         startOpen={false}
         startRevealed={false}
+
+        changeWorkingDirectory={changeWorkingDirectory}
       />
     );
   });
@@ -352,6 +359,15 @@ describe('RootController', function() {
 
       const req1 = wrapper.update().find('DialogsController').prop('request');
       assert.strictEqual(req1, dialogRequests.null);
+    });
+  });
+
+  describe('selectActivePaneWorkDir()', function() {
+    it('does not update if there is no active pane', function() {
+      const wrapper = shallow(app);
+      wrapper.find('Command[command="github:select-active-pane-directory"]').prop('callback')();
+
+      assert.isTrue(changeWorkingDirectory.notCalled);
     });
   });
 
