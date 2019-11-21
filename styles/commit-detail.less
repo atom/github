@@ -10,8 +10,8 @@
 
   &-header {
     flex: 0;
-    border-bottom: 1px solid @base-border-color;
-    background-color: @syntax-background-color;
+    border-bottom: 1px solid @pane-item-border-color;
+    background-color: @pane-item-background-color;
   }
 
   &-commit {
@@ -53,7 +53,7 @@
     padding: 0em .4em;
     color: @text-color-subtle;
     font-style: italic;
-    border: 1px solid @base-border-color;
+    border: 1px solid @button-border-color;
     border-radius: @component-border-radius;
     background-color: @button-background-color;
 
@@ -69,7 +69,7 @@
     word-wrap: initial;
     word-break: break-word;
     white-space: pre-wrap;
-    border-top: 1px solid @base-border-color;
+    border-top: 1px solid @pane-item-border-color;
     background-color: transparent;
     // in the case of loonnng commit message bodies, we want to cap the height so that
     // the content beneath will remain visible / scrollable.
