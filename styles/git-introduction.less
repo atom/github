@@ -1,0 +1,75 @@
+@import "variables";
+
+.git-Introduction {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: @component-padding;
+
+  &-header {
+    margin-bottom: @component-padding;
+    color: @text-color-highlight;
+  }
+
+  &-heading {
+    margin: 0;
+    margin-bottom: @component-padding;
+  }
+
+  &-avatar {
+    width: 50%;
+    border-radius: @component-border-radius * 3;
+  }
+
+  &-name {
+    margin: @component-padding/2;
+  }
+
+  &-email {
+    margin: 0;
+  }
+
+  &-header, &-context, &-explanation {
+    text-align: center;
+  }
+
+  &-options {
+    display: flex;
+    flex: 2;
+    flex-direction: column;
+    align-items: center;
+    padding-left: @component-padding;
+    padding-right: @component-padding;
+  }
+
+  &-context {
+    margin-bottom: @component-padding/2;
+  }
+
+  &-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+
+    .btn {
+      flex: 2
+    }
+
+    .btn-primary {
+      flex: 5;
+      margin-right: @component-padding;
+    }
+  }
+
+  &-input {
+    margin-bottom: @component-padding/2;
+  }
+
+  &-explanation {
+    color: @text-color-subtle;
+    margin-bottom: 0;
+  }
+}
