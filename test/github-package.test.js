@@ -10,7 +10,7 @@ import GithubPackage from '../lib/github-package';
 describe('GithubPackage', function() {
 
   async function buildAtomEnvironmentAndGithubPackage(buildAtomEnvironment, options = {}) {
-    const atomEnv = global.buildAtomEnvironment();
+    const atomEnv = buildAtomEnvironment();
     await disableFilesystemWatchers(atomEnv);
 
     const packageOptions = {
@@ -147,7 +147,7 @@ describe('GithubPackage', function() {
       ({
         atomEnv, githubPackage,
         project, config, configDirPath, contextPool,
-      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironmentAndGithubPackage));
+      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironment));
     });
 
     afterEach(async function() {
@@ -234,6 +234,105 @@ describe('GithubPackage', function() {
         assert.strictEqual(context.getRepository(), githubPackage.getActiveRepository());
         assert.strictEqual(context.getResolutionProgress(), githubPackage.getActiveResolutionProgress());
         assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath2);
+      });
+    });
+
+    describe('with 3 projects and unactivated', function() {
+      let workdirPath1, workdirPath2, workdirPath3;
+      beforeEach(async function() {
+        ([workdirPath1, workdirPath2, workdirPath3] = await Promise.all([
+          cloneRepository('three-files'),
+          cloneRepository('three-files'),
+          cloneRepository('three-files'),
+        ]));
+        project.setPaths([workdirPath1, workdirPath2, workdirPath3]);
+      });
+
+      describe('with useProjectFromActivePanel config enabled', function() {
+        beforeEach(async function() {
+          atomEnv.config.set('github.useProjectFromActivePanel', true);
+          await contextUpdateAfter(githubPackage, () => githubPackage.activate({}));
+        });
+
+        it('changes repository when active panel is changed', async function() {
+          await Promise.all([
+            atomEnv.workspace.open(path.join(workdirPath1, 'a.txt')),
+            new Promise((resolve, reject) => {
+              githubPackage.scheduleActiveContextUpdate = ({activeRepositoryPath}) => {
+                try {
+                  assert.strictEqual(activeRepositoryPath, workdirPath1);
+                  resolve();
+                } catch (e) { reject(e); }
+              };
+            }),
+          ]);
+
+          await Promise.all([
+            atomEnv.workspace.open(path.join(workdirPath2, 'b.txt')),
+            new Promise((resolve, reject) => {
+              githubPackage.scheduleActiveContextUpdate = ({activeRepositoryPath}) => {
+                try {
+                  assert.strictEqual(activeRepositoryPath, workdirPath2);
+                  resolve();
+                } catch (e) { reject(e); }
+              };
+            }),
+          ]);
+
+          await Promise.all([
+            atomEnv.workspace.open(path.join(workdirPath3, 'c.txt')),
+            new Promise((resolve, reject) => {
+              githubPackage.scheduleActiveContextUpdate = ({activeRepositoryPath}) => {
+                try {
+                  assert.strictEqual(activeRepositoryPath, workdirPath3);
+                  resolve();
+                } catch (e) { reject(e); }
+              };
+            }),
+          ]);
+        });
+
+        it('subscribes to changes in the configuration value', async function() {
+          const scheduleActiveContextUpdate = githubPackage.scheduleActiveContextUpdate = sinon.stub();
+
+          await Promise.all([
+            atomEnv.workspace.open(path.join(workdirPath1, 'a.txt')),
+            new Promise((resolve, reject) => {
+              scheduleActiveContextUpdate.callsFake(({activeRepositoryPath}) => {
+                try {
+                  assert.strictEqual(activeRepositoryPath, workdirPath1);
+                  resolve();
+                } catch (e) { reject(e); }
+              });
+            }),
+          ]);
+
+          atomEnv.config.set('github.useProjectFromActivePanel', false);
+          await Promise.all([
+            atomEnv.workspace.open(path.join(workdirPath2, 'b.txt')),
+            new Promise(resolve => {
+              const disposable = atomEnv.workspace.getCenter().onDidStopChangingActivePaneItem(() => {
+                disposable.dispose();
+                resolve();
+              });
+            }),
+          ]);
+
+          atomEnv.config.set('github.useProjectFromActivePanel', true);
+          await Promise.all([
+            atomEnv.workspace.open(path.join(workdirPath3, 'c.txt')),
+            new Promise((resolve, reject) => {
+              scheduleActiveContextUpdate.callsFake(({activeRepositoryPath}) => {
+                try {
+                  assert.strictEqual(activeRepositoryPath, workdirPath3);
+                  resolve();
+                } catch (e) { reject(e); }
+              });
+            }),
+          ]);
+
+          assert.strictEqual(scheduleActiveContextUpdate.callCount, 2);
+        });
       });
     });
 
@@ -357,7 +456,7 @@ describe('GithubPackage', function() {
       ({
         atomEnv, githubPackage,
         project, contextPool,
-      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironmentAndGithubPackage));
+      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironment));
     });
 
     afterEach(async function() {
@@ -664,7 +763,7 @@ describe('GithubPackage', function() {
       ({
         atomEnv, githubPackage,
         project, contextPool,
-      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironmentAndGithubPackage));
+      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironment));
     });
 
     afterEach(async function() {
@@ -706,7 +805,7 @@ describe('GithubPackage', function() {
       ({
         atomEnv, githubPackage,
         project,
-      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironmentAndGithubPackage));
+      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironment));
     });
 
     afterEach(async function() {
@@ -774,7 +873,7 @@ describe('GithubPackage', function() {
     beforeEach(async function() {
       ({
         atomEnv, githubPackage,
-      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironmentAndGithubPackage));
+      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironment));
 
       sinon.spy(githubPackage, 'rerender');
     });
@@ -825,7 +924,7 @@ describe('GithubPackage', function() {
     beforeEach(async function() {
       ({
         atomEnv, githubPackage,
-      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironmentAndGithubPackage));
+      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironment));
 
       sinon.spy(githubPackage, 'rerender');
     });
@@ -879,7 +978,7 @@ describe('GithubPackage', function() {
       ({
         atomEnv, githubPackage,
         project, contextPool,
-      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironmentAndGithubPackage));
+      } = await buildAtomEnvironmentAndGithubPackage(global.buildAtomEnvironment));
     });
 
     let workdirPath1, atomGitRepository1, repository1;

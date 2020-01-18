@@ -209,6 +209,11 @@
         "ssh"
       ],
       "description": "Transport protocol to prefer when creating a new git remote"
+    },
+    "useProjectFromActivePanel": {
+      "type": "boolean",
+      "default": false,
+      "description": "Use active panel to determine which project to show"
     }
   },
   "deserializers": {
