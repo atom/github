@@ -37,9 +37,10 @@ describe('GitHubTabContainer', function() {
         repository={repository}
         loginModel={new GithubLoginModel(InMemoryStrategy)}
         rootHolder={new RefHolder()}
+        config={atomEnv.config}
 
         changeWorkingDirectory={() => {}}
-        onDidChangeWorkDirs={() => {}}
+        onDidChangeWorkDirs={() => { return {dispose: () => {}}; }}
         getCurrentWorkDirs={() => []}
         openCreateDialog={() => {}}
         openPublishDialog={() => {}}

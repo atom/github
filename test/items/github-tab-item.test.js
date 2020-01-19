@@ -24,6 +24,7 @@ describe('GitHubTabItem', function() {
 
   function buildApp(props = {}) {
     const workspace = props.workspace || atomEnv.workspace;
+    const config = props.config || atomEnv.config;
 
     return (
       <PaneItem workspace={workspace} uriPattern={GitHubTabItem.uriPattern}>
@@ -34,9 +35,10 @@ describe('GitHubTabItem', function() {
             workspace={workspace}
             repository={repository}
             loginModel={new GithubLoginModel(InMemoryStrategy)}
+            config={config}
 
             changeWorkingDirectory={() => {}}
-            onDidChangeWorkDirs={() => {}}
+            onDidChangeWorkDirs={() => { return {dispose: () => {}}; }}
             getCurrentWorkDirs={() => []}
             openCreateDialog={() => {}}
             openPublishDialog={() => {}}

@@ -13,7 +13,10 @@ describe('GitTabHeaderController', function() {
   }
 
   function buildApp(overrides) {
+    const atomEnv = global.buildAtomEnvironment();
+
     const props = {
+      config: atomEnv.config,
       getCommitter: () => nullAuthor,
       getCurrentWorkDirs: () => createWorkdirs([]),
       onDidUpdateRepo: () => new Disposable(),
@@ -116,5 +119,36 @@ describe('GitTabHeaderController', function() {
     const wrapper = shallow(buildApp());
     wrapper.unmount();
     assert.strictEqual(wrapper.children().length, 0);
+  });
+
+  describe('disableProjectSelection', function() {
+    const configKey = 'github.useProjectFromActivePanel';
+
+    it('initializes from config when true', function() {
+      const atomEnv = global.buildAtomEnvironment();
+      atomEnv.config.set(configKey, true);
+      const wrapper = shallow(buildApp({config: atomEnv.config}));
+      assert.strictEqual(wrapper.state('disableProjectSelection'), true);
+    });
+
+    it('initializes from config when false', function() {
+      const atomEnv = global.buildAtomEnvironment();
+      atomEnv.config.set(configKey, false);
+      const wrapper = shallow(buildApp({config: atomEnv.config}));
+      assert.strictEqual(wrapper.state('disableProjectSelection'), false);
+    });
+
+    it('updates state when config changes', function() {
+      const atomEnv = global.buildAtomEnvironment();
+      atomEnv.config.set(configKey, true);
+      const wrapper = shallow(buildApp({config: atomEnv.config}));
+      assert.strictEqual(wrapper.state('disableProjectSelection'), true);
+
+      atomEnv.config.set(configKey, false);
+      assert.strictEqual(wrapper.state('disableProjectSelection'), false);
+
+      atomEnv.config.set(configKey, true);
+      assert.strictEqual(wrapper.state('disableProjectSelection'), true);
+    });
   });
 });

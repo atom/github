@@ -63,5 +63,21 @@ describe('GitTabHeaderView', function() {
     it('renders an avatar placeholder', function() {
       assert.strictEqual(wrapper.find('img.github-Project-avatar').prop('src'), 'atom://github/img/avatar.svg');
     });
+
+    it('renders project selection enabled', function() {
+      assert.strictEqual(wrapper.find('select.github-Project-path').prop('disabled'), undefined);
+    });
+  });
+
+  describe('with project selection disabled', function() {
+    let wrapper;
+
+    beforeEach(function() {
+      wrapper = build({disableProjectSelection: true});
+    });
+
+    it('renders project selection disabled', function() {
+      assert.strictEqual(wrapper.find('select.github-Project-path').prop('disabled'), true);
+    });
   });
 });

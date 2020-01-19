@@ -13,7 +13,10 @@ describe('GithubTabHeaderController', function() {
   }
 
   function buildApp(overrides) {
+    const atomEnv = global.buildAtomEnvironment();
+
     const props = {
+      config: atomEnv.config,
       user: nullAuthor,
       getCurrentWorkDirs: () => createWorkdirs([]),
       onDidUpdateRepo: () => new Disposable(),
@@ -35,22 +38,25 @@ describe('GithubTabHeaderController', function() {
   });
 
   it('calls onDidChangeWorkDirs after mount', function() {
-    const onDidChangeWorkDirs = sinon.spy();
+    const onDidChangeWorkDirs = sinon.stub();
+    onDidChangeWorkDirs.returns({dispose: () => {}});
     shallow(buildApp({onDidChangeWorkDirs}));
     assert.isTrue(onDidChangeWorkDirs.calledOnce);
   });
 
   it('does not call onDidChangeWorkDirs on update', function() {
-    const onDidChangeWorkDirs = sinon.spy();
+    const onDidChangeWorkDirs = sinon.stub();
+    onDidChangeWorkDirs.returns({dispose: () => {}});
     const wrapper = shallow(buildApp({onDidChangeWorkDirs}));
     wrapper.setProps({onDidChangeWorkDirs});
     assert.isTrue(onDidChangeWorkDirs.calledOnce);
   });
 
   it('calls onDidChangeWorkDirs on update to setup new listener', function() {
-    let onDidChangeWorkDirs = () => null;
+    let onDidChangeWorkDirs = () => { return {dispose: () => {}}; };
     const wrapper = shallow(buildApp({onDidChangeWorkDirs}));
-    onDidChangeWorkDirs = sinon.spy();
+    onDidChangeWorkDirs = sinon.stub();
+    onDidChangeWorkDirs.returns({dispose: () => {}});
     wrapper.setProps({onDidChangeWorkDirs});
     assert.isTrue(onDidChangeWorkDirs.calledOnce);
   });
@@ -85,5 +91,36 @@ describe('GithubTabHeaderController', function() {
     const wrapper = shallow(buildApp());
     wrapper.unmount();
     assert.strictEqual(wrapper.children().length, 0);
+  });
+
+  describe('disableProjectSelection', function() {
+    const configKey = 'github.useProjectFromActivePanel';
+
+    it('initializes from config when true', function() {
+      const atomEnv = global.buildAtomEnvironment();
+      atomEnv.config.set(configKey, true);
+      const wrapper = shallow(buildApp({config: atomEnv.config}));
+      assert.strictEqual(wrapper.state('disableProjectSelection'), true);
+    });
+
+    it('initializes from config when false', function() {
+      const atomEnv = global.buildAtomEnvironment();
+      atomEnv.config.set(configKey, false);
+      const wrapper = shallow(buildApp({config: atomEnv.config}));
+      assert.strictEqual(wrapper.state('disableProjectSelection'), false);
+    });
+
+    it('updates state when config changes', function() {
+      const atomEnv = global.buildAtomEnvironment();
+      atomEnv.config.set(configKey, true);
+      const wrapper = shallow(buildApp({config: atomEnv.config}));
+      assert.strictEqual(wrapper.state('disableProjectSelection'), true);
+
+      atomEnv.config.set(configKey, false);
+      assert.strictEqual(wrapper.state('disableProjectSelection'), false);
+
+      atomEnv.config.set(configKey, true);
+      assert.strictEqual(wrapper.state('disableProjectSelection'), true);
+    });
   });
 });

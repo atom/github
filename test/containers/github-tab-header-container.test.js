@@ -25,6 +25,7 @@ describe('GithubTabHeaderContainer', function() {
   function buildApp(overrideProps = {}) {
     return (
       <GithubTabHeaderContainer
+        config={atomEnv.config}
         loginModel={model}
         endpoint={getEndpoint('github.com')}
         getCurrentWorkDirs={() => null}

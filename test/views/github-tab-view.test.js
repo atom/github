@@ -35,6 +35,7 @@ describe('GitHubTabView', function() {
         refresher={new Refresher()}
         loginModel={new GithubLoginModel(InMemoryStrategy)}
         rootHolder={new RefHolder()}
+        config={atomEnv.config}
 
         workingDirectory={repo.getWorkingDirectoryPath()}
         repository={repo}
