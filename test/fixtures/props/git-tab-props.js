@@ -27,8 +27,10 @@ export function gitTabItemProps(atomEnv, repository, overrides = {}) {
     openFiles: noop,
     openInitializeDialog: noop,
     changeWorkingDirectory: noop,
+    contextLocked: false,
+    setContextLock: () => {},
     onDidChangeWorkDirs: () => ({dispose: () => {}}),
-    getCurrentWorkDirs: () => [],
+    getCurrentWorkDirs: () => new Set(),
     ...overrides
   };
 }
