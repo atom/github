@@ -102,9 +102,11 @@ export async function gitTabViewProps(atomEnv, repository, overrides = {}) {
     discardWorkDirChangesForPaths: () => {},
     openFiles: () => {},
 
+    contextLocked: false,
     changeWorkingDirectory: () => {},
+    setContextLock: () => {},
     onDidChangeWorkDirs: () => ({dispose: () => {}}),
-    getCurrentWorkDirs: () => [],
+    getCurrentWorkDirs: () => new Set(),
     onDidUpdateRepo: () => ({dispose: () => {}}),
     getCommitter: () => nullAuthor,
 
