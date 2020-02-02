@@ -31,26 +31,31 @@ describe('GitHubTabView', function() {
 
     return (
       <GitHubTabView
-        workspace={atomEnv.workspace}
         refresher={new Refresher()}
-        loginModel={new GithubLoginModel(InMemoryStrategy)}
         rootHolder={new RefHolder()}
 
+        loginModel={new GithubLoginModel(InMemoryStrategy)}
+
+        workspace={atomEnv.workspace}
         workingDirectory={repo.getWorkingDirectoryPath()}
+        getCurrentWorkDirs={() => []}
+        changeWorkingDirectory={() => {}}
+        contextLocked={false}
+        setContextLock={() => {}}
         repository={repo}
-        branches={new BranchSet()}
-        currentBranch={nullBranch}
+
         remotes={new RemoteSet()}
         currentRemote={nullRemote}
         manyRemotesAvailable={false}
-        pushInProgress={false}
         isLoading={false}
+        branches={new BranchSet()}
+        currentBranch={nullBranch}
+        pushInProgress={false}
 
+        handleWorkDirSelect={() => {}}
         handlePushBranch={() => {}}
         handleRemoteSelect={() => {}}
-        changeWorkingDirectory={() => {}}
         onDidChangeWorkDirs={() => {}}
-        getCurrentWorkDirs={() => []}
         openCreateDialog={() => {}}
         openBoundPublishDialog={() => {}}
         openCloneDialog={() => {}}
@@ -125,7 +130,7 @@ describe('GitHubTabView', function() {
     const currentRemote = new Remote('aaa', 'git@github.com:aaa/bbb.git');
     const changeWorkingDirectory = sinon.spy();
     const wrapper = shallow(buildApp({currentRemote, changeWorkingDirectory}));
-    wrapper.find('GithubTabHeaderContainer').prop('handleWorkDirSelect')({target: {value: 'some-path'}});
+    wrapper.find('GithubTabHeaderContainer').prop('changeWorkingDirectory')('some-path');
     assert.isTrue(changeWorkingDirectory.calledWith('some-path'));
   });
 });
