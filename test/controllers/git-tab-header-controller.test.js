@@ -15,17 +15,16 @@ describe('GitTabHeaderController', function() {
   function buildApp(overrides) {
     const props = {
       getCommitter: () => nullAuthor,
+      currentWorkDir: null,
       getCurrentWorkDirs: () => createWorkdirs([]),
-      onDidUpdateRepo: () => new Disposable(),
+      changeWorkingDirectory: () => {},
+      contextLocked: false,
+      setContextLock: () => {},
       onDidChangeWorkDirs: () => new Disposable(),
-      handleWorkDirSelect: () => null,
+      onDidUpdateRepo: () => new Disposable(),
       ...overrides,
     };
-    return (
-      <GitTabHeaderController
-        {...props}
-      />
-    );
+    return <GitTabHeaderController {...props} />;
   }
 
   it('get currentWorkDirs initializes workdirs state', function() {
@@ -110,6 +109,62 @@ describe('GitTabHeaderController', function() {
     const wrapper = shallow(buildApp({getCommitter}));
     wrapper.unmount();
     assert.isTrue(getCommitter.calledOnce);
+  });
+
+  it('handles a lock toggle', async function() {
+    let resolveLockChange;
+    const setContextLock = sinon.stub().returns(new Promise(resolve => {
+      resolveLockChange = resolve;
+    }))
+    const wrapper = shallow(buildApp({currentWorkDir: 'the/workdir', contextLocked: false, setContextLock}));
+
+    assert.isFalse(wrapper.find('GitTabHeaderView').prop('contextLocked'));
+    assert.isFalse(wrapper.find('GitTabHeaderView').prop('changingLock'));
+
+    const handlerPromise = wrapper.find('GitTabHeaderView').prop('handleLockToggle')();
+    wrapper.update();
+
+    assert.isTrue(wrapper.find('GitTabHeaderView').prop('contextLocked'));
+    assert.isTrue(wrapper.find('GitTabHeaderView').prop('changingLock'));
+    assert.isTrue(setContextLock.calledWith('the/workdir', true));
+
+    // Ignored while in-progress
+    wrapper.find('GitTabHeaderView').prop('handleLockToggle')();
+
+    resolveLockChange();
+    await handlerPromise;
+
+    assert.isFalse(wrapper.find('GitTabHeaderView').prop('changingLock'));
+  });
+
+  it('handles a workdir selection', async function() {
+    let resolveWorkdirChange;
+    const changeWorkingDirectory = sinon.stub().returns(new Promise(resolve => {
+      resolveWorkdirChange = resolve;
+    }))
+    const wrapper = shallow(buildApp({currentWorkDir: 'original', changeWorkingDirectory}));
+
+    assert.strictEqual(wrapper.find('GitTabHeaderView').prop('workdir'), 'original');
+    assert.isFalse(wrapper.find('GitTabHeaderView').prop('changingWorkDir'));
+
+    const handlerPromise = wrapper.find('GitTabHeaderView').prop('handleWorkDirSelect')({
+      target: {value: 'work/dir'},
+    });
+    wrapper.update();
+
+    assert.strictEqual(wrapper.find('GitTabHeaderView').prop('workdir'), 'work/dir');
+    assert.isTrue(wrapper.find('GitTabHeaderView').prop('changingWorkDir'));
+    assert.isTrue(changeWorkingDirectory.calledWith('work/dir'));
+
+    // Ignored while in-progress
+    wrapper.find('GitTabHeaderView').prop('handleWorkDirSelect')({
+      target: {value: 'ig/nored'},
+    });
+
+    resolveWorkdirChange();
+    await handlerPromise;
+
+    assert.isFalse(wrapper.find('GitTabHeaderView').prop('changingWorkDir'));
   });
 
   it('unmounts without error', function() {
