@@ -115,7 +115,7 @@ describe('GitTabHeaderController', function() {
     let resolveLockChange;
     const setContextLock = sinon.stub().returns(new Promise(resolve => {
       resolveLockChange = resolve;
-    }))
+    }));
     const wrapper = shallow(buildApp({currentWorkDir: 'the/workdir', contextLocked: false, setContextLock}));
 
     assert.isFalse(wrapper.find('GitTabHeaderView').prop('contextLocked'));
@@ -141,7 +141,7 @@ describe('GitTabHeaderController', function() {
     let resolveWorkdirChange;
     const changeWorkingDirectory = sinon.stub().returns(new Promise(resolve => {
       resolveWorkdirChange = resolve;
-    }))
+    }));
     const wrapper = shallow(buildApp({currentWorkDir: 'original', changeWorkingDirectory}));
 
     assert.strictEqual(wrapper.find('GitTabHeaderView').prop('workdir'), 'original');

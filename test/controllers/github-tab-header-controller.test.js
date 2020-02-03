@@ -79,7 +79,7 @@ describe('GithubTabHeaderController', function() {
     let resolveLockChange;
     const setContextLock = sinon.stub().returns(new Promise(resolve => {
       resolveLockChange = resolve;
-    }))
+    }));
     const wrapper = shallow(buildApp({currentWorkDir: 'the/workdir', contextLocked: false, setContextLock}));
 
     assert.isFalse(wrapper.find('GithubTabHeaderView').prop('contextLocked'));
@@ -105,7 +105,7 @@ describe('GithubTabHeaderController', function() {
     let resolveWorkdirChange;
     const changeWorkingDirectory = sinon.stub().returns(new Promise(resolve => {
       resolveWorkdirChange = resolve;
-    }))
+    }));
     const wrapper = shallow(buildApp({currentWorkDir: 'original', changeWorkingDirectory}));
 
     assert.strictEqual(wrapper.find('GithubTabHeaderView').prop('workdir'), 'original');

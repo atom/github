@@ -92,7 +92,7 @@ describe('GitTabHeaderView', function() {
       const wrapper = build({changingLock: true});
 
       assert.isTrue(wrapper.find('button').prop('disabled'));
-    })
+    });
   });
 
   describe('with falsish props', function() {
