@@ -455,7 +455,7 @@ describe('GithubPackage', function() {
         let resolutionMergeConflict;
         beforeEach(async function() {
           await githubPackage.scheduleActiveContextUpdate({
-            activeRepositoryPath: workdirMergeConflict,
+            usePath: workdirMergeConflict,
           });
           resolutionMergeConflict = contextPool.getContext(workdirMergeConflict).getResolutionProgress();
         });
@@ -477,7 +477,7 @@ describe('GithubPackage', function() {
         let resolutionNoConflict;
         beforeEach(async function() {
           await githubPackage.scheduleActiveContextUpdate({
-            activeRepositoryPath: workdirNoConflict,
+            usePath: workdirNoConflict,
           });
           resolutionNoConflict = contextPool.getContext(workdirNoConflict).getResolutionProgress();
         });
@@ -494,7 +494,7 @@ describe('GithubPackage', function() {
       describe('when opening a non-repository project', function() {
         beforeEach(async function() {
           await githubPackage.scheduleActiveContextUpdate({
-            activeRepositoryPath: nonRepositoryPath,
+            usePath: nonRepositoryPath,
           });
         });
 
@@ -515,7 +515,7 @@ describe('GithubPackage', function() {
         project.setPaths([workdirPath1, workdirPath2]);
 
         await githubPackage.scheduleActiveContextUpdate({
-          activeRepositoryPath: workdirPath3,
+          usePath: workdirPath3,
         });
         context1 = contextPool.getContext(workdirPath1);
       });
@@ -538,7 +538,7 @@ describe('GithubPackage', function() {
         project.setPaths([workdirPath1]);
 
         await githubPackage.scheduleActiveContextUpdate({
-          activeRepositoryPath: workdirPath2,
+          usePath: workdirPath2,
         });
         context1 = contextPool.getContext(workdirPath1);
       });
@@ -561,7 +561,7 @@ describe('GithubPackage', function() {
         project.setPaths([workdirPath1, workdirPath2]);
 
         await githubPackage.scheduleActiveContextUpdate({
-          activeRepositoryPath: workdirPath2,
+          usePath: workdirPath2,
         });
       });
 
