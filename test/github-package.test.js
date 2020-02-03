@@ -412,12 +412,23 @@ describe('GithubPackage', function() {
       });
 
       describe('when removing a project', function() {
-        beforeEach(async function() {
+        it('removes the project\'s context', async function() {
           await contextUpdateAfter(githubPackage, () => project.setPaths([workdirPath1]));
+
+          assert.isFalse(contextPool.getContext(workdirPath2).isPresent());
+          assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath1);
         });
 
-        it('removes the project\'s context', function() {
-          assert.isFalse(contextPool.getContext(workdirPath2).isPresent());
+        it('does nothing if the context is locked', async function() {
+          await githubPackage.scheduleActiveContextUpdate({
+            usePath: workdirPath2,
+            lock: true,
+          });
+
+          await contextUpdateAfter(githubPackage, () => project.setPaths([workdirPath1]));
+
+          assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
+          assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath2);
         });
       });
 
@@ -433,6 +444,100 @@ describe('GithubPackage', function() {
         it('uses an absent repo', function() {
           assert.isTrue(githubPackage.getActiveRepository().isAbsent());
         });
+      });
+
+      describe('when changing the active pane item', function() {
+        it('follows the active pane item', async function() {
+          const itemPath2 = path.join(workdirPath2, 'b.txt');
+
+          assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath1);
+          await contextUpdateAfter(githubPackage, () => atomEnv.workspace.open(itemPath2));
+          assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath2);
+        });
+
+        it('does nothing if the context is locked', async function() {
+          const itemPath2 = path.join(workdirPath2, 'c.txt');
+
+          await githubPackage.scheduleActiveContextUpdate({
+            usePath: workdirPath1,
+            lock: true,
+          });
+
+          assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath1);
+          await contextUpdateAfter(githubPackage, () => atomEnv.workspace.open(itemPath2));
+          assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath1);
+        });
+      });
+
+      describe('with a locked context', function() {
+        it('preserves the locked context in the pool', async function() {
+          await githubPackage.scheduleActiveContextUpdate({
+            usePath: workdirPath1,
+            lock: true,
+          });
+
+          await contextUpdateAfter(githubPackage, () => project.setPaths([workdirPath2]));
+
+          assert.isTrue(contextPool.getContext(workdirPath1).isPresent());
+          assert.isTrue(contextPool.getContext(workdirPath2).isPresent());
+
+          assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath1);
+        });
+
+        it('may be unlocked', async function() {
+          const itemPath1a = path.join(workdirPath1, 'a.txt');
+          const itemPath1b = path.join(workdirPath2, 'b.txt');
+
+          await githubPackage.scheduleActiveContextUpdate({
+            usePath: workdirPath2,
+            lock: true,
+          });
+
+          await contextUpdateAfter(githubPackage, () => atomEnv.workspace.open(itemPath1a));
+          assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath2);
+
+          await githubPackage.scheduleActiveContextUpdate({
+            usePath: workdirPath1,
+            lock: false,
+          });
+
+          await contextUpdateAfter(githubPackage, () => atomEnv.workspace.open(itemPath1b));
+          assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath1);
+        });
+
+        it('triggers a re-render when the context is unchanged', async function() {
+          sinon.stub(githubPackage, 'rerender');
+
+          assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath1);
+          await githubPackage.scheduleActiveContextUpdate({
+            usePath: workdirPath1,
+            lock: true,
+          });
+
+          assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath1);
+          assert.isTrue(githubPackage.rerender.called);
+          githubPackage.rerender.resetHistory();
+
+          await githubPackage.scheduleActiveContextUpdate({
+            usePath: workdirPath1,
+            lock: false,
+          });
+
+          assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath1);
+          assert.isTrue(githubPackage.rerender.called);
+        });
+      });
+
+      it('does nothing when the workspace is destroyed', async function() {
+        sinon.stub(githubPackage, 'rerender');
+        atomEnv.destroy();
+
+        await githubPackage.scheduleActiveContextUpdate({
+          usePath: workdirPath2,
+        });
+
+        assert.isFalse(githubPackage.rerender.called);
+        assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath1);
       });
     });
 
