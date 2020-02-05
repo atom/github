@@ -69,7 +69,7 @@ describe('GitTabHeaderView', function() {
     it('renders unlocked when the lock is disengaged', function() {
       const wrapper = build({contextLocked: false});
 
-      assert.isTrue(wrapper.exists('Octicon[icon="globe"]'));
+      assert.isTrue(wrapper.exists('Octicon[icon="unlock"]'));
     });
 
     it('calls handleLockToggle when the lock is clicked', function() {
