@@ -58,13 +58,13 @@ describe('RootController', function() {
         workspace={workspace}
         commands={commands}
         deserializers={deserializers}
-        grammars={grammars}
         notificationManager={notificationManager}
         tooltips={tooltips}
-        config={config}
-        confirm={confirm}
-        project={project}
         keymaps={atomEnv.keymaps}
+        grammars={grammars}
+        config={config}
+        project={project}
+        confirm={confirm}
         currentWindow={atomEnv.getCurrentWindow()}
 
         loginModel={loginModel}
@@ -72,9 +72,14 @@ describe('RootController', function() {
         repository={absentRepository}
         resolutionProgress={emptyResolutionProgress}
 
+        currentWorkDir={null}
+
         initialize={() => {}}
         clone={() => {}}
 
+        contextLocked={false}
+        changeWorkingDirectory={() => {}}
+        setContextLock={() => {}}
         startOpen={false}
         startRevealed={false}
       />

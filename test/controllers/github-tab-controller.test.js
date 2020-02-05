@@ -45,6 +45,8 @@ describe('GitHubTabController', function() {
         currentWorkDir={repo.getWorkingDirectoryPath()}
 
         changeWorkingDirectory={() => {}}
+        setContextLock={() => {}}
+        contextLocked={false}
         onDidChangeWorkDirs={() => {}}
         getCurrentWorkDirs={() => []}
         openCreateDialog={() => {}}
