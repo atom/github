@@ -1,5 +1,5 @@
 import Branch, {nullBranch} from '../../lib/models/branch';
-import util from 'util';
+// import util from 'util';
 
 describe('Branch', function() {
   it('creates a branch with no upstream', function() {
