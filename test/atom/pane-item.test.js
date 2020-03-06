@@ -309,5 +309,21 @@ describe('PaneItem', function() {
 
       assert.isTrue(stub.getElement().classList.contains('added'));
     });
+
+    it('adopts StubItems that are deserialized after the package has been initialized', function() {
+      const wrapper = mount(
+        <PaneItem workspace={workspace} uriPattern="atom-github://pattern/root/{id}">
+          {({params, itemHolder}) => <Component ref={itemHolder.setter} text={params.id} />}
+        </PaneItem>,
+      );
+
+      const stub = StubItem.create('some-component', {title: 'Component'}, 'atom-github://pattern/root/45');
+      workspace.getActivePane().addItem(stub);
+
+      wrapper.update();
+
+      assert.isTrue(wrapper.exists('Component[text="45"]'));
+      assert.strictEqual(stub.getText(), '45');
+    });
   });
 });
