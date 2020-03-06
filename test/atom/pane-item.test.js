@@ -319,11 +319,9 @@ describe('PaneItem', function() {
 
       const stub = StubItem.create('some-component', {title: 'Component'}, 'atom-github://pattern/root/45');
       workspace.getActivePane().addItem(stub);
-
       wrapper.update();
 
       assert.isTrue(wrapper.exists('Component[text="45"]'));
-      assert.strictEqual(stub.getText(), '45');
     });
   });
 });
