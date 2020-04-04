@@ -102,7 +102,7 @@ jobs:
 
 - job: Windows
   pool:
-    vmImage: vs2015-win2012r2
+    vmImage: vs2017-win2016
   variables:
     atom_channel: dev
     atom_directory: Atom Dev
