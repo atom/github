@@ -4,6 +4,9 @@ parameters:
 
 steps:
 - powershell: |
+    Write-Host "Installing windows build tools"
+    npm install --global --production windows-build-tools
+- powershell: |
     Set-StrictMode -Version Latest
     $script:ATOMROOT = "$env:AGENT_HOMEDIRECTORY/atom"
 
