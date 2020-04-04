@@ -455,6 +455,29 @@ describe('GithubPackage', function() {
           assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath2);
         });
 
+        it('uses a context associated with a project root for paths within that root', async function() {
+          const workdirPath4 = await getTempDir();
+          await fs.mkdir(path.join(workdirPath4, 'subdir'));
+          const itemPath4 = path.join(workdirPath4, 'subdir/file.txt');
+          await fs.writeFile(itemPath4, 'content\n');
+
+          await contextUpdateAfter(githubPackage, () => project.setPaths([workdirPath1, workdirPath4]));
+
+          assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath1);
+          await contextUpdateAfter(githubPackage, () => atomEnv.workspace.open(itemPath4));
+          assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath4);
+        });
+
+        it('uses a context of the containing directory for file item paths not in any root', async function() {
+          const workdirPath4 = await getTempDir();
+          const itemPath4 = path.join(workdirPath4, 'file.txt');
+          await fs.writeFile(itemPath4, 'content\n');
+
+          assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath1);
+          await contextUpdateAfter(githubPackage, () => atomEnv.workspace.open(itemPath4));
+          assert.strictEqual(githubPackage.getActiveWorkdir(), workdirPath4);
+        });
+
         it('does nothing if the context is locked', async function() {
           const itemPath2 = path.join(workdirPath2, 'c.txt');
 
