@@ -13,6 +13,8 @@ export function gitTabItemProps(atomEnv, repository, overrides = {}) {
   return {
     repository,
     loginModel: new GithubLoginModel(InMemoryStrategy),
+    username: 'Me',
+    email: 'me@email.com',
     workspace: atomEnv.workspace,
     commands: atomEnv.commands,
     grammars: atomEnv.grammars,
