@@ -1,3 +1,5 @@
+import {TextBuffer} from 'atom';
+
 import ResolutionProgress from '../../../lib/models/conflicts/resolution-progress';
 import {InMemoryStrategy} from '../../../lib/shared/keytar-strategy';
 import GithubLoginModel from '../../../lib/models/github-login-model';
@@ -67,7 +69,10 @@ export async function gitTabViewProps(atomEnv, repository, overrides = {}) {
 
     repository,
     isLoading: false,
+    editingIdentity: false,
 
+    usernameBuffer: new TextBuffer(),
+    emailBuffer: new TextBuffer(),
     lastCommit: await repository.getLastCommit(),
     currentBranch: await repository.getCurrentBranch(),
     recentCommits: await repository.getRecentCommits({max: 10}),
@@ -91,6 +96,8 @@ export async function gitTabViewProps(atomEnv, repository, overrides = {}) {
     project: atomEnv.project,
     tooltips: atomEnv.tooltips,
 
+    toggleIdentityEditor: () => {},
+    closeIdentityEditor: () => {},
     openInitializeDialog: () => {},
     abortMerge: () => {},
     commit: () => {},

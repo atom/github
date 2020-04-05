@@ -1,5 +1,6 @@
 import React from 'react';
 import {shallow, mount} from 'enzyme';
+import {TextBuffer} from 'atom';
 
 import {cloneRepository, buildRepository} from '../helpers';
 import GitTabView from '../../lib/views/git-tab-view';
@@ -219,6 +220,20 @@ describe('GitTabView', function() {
 
       assert.isFalse(event.stopPropagation.called);
     });
+  });
+
+  it('renders the identity panel when requested', async function() {
+    const usernameBuffer = new TextBuffer();
+    const emailBuffer = new TextBuffer();
+    const wrapper = shallow(await buildApp({
+      editingIdentity: true,
+      usernameBuffer,
+      emailBuffer,
+    }));
+
+    assert.isTrue(wrapper.exists('GitIdentityView'));
+    assert.strictEqual(wrapper.find('GitIdentityView').prop('usernameBuffer'), usernameBuffer);
+    assert.strictEqual(wrapper.find('GitIdentityView').prop('emailBuffer'), emailBuffer);
   });
 
   it('selects a staging item', async function() {
