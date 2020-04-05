@@ -41,6 +41,14 @@ describe('integration: file patches', function() {
     repoRoot = atomEnv.project.getPaths()[0];
     git = new GitShellOutStrategy(repoRoot);
 
+    const identity = await Promise.all(
+      ['user.name', 'user.email'].map(setting => git.getConfig(setting)),
+    );
+    if (!identity.every(Boolean)) {
+      await git.setConfig('user.name', 'Git Integration Tests');
+      await git.setConfig('user.email', 'atom@github.com');
+    }
+
     usesWorkspaceObserver = context.githubPackage.getContextPool().getContext(repoRoot).useWorkspaceChangeObserver();
 
     workspaceElement = atomEnv.views.getView(workspace);
