@@ -27,7 +27,12 @@ describe('GithubTabHeaderContainer', function() {
       <GithubTabHeaderContainer
         loginModel={model}
         endpoint={getEndpoint('github.com')}
-        getCurrentWorkDirs={() => null}
+        currentWorkDir={null}
+        contextLocked={false}
+        changeWorkingDirectory={() => {}}
+        setContextLock={() => {}}
+        getCurrentWorkDirs={() => new Set()}
+        onDidChangeWorkDirs={() => {}}
         {...overrideProps}
       />
     );

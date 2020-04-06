@@ -158,6 +158,7 @@ describe('IssueishSearchContainer', function() {
 
     resolve();
     await promise;
+    await wrapper.instance().forceUpdate();
 
     const controller = wrapper.update().find('BareIssueishListController');
     assert.isFalse(controller.prop('isLoading'));
