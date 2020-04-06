@@ -25,12 +25,13 @@ describe('UserStore', function() {
     atomEnv.destroy();
   });
 
-  function nextUpdatePromise() {
+  function nextUpdatePromise(during = () => {}) {
     return new Promise(resolve => {
       const sub = store.onDidUpdate(() => {
         sub.dispose();
         resolve();
       });
+      during();
     });
   }
 
@@ -290,10 +291,8 @@ describe('UserStore', function() {
     const newEmail = 'foo@bar.com';
     const newName = 'Foo Bar';
 
-    await repository.setConfig('user.email', newEmail);
     await repository.setConfig('user.name', newName);
-    repository.refresh();
-    await nextUpdatePromise();
+    await nextUpdatePromise(() => repository.setConfig('user.email', newEmail));
 
     assert.deepEqual(store.committer, new Author(newEmail, newName));
   });
