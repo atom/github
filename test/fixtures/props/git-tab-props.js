@@ -56,6 +56,7 @@ export async function gitTabControllerProps(atomEnv, repository, overrides = {})
     mergeConflicts: await repository.getMergeConflicts(),
     workingDirectoryPath: repository.getWorkingDirectoryPath(),
     fetchInProgress: false,
+    repositoryDrift: false,
     ...overrides,
   };
 

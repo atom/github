@@ -107,6 +107,18 @@ describe('GitTabController', function() {
       assert.isFalse(wrapper.find('GitTabView').prop('editingIdentity'));
     });
 
+    it('is not shown when the repository is out of sync', async function() {
+      const repository = await buildRepository(await cloneRepository('three-files'));
+      const wrapper = mount(await buildApp(repository, {
+        fetchInProgress: false,
+        username: '',
+        email: '',
+        repositoryDrift: true,
+      }));
+
+      assert.isFalse(wrapper.find('GitTabView').prop('editingIdentity'));
+    });
+
     it('is shown by default when username or email are empty', async function() {
       const repository = await buildRepository(await cloneRepository('three-files'));
       const wrapper = mount(await buildApp(repository, {
