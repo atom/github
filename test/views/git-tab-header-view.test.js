@@ -20,6 +20,7 @@ describe('GitTabHeaderView', function() {
       contextLocked: false,
       changingWorkDir: false,
       changingLock: false,
+      handleAvatarClick: () => {},
       handleWorkDirSelect: () => {},
       handleLockToggle: () => {},
       ...options,
@@ -59,6 +60,14 @@ describe('GitTabHeaderView', function() {
     });
   });
 
+  it('triggers the handler callback on avatar button click', function() {
+    const handleAvatarClick = sinon.spy();
+    const wrapper = build({handleAvatarClick});
+
+    wrapper.find('.github-Project-avatarBtn').simulate('click');
+    assert.isTrue(handleAvatarClick.called);
+  });
+
   describe('context lock control', function() {
     it('renders locked when the lock is engaged', function() {
       const wrapper = build({contextLocked: true});
@@ -76,7 +85,7 @@ describe('GitTabHeaderView', function() {
       const handleLockToggle = sinon.spy();
       const wrapper = build({handleLockToggle});
 
-      wrapper.find('button').simulate('click');
+      wrapper.find('.github-Project-lock').simulate('click');
       assert.isTrue(handleLockToggle.called);
     });
   });
@@ -91,7 +100,7 @@ describe('GitTabHeaderView', function() {
     it('disables the context lock toggle while the context lock is changing', function() {
       const wrapper = build({changingLock: true});
 
-      assert.isTrue(wrapper.find('button').prop('disabled'));
+      assert.isTrue(wrapper.find('.github-Project-lock').prop('disabled'));
     });
   });
 

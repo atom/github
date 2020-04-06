@@ -32,9 +32,13 @@ describe('Author', function() {
   it('creates the correct avatar urls', function() {
     const a0 = new Author('same@same.com', 'Zero');
     const a1 = new Author('0000000+testing@users.noreply.github.com', 'One');
+    const a2 = new Author('', 'Blank Email');
+    const a3 = new Author(null, 'Null Email');
 
     assert.strictEqual('https://avatars.githubusercontent.com/u/e?email=same%40same.com&s=32', a0.getAvatarUrl());
     assert.strictEqual('https://avatars.githubusercontent.com/u/0000000?s=32', a1.getAvatarUrl());
+    assert.strictEqual('', a2.getAvatarUrl());
+    assert.strictEqual('', a3.getAvatarUrl());
     assert.strictEqual('', nullAuthor.getAvatarUrl());
   });
 

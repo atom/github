@@ -20,6 +20,7 @@ describe('GitTabHeaderController', function() {
       changeWorkingDirectory: () => {},
       contextLocked: false,
       setContextLock: () => {},
+      onDidClickAvatar: () => {},
       onDidChangeWorkDirs: () => new Disposable(),
       onDidUpdateRepo: () => new Disposable(),
       ...overrides,
