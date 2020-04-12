@@ -30,8 +30,14 @@ describe('CommentDecorationsController', function() {
 
   function buildApp(override = {}) {
     const origin = new Remote('origin', 'git@github.com:owner/repo.git');
-    const upstreamBranch = Branch.createRemoteTracking('refs/remotes/origin/featureBranch', 'origin', 'refs/heads/featureBranch');
-    const branch = new Branch('featureBranch', upstreamBranch, upstreamBranch, true);
+    const branch = new Branch('featureBranch', {
+      head: true,
+      upstream: {
+        refName: 'refs/remotes/origin/featureBranch',
+        remoteName: 'origin',
+        remoteRefName: 'refs/heads/featureBranch',
+      },
+    });
     const {commentThreads} = aggregatedReviewsBuilder()
       .addReviewThread(t => {
         t.addComment(c => c.id('0').path('file0.txt').position(2).bodyHTML('one'));

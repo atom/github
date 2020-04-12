@@ -233,7 +233,7 @@ describe('CommitView', function() {
     });
 
     it('indicates when a commit will be detached', function() {
-      const currentBranch = Branch.createDetached('master~3');
+      const currentBranch = new Branch('master~3', {detached: true});
       wrapper.setProps({currentBranch});
       assert.strictEqual(wrapper.find('.github-CommitView-commit').text(), 'Create detached commit');
     });
