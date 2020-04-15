@@ -61,8 +61,7 @@ describe('CommitDetailView', function() {
   it('renders commit details properly', function() {
     const commit = commitBuilder()
       .sha('420')
-      .authorEmail('very@nice.com')
-      .authorName('Forthe Win')
+      .addAuthor('very@nice.com', 'Forthe Win')
       .authorDate(moment().subtract(2, 'days').unix())
       .messageSubject('subject')
       .messageBody('body')
@@ -83,9 +82,9 @@ describe('CommitDetailView', function() {
 
   it('renders multiple avatars for co-authored commit', function() {
     const commit = commitBuilder()
-      .authorEmail('blaze@it.com')
-      .addCoAuthor('two', 'two@coauthor.com')
-      .addCoAuthor('three', 'three@coauthor.com')
+      .addAuthor('blaze@it.com', 'blaze')
+      .addCoAuthor('two@coauthor.com', 'two')
+      .addCoAuthor('three@coauthor.com', 'three')
       .build();
     const wrapper = shallow(buildApp({commit}));
     assert.deepEqual(
@@ -100,7 +99,7 @@ describe('CommitDetailView', function() {
 
   it('handles noreply email addresses', function() {
     const commit = commitBuilder()
-      .authorEmail('1234+username@users.noreply.github.com')
+      .addAuthor('1234+username@users.noreply.github.com', 'noreply')
       .build();
     const wrapper = shallow(buildApp({commit}));
 
@@ -161,8 +160,7 @@ describe('CommitDetailView', function() {
     describe('when there are no co-authors', function() {
       it('returns only the author', function() {
         const commit = commitBuilder()
-          .authorName('Steven Universe')
-          .authorEmail('steven@universe.com')
+          .addAuthor('steven@universe.com', 'Steven Universe')
           .build();
         const wrapper = shallow(buildApp({commit}));
         assert.strictEqual(wrapper.instance().getAuthorInfo(), 'Steven Universe');
@@ -172,8 +170,8 @@ describe('CommitDetailView', function() {
     describe('when there is one co-author', function() {
       it('returns author and the co-author', function() {
         const commit = commitBuilder()
-          .authorName('Ruby')
-          .addCoAuthor('Sapphire', 'sapphire@thecrystalgems.party')
+          .addAuthor('ruby@universe.com', 'Ruby')
+          .addCoAuthor('sapphire@thecrystalgems.party', 'Sapphire')
           .build();
         const wrapper = shallow(buildApp({commit}));
         assert.strictEqual(wrapper.instance().getAuthorInfo(), 'Ruby and Sapphire');
@@ -183,9 +181,9 @@ describe('CommitDetailView', function() {
     describe('when there is more than one co-author', function() {
       it('returns the author and number of co-authors', function() {
         const commit = commitBuilder()
-          .authorName('Amethyst')
-          .addCoAuthor('Peridot', 'peri@youclods.horse')
-          .addCoAuthor('Pearl', 'p@pinkhair.club')
+          .addAuthor('amethyst@universe.com', 'Amethyst')
+          .addCoAuthor('peri@youclods.horse', 'Peridot')
+          .addCoAuthor('p@pinkhair.club', 'Pearl')
           .build();
         const wrapper = shallow(buildApp({commit}));
         assert.strictEqual(wrapper.instance().getAuthorInfo(), 'Amethyst and 2 others');

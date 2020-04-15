@@ -162,7 +162,7 @@ describe('MultiFilePatchController', function() {
       const promise = wrapper.instance().patchChangePromise;
       wrapper.setProps({multiFilePatch: MultiFilePatch.createNull()});
       await promise;
-
+      await wrapper.instance().forceUpdate();
       // Performs an operation again
       assert.strictEqual(await wrapper.find('MultiFilePatchView').prop('toggleFile')(filePatch), 'staged');
     });

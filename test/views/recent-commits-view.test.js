@@ -79,7 +79,7 @@ describe('RecentCommitsView', function() {
     const commits = ['thr&ee@z.com', 'two@y.com', 'one@x.com'].map((authorEmail, i) => {
       return commitBuilder()
         .sha(`1111111111${i}`)
-        .authorEmail(authorEmail)
+        .addAuthor(authorEmail, authorEmail)
         .build();
     });
 
@@ -98,9 +98,9 @@ describe('RecentCommitsView', function() {
   it('renders multiple avatars for co-authored commits', function() {
     const commits = [
       commitBuilder()
-        .authorEmail('thr&ee@z.com')
-        .addCoAuthor('One', 'two@y.com')
-        .addCoAuthor('Two', 'one@x.com')
+        .addAuthor('thr&ee@z.com', 'thr&ee')
+        .addCoAuthor('two@y.com', 'One')
+        .addCoAuthor('one@x.com', 'Two')
         .build(),
     ];
 

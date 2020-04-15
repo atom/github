@@ -2,6 +2,7 @@ import React from 'react';
 import {shallow} from 'enzyme';
 
 import {BareCommitCommentThreadView} from '../../../lib/views/timeline-items/commit-comment-thread-view';
+import CommitCommentView from '../../../lib/views/timeline-items/commit-comment-view';
 import {createCommitCommentThread} from '../../fixtures/factories/commit-comment-thread-results';
 
 describe('CommitCommentThreadView', function() {
@@ -24,7 +25,7 @@ describe('CommitCommentThreadView', function() {
       ],
     }));
 
-    const commentViews = wrapper.find('ForwardRef(Relay(BareCommitCommentView))');
+    const commentViews = wrapper.find(CommitCommentView);
 
     assert.deepEqual(commentViews.map(c => c.prop('item').author.login), ['user0', 'user1', 'user2']);
 

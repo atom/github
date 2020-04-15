@@ -95,6 +95,120 @@ describe('GitTabController', function() {
     assert.isFalse(refreshResolutionProgress.calledWith(path.join(workdirPath, 'added-to-both.txt')));
   });
 
+  describe('identity editor', function() {
+    it('is not shown while loading data', async function() {
+      const repository = await buildRepository(await cloneRepository('three-files'));
+      const wrapper = mount(await buildApp(repository, {
+        fetchInProgress: true,
+        username: '',
+        email: '',
+      }));
+
+      assert.isFalse(wrapper.find('GitTabView').prop('editingIdentity'));
+    });
+
+    it('is not shown when the repository is out of sync', async function() {
+      const repository = await buildRepository(await cloneRepository('three-files'));
+      const wrapper = mount(await buildApp(repository, {
+        fetchInProgress: false,
+        username: '',
+        email: '',
+        repositoryDrift: true,
+      }));
+
+      assert.isFalse(wrapper.find('GitTabView').prop('editingIdentity'));
+    });
+
+    it('is shown by default when username or email are empty', async function() {
+      const repository = await buildRepository(await cloneRepository('three-files'));
+      const wrapper = mount(await buildApp(repository, {
+        username: '',
+        email: 'not@empty.com',
+      }));
+
+      assert.isTrue(wrapper.find('GitTabView').prop('editingIdentity'));
+    });
+
+    it('is toggled on and off with toggleIdentityEditor', async function() {
+      const repository = await buildRepository(await cloneRepository('three-files'));
+      const wrapper = mount(await buildApp(repository));
+
+      assert.isFalse(wrapper.find('GitTabView').prop('editingIdentity'));
+
+      wrapper.find('GitTabView').prop('toggleIdentityEditor')();
+      wrapper.update();
+
+      assert.isTrue(wrapper.find('GitTabView').prop('editingIdentity'));
+
+      wrapper.find('GitTabView').prop('toggleIdentityEditor')();
+      wrapper.update();
+
+      assert.isFalse(wrapper.find('GitTabView').prop('editingIdentity'));
+    });
+
+    it('is toggled off with closeIdentityEditor', async function() {
+      const repository = await buildRepository(await cloneRepository('three-files'));
+      const wrapper = mount(await buildApp(repository));
+
+      assert.isFalse(wrapper.find('GitTabView').prop('editingIdentity'));
+
+      wrapper.find('GitTabView').prop('toggleIdentityEditor')();
+      wrapper.update();
+
+      assert.isTrue(wrapper.find('GitTabView').prop('editingIdentity'));
+
+      wrapper.find('GitTabView').prop('closeIdentityEditor')();
+      wrapper.update();
+
+      assert.isFalse(wrapper.find('GitTabView').prop('editingIdentity'));
+
+      wrapper.find('GitTabView').prop('closeIdentityEditor')();
+      wrapper.update();
+
+      assert.isFalse(wrapper.find('GitTabView').prop('editingIdentity'));
+    });
+
+    it('synchronizes buffer contents with fetched properties', async function() {
+      const repository = await buildRepository(await cloneRepository('three-files'));
+      const wrapper = mount(await buildApp(repository, {
+        username: 'initial',
+        email: 'initial@email.com',
+      }));
+
+      const usernameBuffer = wrapper.find('GitTabView').prop('usernameBuffer');
+      const emailBuffer = wrapper.find('GitTabView').prop('emailBuffer');
+
+      assert.strictEqual(usernameBuffer.getText(), 'initial');
+      assert.strictEqual(emailBuffer.getText(), 'initial@email.com');
+
+      usernameBuffer.setText('initial+');
+      emailBuffer.setText('initial+@email.com');
+
+      wrapper.setProps({
+        username: 'changed',
+        email: 'changed@email.com',
+      });
+
+      assert.strictEqual(wrapper.find('GitTabView').prop('usernameBuffer'), usernameBuffer);
+      assert.strictEqual(usernameBuffer.getText(), 'changed');
+      assert.strictEqual(wrapper.find('GitTabView').prop('emailBuffer'), emailBuffer);
+      assert.strictEqual(emailBuffer.getText(), 'changed@email.com');
+
+      usernameBuffer.setText('changed+');
+      emailBuffer.setText('changed+@email.com');
+
+      wrapper.setProps({
+        username: 'changed',
+        email: 'changed@email.com',
+      });
+
+      assert.strictEqual(wrapper.find('GitTabView').prop('usernameBuffer'), usernameBuffer);
+      assert.strictEqual(usernameBuffer.getText(), 'changed+');
+      assert.strictEqual(wrapper.find('GitTabView').prop('emailBuffer'), emailBuffer);
+      assert.strictEqual(emailBuffer.getText(), 'changed+@email.com');
+    });
+  });
+
   describe('abortMerge()', function() {
     it('resets merge related state', async function() {
       const workdirPath = await cloneRepository('merge-conflict');
@@ -547,7 +661,7 @@ describe('GitTabController', function() {
           await repository.commit.returnValues[0];
           await updateWrapper(repository, wrapper);
 
-          assert.deepEqual(getLastCommit().coAuthors, [{email: author.getEmail(), name: author.getFullName()}]);
+          assert.deepEqual(getLastCommit().coAuthors, [author]);
           assert.strictEqual(getLastCommit().getMessageSubject(), commitBeforeAmend.getMessageSubject());
         });
 
@@ -574,17 +688,17 @@ describe('GitTabController', function() {
           await updateWrapper(repository, wrapper);
 
           // verify that commit message has coauthor
-          assert.deepEqual(getLastCommit().coAuthors, [{email: author.getEmail(), name: author.getFullName()}]);
+          assert.deepEqual(getLastCommit().coAuthors, [author]);
           assert.strictEqual(getLastCommit().getMessageSubject(), newMessage);
         });
 
         it('successfully removes a co-author', async function() {
           const message = 'We did this together!';
-          const author = {email: 'mona@lisa.com', name: 'Mona Lisa'};
+          const author = new Author('mona@lisa.com', 'Mona Lisa');
           const commitMessageWithCoAuthors = dedent`
             ${message}
 
-            Co-authored-by: ${author.name} <${author.email}>
+            Co-authored-by: ${author.getFullName()} <${author.getEmail()}>
           `;
 
           await repository.git.exec(['commit', '--amend', '-m', commitMessageWithCoAuthors]);
