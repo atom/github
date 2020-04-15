@@ -22,7 +22,7 @@ jobs:
     - name: install Atom
       shell: bash
       run: |
-        curl -s -L https://atom.io/download/deb?channel=dev \
+        curl -s -L https://atom.io/download/deb?channel=nightly \
           -H 'Accept: application/octet-stream' \
           -o /tmp/atom-amd64.deb
         /sbin/start-stop-daemon --start --quiet \
@@ -35,10 +35,10 @@ jobs:
         dpkg-deb -x /tmp/atom-amd64.deb /tmp/atom
     - name: install dependencies
       shell: bash
-      run: /tmp/atom/usr/share/atom-dev/resources/app/apm/bin/apm ci
+      run: /tmp/atom/usr/share/atom-nightly/resources/app/apm/bin/apm ci
     - name: run tests
       shell: bash
-      run: /tmp/atom/usr/bin/atom-dev --test test/
+      run: /tmp/atom/usr/bin/atom-nightly --test test/
     - name: report code coverage
       shell: bash
       env:
@@ -66,18 +66,18 @@ jobs:
     - name: install Atom
       shell: bash
       run: |
-        curl -s -L https://atom.io/download/mac?channel=dev \
+        curl -s -L https://atom.io/download/mac?channel=nightly \
           -H 'Accept: application/octet-stream' \
           -o /tmp/atom.zip
         sudo unzip -q /tmp/atom.zip -d /tmp/atom
     - name: install dependencies
       shell: bash
       run: |
-        '/tmp/atom/Atom Dev.app/Contents/Resources/app/apm/bin/apm' ci
+        '/tmp/atom/Atom Nightly.app/Contents/Resources/app/apm/bin/apm' ci
     - name: run tests
       shell: bash
       run: |
-        '/tmp/atom/Atom Dev.app/Contents/Resources/app/atom.sh' --test test/
+        '/tmp/atom/Atom Nightly.app/Contents/Resources/app/atom.sh' --test test/
     - name: report code coverage
       shell: bash
       env:
@@ -103,7 +103,7 @@ jobs:
     - name: install Atom
       shell: bash
       run: |
-        curl -s -L https://atom.io/download/deb?channel=dev \
+        curl -s -L https://atom.io/download/deb?channel=nightly \
           -H 'Accept: application/octet-stream' \
           -o /tmp/atom-amd64.deb
         /sbin/start-stop-daemon --start --quiet \
@@ -116,7 +116,7 @@ jobs:
         dpkg-deb -x /tmp/atom-amd64.deb /tmp/atom
     - name: install dependencies
       shell: bash
-      run: /tmp/atom/usr/share/atom-dev/resources/app/apm/bin/apm ci
+      run: /tmp/atom/usr/share/atom-nightly/resources/app/apm/bin/apm ci
     - name: lint
       shell: bash
       run: npm run lint
@@ -133,7 +133,7 @@ jobs:
     - name: install Atom
       shell: bash
       run: |
-        curl -s -L https://atom.io/download/deb?channel=dev \
+        curl -s -L https://atom.io/download/deb?channel=nightly \
           -H 'Accept: application/octet-stream' \
           -o /tmp/atom-amd64.deb
         /sbin/start-stop-daemon --start --quiet \
@@ -146,7 +146,7 @@ jobs:
         dpkg-deb -x /tmp/atom-amd64.deb /tmp/atom
     - name: install dependencies
       shell: bash
-      run: /tmp/atom/usr/share/atom-dev/resources/app/apm/bin/apm ci
+      run: /tmp/atom/usr/share/atom-nightly/resources/app/apm/bin/apm ci
     - name: run snapshot tests
       shell: bash
-      run: /tmp/atom/usr/bin/atom-dev --test test/
+      run: /tmp/atom/usr/bin/atom-nightly --test test/
