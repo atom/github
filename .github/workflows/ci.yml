@@ -3,6 +3,7 @@ on:
   push:
     branches:
     - master
+    - 0.34-1-releases
   pull_request:
     types:
     - opened
