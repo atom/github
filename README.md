@@ -1,8 +1,8 @@
 # Atom GitHub Package
 
-| Build | Code Coverage | Dependencies |
-|-------|---------------|--------------|
-| [![Build Status](https://dev.azure.com/atom-github/GitHub%20package%20for%20Atom/_apis/build/status/atom.github)](https://dev.azure.com/atom-github/GitHub%20package%20for%20Atom/_build/latest?definitionId=1) | [![codecov](https://codecov.io/gh/atom/github/branch/master/graph/badge.svg)](https://codecov.io/gh/atom/github) | [![Greenkeeper badge](https://badges.greenkeeper.io/atom/github.svg)](https://greenkeeper.io/) [![Dependency Status](https://david-dm.org/atom/github.svg)](https://david-dm.org/atom/github) |
+| Build | Code Coverage |
+|-------|---------------|
+| [![Build Status](https://github.com/atom/github/workflows/ci/badge.svg)](https://github.com/atom/github/actions?query=workflow%3Aci+branch%3Amaster) | [![codecov](https://codecov.io/gh/atom/github/branch/master/graph/badge.svg)](https://codecov.io/gh/atom/github) |
 
 The Atom GitHub package provides Git and GitHub integration for Atom. Check out [github.atom.io](https://github.atom.io) for more information.
 
