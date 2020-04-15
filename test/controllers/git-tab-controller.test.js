@@ -3,6 +3,7 @@ import path from 'path';
 import React from 'react';
 import {mount} from 'enzyme';
 import dedent from 'dedent-js';
+import temp from 'temp';
 
 import GitTabController from '../../lib/controllers/git-tab-controller';
 import {gitTabControllerProps} from '../fixtures/props/git-tab-props';
@@ -114,6 +115,28 @@ describe('GitTabController', function() {
         username: '',
         email: '',
         repositoryDrift: true,
+      }));
+
+      assert.isFalse(wrapper.find('GitTabView').prop('editingIdentity'));
+    });
+
+    it('is not shown for an absent repository', async function() {
+      const wrapper = mount(await buildApp(Repository.absent(), {
+        fetchInProgress: false,
+        username: '',
+        email: '',
+      }));
+
+      assert.isFalse(wrapper.find('GitTabView').prop('editingIdentity'));
+    });
+
+    it('is not shown for an empty repository', async function() {
+      const nongit = temp.mkdirSync();
+      const repository = await buildRepository(nongit);
+      const wrapper = mount(await buildApp(repository, {
+        fetchInProgress: false,
+        username: '',
+        email: '',
       }));
 
       assert.isFalse(wrapper.find('GitTabView').prop('editingIdentity'));
