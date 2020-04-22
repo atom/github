@@ -50,6 +50,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
           git.setPromptCallback(promptStub);
 
           const stdin = dedent`
+            protocol=https
             host=noway.com
             username=me
 
