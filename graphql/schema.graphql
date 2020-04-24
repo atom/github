@@ -11517,6 +11517,9 @@ enum OrgRemoveMemberAuditEntryReason {
 
   """SAML SSO enforcement requires an external identity"""
   SAML_SSO_ENFORCEMENT_REQUIRES_EXTERNAL_IDENTITY
+
+  """User account has been deleted"""
+  USER_ACCOUNT_DELETED
 }
 
 """Audit log entry for a org.remove_outside_collaborator event."""
