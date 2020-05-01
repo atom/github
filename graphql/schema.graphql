@@ -1445,6 +1445,12 @@ input CloneTemplateRepositoryInput {
   """Indicates the repository's visibility level."""
   visibility: RepositoryVisibility!
 
+  """
+  Whether to copy all branches from the template to the new repository. Defaults
+  to copying only the default branch of the template.
+  """
+  includeAllBranches: Boolean = false
+
   """A unique identifier for the client performing the mutation."""
   clientMutationId: String
 }
@@ -2370,24 +2376,8 @@ type ContributionCalendarWeek {
 
 """Ordering options for contribution connections."""
 input ContributionOrder {
-  """
-  The field by which to order contributions.
-  
-  **Upcoming Change on 2019-10-01 UTC**
-  **Description:** `field` will be removed. Only one order field is supported.
-  **Reason:** `field` will be removed.
-  
-  """
-  field: ContributionOrderField
-
   """The ordering direction."""
   direction: OrderDirection!
-}
-
-"""Properties by which contribution connections can be ordered."""
-enum ContributionOrderField {
-  """Order contributions by when they were made."""
-  OCCURRED_AT
 }
 
 """
@@ -2488,7 +2478,7 @@ type ContributionsCollection {
     excludePopular: Boolean = false
 
     """Ordering options for contributions returned from the connection."""
-    orderBy: ContributionOrder = {field: OCCURRED_AT, direction: DESC}
+    orderBy: ContributionOrder = {direction: DESC}
   ): CreatedIssueContributionConnection!
 
   """Issue contributions made by the user, grouped by repository."""
@@ -2568,7 +2558,7 @@ type ContributionsCollection {
     excludePopular: Boolean = false
 
     """Ordering options for contributions returned from the connection."""
-    orderBy: ContributionOrder = {field: OCCURRED_AT, direction: DESC}
+    orderBy: ContributionOrder = {direction: DESC}
   ): CreatedPullRequestContributionConnection!
 
   """Pull request contributions made by the user, grouped by repository."""
@@ -2602,7 +2592,7 @@ type ContributionsCollection {
     last: Int
 
     """Ordering options for contributions returned from the connection."""
-    orderBy: ContributionOrder = {field: OCCURRED_AT, direction: DESC}
+    orderBy: ContributionOrder = {direction: DESC}
   ): CreatedPullRequestReviewContributionConnection!
 
   """
@@ -2635,7 +2625,7 @@ type ContributionsCollection {
     excludeFirst: Boolean = false
 
     """Ordering options for contributions returned from the connection."""
-    orderBy: ContributionOrder = {field: OCCURRED_AT, direction: DESC}
+    orderBy: ContributionOrder = {direction: DESC}
   ): CreatedRepositoryContributionConnection!
 
   """
@@ -7346,7 +7336,7 @@ type IssueContributionsByRepository {
     last: Int
 
     """Ordering options for contributions returned from the connection."""
-    orderBy: ContributionOrder = {field: OCCURRED_AT, direction: DESC}
+    orderBy: ContributionOrder = {direction: DESC}
   ): CreatedIssueContributionConnection!
 
   """The repository in which the issues were opened."""
@@ -13544,7 +13534,7 @@ type PullRequestContributionsByRepository {
     last: Int
 
     """Ordering options for contributions returned from the connection."""
-    orderBy: ContributionOrder = {field: OCCURRED_AT, direction: DESC}
+    orderBy: ContributionOrder = {direction: DESC}
   ): CreatedPullRequestContributionConnection!
 
   """The repository in which the pull requests were opened."""
@@ -13982,7 +13972,7 @@ type PullRequestReviewContributionsByRepository {
     last: Int
 
     """Ordering options for contributions returned from the connection."""
-    orderBy: ContributionOrder = {field: OCCURRED_AT, direction: DESC}
+    orderBy: ContributionOrder = {direction: DESC}
   ): CreatedPullRequestReviewContributionConnection!
 
   """The repository in which the pull request reviews were made."""
