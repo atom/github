@@ -19358,6 +19358,9 @@ type SmimeSignature implements GitSignature {
   wasSignedByGitHub: Boolean!
 }
 
+"""Entites that can sponsor others via GitHub Sponsors"""
+union Sponsor = Organization | User
+
 """Entities that can be sponsored through GitHub Sponsors"""
 interface Sponsorable {
   """The GitHub Sponsors listing for this user."""
@@ -19423,9 +19426,9 @@ type Sponsorship implements Node {
   privacyLevel: SponsorshipPrivacy!
 
   """
-  The entity that is sponsoring. Returns null if the sponsorship is private
+  The user or organization that is sponsoring. Returns null if the sponsorship is private.
   """
-  sponsor: User
+  sponsorEntity: Sponsor
 
   """The entity that is being sponsored"""
   sponsorable: Sponsorable!
