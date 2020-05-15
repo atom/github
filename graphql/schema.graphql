@@ -23164,6 +23164,14 @@ type User implements Node & Actor & RegistryPackageOwner & RegistryPackageSearch
     login: String!
   ): Organization
 
+  """
+  Verified email addresses that match verified domains for a specified organization the user is a member of.
+  """
+  organizationVerifiedDomainEmails(
+    """The login of the organization to match verified domains from."""
+    login: String!
+  ): [String!]!
+
   """A list of organizations the user belongs to."""
   organizations(
     """Returns the elements in the list that come after the specified cursor."""
