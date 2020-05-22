@@ -541,6 +541,48 @@ enum AuditLogOrderField {
 }
 
 """
+Represents a 'automatic_base_change_failed' event on a given pull request.
+"""
+type AutomaticBaseChangeFailedEvent implements Node {
+  """Identifies the actor who performed the event."""
+  actor: Actor
+
+  """Identifies the date and time when the object was created."""
+  createdAt: DateTime!
+  id: ID!
+
+  """The new base for this PR"""
+  newBase: String!
+
+  """The old base for this PR"""
+  oldBase: String!
+
+  """PullRequest referenced by event."""
+  pullRequest: PullRequest!
+}
+
+"""
+Represents a 'automatic_base_change_succeeded' event on a given pull request.
+"""
+type AutomaticBaseChangeSucceededEvent implements Node {
+  """Identifies the actor who performed the event."""
+  actor: Actor
+
+  """Identifies the date and time when the object was created."""
+  createdAt: DateTime!
+  id: ID!
+
+  """The new base for this PR"""
+  newBase: String!
+
+  """The old base for this PR"""
+  oldBase: String!
+
+  """PullRequest referenced by event."""
+  pullRequest: PullRequest!
+}
+
+"""
 Represents a 'base_ref_changed' event on a given issue or pull request.
 """
 type BaseRefChangedEvent implements Node {
@@ -5275,16 +5317,16 @@ type EnterpriseOwnerInfo {
   ): EnterpriseAdministratorInvitationConnection!
 
   """
-  A list of pending collaborators across the repositories in the enterprise.
+  A list of pending collaborator invitations across the repositories in the enterprise.
   """
-  pendingCollaborators(
+  pendingCollaboratorInvitations(
     """The search string to look for."""
     query: String
 
     """
     Ordering options for pending repository collaborator invitations returned from the connection.
     """
-    orderBy: RepositoryInvitationOrder = {field: INVITEE_LOGIN, direction: ASC}
+    orderBy: RepositoryInvitationOrder = {field: CREATED_AT, direction: DESC}
 
     """Returns the elements in the list that come after the specified cursor."""
     after: String
@@ -5299,7 +5341,7 @@ type EnterpriseOwnerInfo {
 
     """Returns the last _n_ elements from the list."""
     last: Int
-  ): EnterprisePendingCollaboratorConnection!
+  ): RepositoryInvitationConnection!
 
   """
   A list of pending member invitations for organizations in the enterprise.
@@ -14177,7 +14219,7 @@ type PullRequestTimelineItemEdge {
 }
 
 """An item in a pull request timeline"""
-union PullRequestTimelineItems = AddedToProjectEvent | AssignedEvent | BaseRefChangedEvent | BaseRefForcePushedEvent | ClosedEvent | CommentDeletedEvent | ConnectedEvent | ConvertToDraftEvent | ConvertedNoteToIssueEvent | CrossReferencedEvent | DemilestonedEvent | DeployedEvent | DeploymentEnvironmentChangedEvent | DisconnectedEvent | HeadRefDeletedEvent | HeadRefForcePushedEvent | HeadRefRestoredEvent | IssueComment | LabeledEvent | LockedEvent | MarkedAsDuplicateEvent | MentionedEvent | MergedEvent | MilestonedEvent | MovedColumnsInProjectEvent | PinnedEvent | PullRequestCommit | PullRequestCommitCommentThread | PullRequestReview | PullRequestReviewThread | PullRequestRevisionMarker | ReadyForReviewEvent | ReferencedEvent | RemovedFromProjectEvent | RenamedTitleEvent | ReopenedEvent | ReviewDismissedEvent | ReviewRequestRemovedEvent | ReviewRequestedEvent | SubscribedEvent | TransferredEvent | UnassignedEvent | UnlabeledEvent | UnlockedEvent | UnmarkedAsDuplicateEvent | UnpinnedEvent | UnsubscribedEvent | UserBlockedEvent
+union PullRequestTimelineItems = AddedToProjectEvent | AssignedEvent | AutomaticBaseChangeFailedEvent | AutomaticBaseChangeSucceededEvent | BaseRefChangedEvent | BaseRefForcePushedEvent | ClosedEvent | CommentDeletedEvent | ConnectedEvent | ConvertToDraftEvent | ConvertedNoteToIssueEvent | CrossReferencedEvent | DemilestonedEvent | DeployedEvent | DeploymentEnvironmentChangedEvent | DisconnectedEvent | HeadRefDeletedEvent | HeadRefForcePushedEvent | HeadRefRestoredEvent | IssueComment | LabeledEvent | LockedEvent | MarkedAsDuplicateEvent | MentionedEvent | MergedEvent | MilestonedEvent | MovedColumnsInProjectEvent | PinnedEvent | PullRequestCommit | PullRequestCommitCommentThread | PullRequestReview | PullRequestReviewThread | PullRequestRevisionMarker | ReadyForReviewEvent | ReferencedEvent | RemovedFromProjectEvent | RenamedTitleEvent | ReopenedEvent | ReviewDismissedEvent | ReviewRequestRemovedEvent | ReviewRequestedEvent | SubscribedEvent | TransferredEvent | UnassignedEvent | UnlabeledEvent | UnlockedEvent | UnmarkedAsDuplicateEvent | UnpinnedEvent | UnsubscribedEvent | UserBlockedEvent
 
 """The connection type for PullRequestTimelineItems."""
 type PullRequestTimelineItemsConnection {
@@ -14234,6 +14276,16 @@ enum PullRequestTimelineItemsItemType {
   Represents the latest point in the pull request timeline for which the viewer has seen the pull request's commits.
   """
   PULL_REQUEST_REVISION_MARKER
+
+  """
+  Represents a 'automatic_base_change_failed' event on a given pull request.
+  """
+  AUTOMATIC_BASE_CHANGE_FAILED_EVENT
+
+  """
+  Represents a 'automatic_base_change_succeeded' event on a given pull request.
+  """
+  AUTOMATIC_BASE_CHANGE_SUCCEEDED_EVENT
 
   """
   Represents a 'base_ref_changed' event on a given issue or pull request.
@@ -18016,7 +18068,14 @@ type RepositoryCollaboratorEdge {
   cursor: String!
   node: User!
 
-  """The permission the user has on the repository."""
+  """
+  The permission the user has on the repository.
+  
+  **Upcoming Change on 2020-10-01 UTC**
+  **Description:** Type for `permission` will change from `RepositoryPermission!` to `String`.
+  **Reason:** This field may return additional values
+  
+  """
   permission: RepositoryPermission!
 
   """A list of sources for the user's access to the repository."""
@@ -18165,19 +18224,52 @@ interface RepositoryInfo {
 
 """An invitation for a user to be added to a repository."""
 type RepositoryInvitation implements Node {
+  """The email address that received the invitation."""
+  email: String
   id: ID!
 
   """The user who received the invitation."""
-  invitee: User!
+  invitee: User
 
   """The user who created the invitation."""
   inviter: User!
 
-  """The permission granted on this repository by this invitation."""
+  """
+  The permission granted on this repository by this invitation.
+  
+  **Upcoming Change on 2020-10-01 UTC**
+  **Description:** Type for `permission` will change from `RepositoryPermission!` to `String`.
+  **Reason:** This field may return additional values
+  
+  """
   permission: RepositoryPermission!
 
   """The Repository the user is invited to."""
   repository: RepositoryInfo
+}
+
+"""The connection type for RepositoryInvitation."""
+type RepositoryInvitationConnection {
+  """A list of edges."""
+  edges: [RepositoryInvitationEdge]
+
+  """A list of nodes."""
+  nodes: [RepositoryInvitation]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+
+"""An edge in a connection."""
+type RepositoryInvitationEdge {
+  """A cursor for use in pagination."""
+  cursor: String!
+
+  """The item at the end of the edge."""
+  node: RepositoryInvitation
 }
 
 """Ordering options for repository invitation connections."""
@@ -18193,9 +18285,6 @@ input RepositoryInvitationOrder {
 enum RepositoryInvitationOrderField {
   """Order repository invitations by creation time"""
   CREATED_AT
-
-  """Order repository invitations by invitee login"""
-  INVITEE_LOGIN
 }
 
 """The possible reasons a given repository could be in a locked state."""
@@ -21211,7 +21300,14 @@ type TeamRepositoryEdge {
   cursor: String!
   node: Repository!
 
-  """The permission level the team has on the repository"""
+  """
+  The permission level the team has on the repository
+  
+  **Upcoming Change on 2020-10-01 UTC**
+  **Description:** Type for `permission` will change from `RepositoryPermission!` to `String`.
+  **Reason:** This field may return additional values
+  
+  """
   permission: RepositoryPermission!
 }
 
