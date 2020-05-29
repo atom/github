@@ -664,7 +664,14 @@ type Blob implements Node & GitObject {
   commitUrl: URI!
   id: ID!
 
-  """Indicates whether the Blob is binary or text"""
+  """
+  Indicates whether the Blob is binary or text
+  
+  **Upcoming Change on 2019-07-01 UTC**
+  **Description:** Type for `isBinary` will change from `Boolean!` to `Boolean`.
+  **Reason:** The `isBinary` field may return `null` when it cannot determine if a Blob is binary.
+  
+  """
   isBinary: Boolean!
 
   """Indicates whether the contents is truncated"""
@@ -9722,6 +9729,33 @@ type Organization implements Node & Actor & RegistryPackageOwner & RegistryPacka
   email: String
   id: ID!
 
+  """
+  The setting value for whether the organization has an IP allow list enabled.
+  """
+  ipAllowListEnabledSetting: IpAllowListEnabledSettingValue!
+
+  """
+  The IP addresses that are allowed to access resources owned by the organization.
+  """
+  ipAllowListEntries(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+
+    """Ordering options for IP allow list entries returned."""
+    orderBy: IpAllowListEntryOrder = {field: ALLOW_LIST_VALUE, direction: ASC}
+  ): IpAllowListEntryConnection!
+
   """Whether the organization has verified its profile email and website."""
   isVerified: Boolean!
 
@@ -10062,6 +10096,9 @@ type Organization implements Node & Actor & RegistryPackageOwner & RegistryPacka
 
   """The HTTP URL listing organization's teams"""
   teamsUrl: URI!
+
+  """The organization's Twitter username."""
+  twitterUsername: String
 
   """Identifies the date and time when the object was last updated."""
   updatedAt: DateTime!
@@ -15069,7 +15106,14 @@ type Ref implements Node {
   """The repository the ref belongs to."""
   repository: Repository!
 
-  """The object the ref points to."""
+  """
+  The object the ref points to.
+  
+  **Upcoming Change on 2019-07-01 UTC**
+  **Description:** Type for `target` will change from `GitObject!` to `GitObject`.
+  **Reason:** The `target` field may return `null` values and is changing to nullable
+  
+  """
   target: GitObject!
 }
 
@@ -23639,6 +23683,9 @@ type User implements Node & Actor & RegistryPackageOwner & RegistryPackageSearch
     """How far back in time to fetch contributed repositories"""
     since: DateTime
   ): RepositoryConnection!
+
+  """The user's Twitter username."""
+  twitterUsername: String
 
   """Identifies the date and time when the object was last updated."""
   updatedAt: DateTime!
