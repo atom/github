@@ -665,14 +665,9 @@ type Blob implements Node & GitObject {
   id: ID!
 
   """
-  Indicates whether the Blob is binary or text
-  
-  **Upcoming Change on 2019-07-01 UTC**
-  **Description:** Type for `isBinary` will change from `Boolean!` to `Boolean`.
-  **Reason:** The `isBinary` field may return `null` when it cannot determine if a Blob is binary.
-  
+  Indicates whether the Blob is binary or text. Returns null if unable to determine the encoding.
   """
-  isBinary: Boolean!
+  isBinary: Boolean
 
   """Indicates whether the contents is truncated"""
   isTruncated: Boolean!
