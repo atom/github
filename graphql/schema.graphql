@@ -5560,9 +5560,6 @@ type EnterprisePendingMemberInvitationEdge {
   """A cursor for use in pagination."""
   cursor: String!
 
-  """Whether the invitation has a license for the enterprise."""
-  isUnlicensed: Boolean!
-
   """The item at the end of the edge."""
   node: OrganizationInvitation
 }
@@ -15460,15 +15457,8 @@ type Ref implements Node {
   """The repository the ref belongs to."""
   repository: Repository!
 
-  """
-  The object the ref points to.
-  
-  **Upcoming Change on 2019-07-01 UTC**
-  **Description:** Type for `target` will change from `GitObject!` to `GitObject`.
-  **Reason:** The `target` field may return `null` values and is changing to nullable
-  
-  """
-  target: GitObject!
+  """The object the ref points to. Returns null when object does not exist."""
+  target: GitObject
 }
 
 """The connection type for Ref."""
