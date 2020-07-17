@@ -4666,9 +4666,6 @@ type EnterpriseMemberEdge {
   """A cursor for use in pagination."""
   cursor: String!
 
-  """Whether the user does not have a license for the enterprise."""
-  isUnlicensed: Boolean!
-
   """The item at the end of the edge."""
   node: EnterpriseMember
 }
@@ -4770,11 +4767,6 @@ A User who is an outside collaborator of an enterprise through one or more organ
 type EnterpriseOutsideCollaboratorEdge {
   """A cursor for use in pagination."""
   cursor: String!
-
-  """
-  Whether the outside collaborator does not have a license for the enterprise.
-  """
-  isUnlicensed: Boolean!
 
   """The item at the end of the edge."""
   node: User
@@ -5507,11 +5499,6 @@ A user with an invitation to be a collaborator on a repository owned by an organ
 type EnterprisePendingCollaboratorEdge {
   """A cursor for use in pagination."""
   cursor: String!
-
-  """
-  Whether the invited collaborator does not have a license for the enterprise.
-  """
-  isUnlicensed: Boolean!
 
   """The item at the end of the edge."""
   node: User
@@ -12137,6 +12124,34 @@ enum OrgUpdateMemberRepositoryCreationPermissionAuditEntryVisibility {
   All organization members are restricted from creating public repositories.
   """
   PUBLIC
+
+  """All organization members are allowed to create any repositories."""
+  NONE
+
+  """
+  All organization members are restricted from creating private repositories.
+  """
+  PRIVATE
+
+  """
+  All organization members are restricted from creating internal repositories.
+  """
+  INTERNAL
+
+  """
+  All organization members are restricted from creating public or internal repositories.
+  """
+  PUBLIC_INTERNAL
+
+  """
+  All organization members are restricted from creating private or internal repositories.
+  """
+  PRIVATE_INTERNAL
+
+  """
+  All organization members are restricted from creating public or private repositories.
+  """
+  PUBLIC_PRIVATE
 }
 
 """
