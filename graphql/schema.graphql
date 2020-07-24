@@ -17689,6 +17689,9 @@ type Repository implements Node & ProjectOwner & PackageOwner & Subscribable & S
   """Returns whether or not this repository disabled."""
   isDisabled: Boolean!
 
+  """Returns whether or not this repository is empty."""
+  isEmpty: Boolean!
+
   """Identifies if the repository is a fork."""
   isFork: Boolean!
 
@@ -17858,6 +17861,9 @@ type Repository implements Node & ProjectOwner & PackageOwner & Subscribable & S
 
     """Ordering options for milestones."""
     orderBy: MilestoneOrder
+
+    """Filters milestones with a query on the title"""
+    query: String
   ): MilestoneConnection
 
   """The repository's original mirror URL."""
