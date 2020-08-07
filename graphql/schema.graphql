@@ -313,8 +313,11 @@ input AddPullRequestReviewThreadInput {
   """Body of the thread's first comment."""
   body: String!
 
+  """The node ID of the pull request reviewing"""
+  pullRequestId: ID
+
   """The Node ID of the review to modify."""
-  pullRequestReviewId: ID!
+  pullRequestReviewId: ID
 
   """
   The line of the blob to which the thread refers. The end of the line range for multi-line comments.
@@ -6099,12 +6102,39 @@ type ExternalIdentityEdge {
 
 """SAML attributes for the External Identity"""
 type ExternalIdentitySamlAttributes {
+  """The emails associated with the SAML identity"""
+  emails: [UserEmailMetadata!]
+
+  """Family name of the SAML identity"""
+  familyName: String
+
+  """Given name of the SAML identity"""
+  givenName: String
+
+  """The groups linked to this identity in IDP"""
+  groups: [String!]
+
   """The NameID of the SAML identity"""
   nameId: String
+
+  """The userName of the SAML identity"""
+  username: String
 }
 
 """SCIM attributes for the External Identity"""
 type ExternalIdentityScimAttributes {
+  """The emails associated with the SCIM identity"""
+  emails: [UserEmailMetadata!]
+
+  """Family name of the SCIM identity"""
+  familyName: String
+
+  """Given name of the SCIM identity"""
+  givenName: String
+
+  """The groups linked to this identity in IDP"""
+  groups: [String!]
+
   """The userName of the SCIM identity"""
   username: String
 }
@@ -24029,6 +24059,18 @@ type UserEdge {
 
   """The item at the end of the edge."""
   node: User
+}
+
+"""Email attributes from External Identity"""
+type UserEmailMetadata {
+  """Boolean to identify primary emails"""
+  primary: Boolean
+
+  """Type of email"""
+  type: String
+
+  """Email id"""
+  value: String!
 }
 
 """The user's description of what they're currently doing."""
