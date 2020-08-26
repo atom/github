@@ -23,6 +23,8 @@ describe('Branch', function() {
     assert.isFalse(b.isHead());
     assert.isFalse(b.isDetached());
     assert.isTrue(b.isPresent());
+    assert.isTrue(b.isLocal());
+    assert.isFalse(b.isRemoteTracking());
   });
 
   it('tracks SHA and committer date when given', function() {
@@ -45,13 +47,13 @@ describe('Branch', function() {
     });
 
     assert.strictEqual(b.getUpstream().getRefName().full(), 'refs/remotes/origin/upstream');
-    assert.strictEqual(b.getUpstream().getRefName().short(), 'origin/upstream');
+    assert.strictEqual(b.getUpstream().getRefName().short(), 'upstream');
     assert.strictEqual(b.getUpstream().getRemoteName(), 'origin');
     assert.strictEqual(b.getUpstream().getRemoteRefName().full(), 'refs/heads/upstream');
     assert.strictEqual(b.getUpstream().getRemoteRefName().short(), 'upstream');
 
     assert.strictEqual(b.getPush().getRefName().full(), 'refs/remotes/origin/upstream');
-    assert.strictEqual(b.getPush().getRefName().short(), 'origin/upstream');
+    assert.strictEqual(b.getPush().getRefName().short(), 'upstream');
     assert.strictEqual(b.getPush().getRemoteName(), 'origin');
     assert.strictEqual(b.getPush().getRemoteRefName().full(), 'refs/heads/upstream');
     assert.strictEqual(b.getPush().getRemoteRefName().short(), 'upstream');
@@ -133,6 +135,14 @@ describe('Branch', function() {
     assert.isTrue(b.isDetached());
     assert.strictEqual(b.getName().full(), 'master~2');
     assert.strictEqual(b.getName().short(), 'master~2');
+  });
+
+  it('identifies a remote tracking branch', function() {
+    const b = new Branch('refs/remotes/origin/something');
+    assert.strictEqual(b.getName().full(), 'refs/remotes/origin/something');
+    assert.strictEqual(b.getName().short(), 'something');
+    assert.isFalse(b.isLocal());
+    assert.isTrue(b.isRemoteTracking());
   });
 
   describe('refspecs', function() {
