@@ -8664,6 +8664,9 @@ input MergeBranchInput {
   """
   commitMessage: String
 
+  """The email address to associate with this commit."""
+  authorEmail: String
+
   """A unique identifier for the client performing the mutation."""
   clientMutationId: String
 }
@@ -8727,6 +8730,9 @@ input MergePullRequestInput {
 
   """The merge method to use. If omitted, defaults to 'MERGE'"""
   mergeMethod: PullRequestMergeMethod = MERGE
+
+  """The email address to associate with this merge."""
+  authorEmail: String
 
   """A unique identifier for the client performing the mutation."""
   clientMutationId: String
@@ -15250,6 +15256,9 @@ type RateLimit {
   The time at which the current rate limit window resets in UTC epoch seconds.
   """
   resetAt: DateTime!
+
+  """The number of points used in the current rate limit window."""
+  used: Int!
 }
 
 """Represents a subject that can be reacted on."""
