@@ -13863,6 +13863,18 @@ type PullRequest implements Node & Assignable & Closable & Comment & Updatable &
   """Did the viewer author this comment."""
   viewerDidAuthor: Boolean!
 
+  """The merge body text for the viewer and method."""
+  viewerMergeBodyText(
+    """The merge method for the message."""
+    mergeType: PullRequestMergeMethod
+  ): String!
+
+  """The merge headline text for the viewer and method."""
+  viewerMergeHeadlineText(
+    """The merge method for the message."""
+    mergeType: PullRequestMergeMethod
+  ): String!
+
   """
   Identifies if the viewer is watching, not watching, or ignoring the subscribable entity.
   """
