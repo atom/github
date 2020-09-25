@@ -595,9 +595,22 @@ type BaseRefChangedEvent implements Node {
   """Identifies the date and time when the object was created."""
   createdAt: DateTime!
 
+  """
+  Identifies the name of the base ref for the pull request after it was changed.
+  """
+  currentRefName: String!
+
   """Identifies the primary key from the database."""
   databaseId: Int
   id: ID!
+
+  """
+  Identifies the name of the base ref for the pull request before it was changed.
+  """
+  previousRefName: String!
+
+  """PullRequest referenced by event."""
+  pullRequest: PullRequest!
 }
 
 """Represents a 'base_ref_deleted' event on a given pull request."""
@@ -1704,6 +1717,9 @@ enum CommentAuthorAssociation {
   """Author is the owner of the repository."""
   OWNER
 
+  """Author is a placeholder for an unclaimed user."""
+  MANNEQUIN
+
   """Author has been invited to collaborate on the repository."""
   COLLABORATOR
 
@@ -1756,6 +1772,9 @@ type CommentDeletedEvent implements Node {
 
   """Identifies the primary key from the database."""
   databaseId: Int
+
+  """The user who authored the deleted comment."""
+  deletedCommentAuthor: Actor
   id: ID!
 }
 
@@ -1795,6 +1814,27 @@ type Commit implements Node & GitObject & Subscribable & UniformResourceLocatabl
 
   """The datetime when this commit was authored."""
   authoredDate: DateTime!
+
+  """
+  The list of authors for this commit based on the git author and the Co-authored-by
+  message trailer. The git author will always be first.
+  
+  """
+  authors(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ): GitActorConnection!
 
   """Fetches `git blame` information."""
   blame(
@@ -6168,6 +6208,18 @@ type ExternalIdentityScimAttributes {
   username: String
 }
 
+"""The possible viewed states of a file ."""
+enum FileViewedState {
+  """The file has new changes since last viewed."""
+  DISMISSED
+
+  """The file has been marked as viewed."""
+  VIEWED
+
+  """The file has not been marked as viewed."""
+  UNVIEWED
+}
+
 """The connection type for User."""
 type FollowerConnection {
   """A list of edges."""
@@ -6339,6 +6391,12 @@ type Gist implements Node & Starrable & UniformResourceLocatable {
 
   """The HTML path to this resource."""
   resourcePath: URI!
+
+  """
+  Returns a count of how many stargazers there are on this object
+  
+  """
+  stargazerCount: Int!
 
   """A list of users who have starred this starrable."""
   stargazers(
@@ -6595,6 +6653,30 @@ type GitActor {
   The GitHub user corresponding to the email field. Null if no such user exists.
   """
   user: User
+}
+
+"""The connection type for GitActor."""
+type GitActorConnection {
+  """A list of edges."""
+  edges: [GitActorEdge]
+
+  """A list of nodes."""
+  nodes: [GitActor]
+
+  """Information to aid in pagination."""
+  pageInfo: PageInfo!
+
+  """Identifies the total count of items in the connection."""
+  totalCount: Int!
+}
+
+"""An edge in a connection."""
+type GitActorEdge {
+  """A cursor for use in pagination."""
+  cursor: String!
+
+  """The item at the end of the edge."""
+  node: GitActor
 }
 
 """Represents information about the GitHub instance."""
@@ -7000,8 +7082,14 @@ type Issue implements Node & Assignable & Closable & Comment & Updatable & Updat
   """The body rendered to HTML."""
   bodyHTML: HTML!
 
+  """The http path for this issue body"""
+  bodyResourcePath: URI!
+
   """Identifies the body of the issue rendered to text."""
   bodyText: String!
+
+  """The http URL for this issue body"""
+  bodyUrl: URI!
 
   """
   `true` if the object is closed (definition of closed may depend on type)
@@ -7051,6 +7139,9 @@ type Issue implements Node & Assignable & Closable & Comment & Updatable & Updat
   Check if this comment was edited and includes an edit with the creation data
   """
   includesCreatedEdit: Boolean!
+
+  """Is this issue read by the viewer"""
+  isReadByViewer: Boolean
 
   """A list of labels associated with the object."""
   labels(
@@ -8138,9 +8229,22 @@ type MarkedAsDuplicateEvent implements Node {
   """Identifies the actor who performed the event."""
   actor: Actor
 
+  """
+  The authoritative issue or pull request which has been duplicated by another.
+  """
+  canonical: IssueOrPullRequest
+
   """Identifies the date and time when the object was created."""
   createdAt: DateTime!
+
+  """
+  The issue or pull request which has been marked as a duplicate of another.
+  """
+  duplicate: IssueOrPullRequest
   id: ID!
+
+  """Canonical and duplicate belong to different repositories."""
+  isCrossRepository: Boolean!
 }
 
 """A public description of a Marketplace category."""
@@ -8872,6 +8976,9 @@ type Milestone implements Node & Closable & UniformResourceLocatable {
 
   """Identifies the number of the milestone."""
   number: Int!
+
+  """Indentifies the percentage complete for the milestone"""
+  progressPercentage: Float!
 
   """A list of pull requests associated with the milestone."""
   pullRequests(
@@ -13099,6 +13206,9 @@ type Project implements Node & Closable & Updatable {
     archivedStates: [ProjectCardArchivedState] = [ARCHIVED, NOT_ARCHIVED]
   ): ProjectCardConnection!
 
+  """Project progress details."""
+  progress: ProjectProgress!
+
   """The HTTP path for this project"""
   resourcePath: URI!
 
@@ -13384,6 +13494,32 @@ interface ProjectOwner {
   viewerCanCreateProjects: Boolean!
 }
 
+"""Project progress stats."""
+type ProjectProgress {
+  """The number of done cards."""
+  doneCount: Int!
+
+  """The percentage of done cards."""
+  donePercentage: Float!
+
+  """
+  Whether progress tracking is enabled and cards with purpose exist for this project
+  """
+  enabled: Boolean!
+
+  """The number of in-progress cards."""
+  inProgressCount: Int!
+
+  """The percentage of in-progress cards."""
+  inProgressPercentage: Float!
+
+  """The number of to do cards."""
+  todoCount: Int!
+
+  """The percentage of to do cards."""
+  todoPercentage: Float!
+}
+
 """State of the project; either 'open' or 'closed'"""
 enum ProjectState {
   """The project is open."""
@@ -13648,6 +13784,9 @@ type PullRequest implements Node & Assignable & Closable & Comment & Updatable &
 
   """Identifies if the pull request is a draft."""
   isDraft: Boolean!
+
+  """Is this pull request read by the viewer"""
+  isReadByViewer: Boolean
 
   """A list of labels associated with the object."""
   labels(
@@ -14004,6 +14143,9 @@ type PullRequestChangedFile {
 
   """The path of the file."""
   path: String!
+
+  """The state of the file for the viewer."""
+  viewerViewedState: FileViewedState!
 }
 
 """The connection type for PullRequestChangedFile."""
@@ -14201,6 +14343,11 @@ type PullRequestReview implements Node & Comment & Deletable & Updatable & Updat
 
   """Author's association with the subject of the comment."""
   authorAssociation: CommentAuthorAssociation!
+
+  """
+  Indicates whether the author of this review has push access to the repository.
+  """
+  authorCanPushToRepository: Boolean!
 
   """Identifies the pull request review body."""
   body: String!
@@ -15640,6 +15787,9 @@ type Ref implements Node {
     """Returns the last _n_ elements from the list."""
     last: Int
   ): PullRequestConnection!
+
+  """Branch protection rules for this ref"""
+  branchProtectionRule: BranchProtectionRule
   id: ID!
 
   """The ref name."""
@@ -15647,6 +15797,9 @@ type Ref implements Node {
 
   """The ref's prefix, such as `refs/heads/` or `refs/tags/`."""
   prefix: String!
+
+  """Branch protection rules that are viewable by non-admins"""
+  refUpdateRule: RefUpdateRule
 
   """The repository the ref belongs to."""
   repository: Repository!
@@ -15725,6 +15878,35 @@ enum RefOrderField {
 
   """Order refs by their alphanumeric name"""
   ALPHABETICAL
+}
+
+"""A ref update rules for a viewer."""
+type RefUpdateRule {
+  """Can this branch be deleted."""
+  allowsDeletions: Boolean!
+
+  """Are force pushes allowed on this branch."""
+  allowsForcePushes: Boolean!
+
+  """Identifies the protection rule pattern."""
+  pattern: String!
+
+  """Number of approving reviews required to update matching branches."""
+  requiredApprovingReviewCount: Int
+
+  """
+  List of required status check contexts that must pass for commits to be accepted to matching branches.
+  """
+  requiredStatusCheckContexts: [String]
+
+  """Are merge commits prohibited from being pushed to this branch."""
+  requiresLinearHistory: Boolean!
+
+  """Are commits required to be signed."""
+  requiresSignatures: Boolean!
+
+  """Can the viewer push to the branch"""
+  viewerCanPush: Boolean!
 }
 
 """
@@ -17880,6 +18062,11 @@ type Repository implements Node & ProjectOwner & PackageOwner & Subscribable & S
   """Identifies if the repository is a fork."""
   isFork: Boolean!
 
+  """
+  Indicates if a repository is either owned by an organization, or is a private fork of an organization repository.
+  """
+  isInOrganization: Boolean!
+
   """Indicates if the repository has been locked or not."""
   isLocked: Boolean!
 
@@ -17896,6 +18083,9 @@ type Repository implements Node & ProjectOwner & PackageOwner & Subscribable & S
   Identifies if the repository is a template that can be used to generate new repositories.
   """
   isTemplate: Boolean!
+
+  """Is this repository a user configuration repository?"""
+  isUserConfigurationRepository: Boolean!
 
   """Returns a single issue from the current repository by number."""
   issue(
@@ -18299,6 +18489,12 @@ type Repository implements Node & ProjectOwner & PackageOwner & Subscribable & S
   """The SSH URL to clone this repository"""
   sshUrl: GitSSHRemote!
 
+  """
+  Returns a count of how many stargazers there are on this object
+  
+  """
+  stargazerCount: Int!
+
   """A list of users who have starred this starrable."""
   stargazers(
     """Returns the elements in the list that come after the specified cursor."""
@@ -18587,6 +18783,11 @@ interface RepositoryInfo {
   """Identifies if the repository is a fork."""
   isFork: Boolean!
 
+  """
+  Indicates if a repository is either owned by an organization, or is a private fork of an organization repository.
+  """
+  isInOrganization: Boolean!
+
   """Indicates if the repository has been locked or not."""
   isLocked: Boolean!
 
@@ -18659,6 +18860,9 @@ type RepositoryInvitation implements Node {
 
   """The user who created the invitation."""
   inviter: User!
+
+  """The permalink for this repository invitation."""
+  permalink: URI!
 
   """
   The permission granted on this repository by this invitation.
@@ -19312,6 +19516,9 @@ type ReviewDismissedEvent implements Node & UniformResourceLocatable {
 
 """A request for a user to review a pull request."""
 type ReviewRequest implements Node {
+  """Whether this request was created for a code owner"""
+  asCodeOwner: Boolean!
+
   """Identifies the primary key from the database."""
   databaseId: Int
   id: ID!
@@ -20192,6 +20399,12 @@ enum StarOrderField {
 interface Starrable {
   id: ID!
 
+  """
+  Returns a count of how many stargazers there are on this object
+  
+  """
+  stargazerCount: Int!
+
   """A list of users who have starred this starrable."""
   stargazers(
     """Returns the elements in the list that come after the specified cursor."""
@@ -20250,6 +20463,23 @@ type StarredRepositoryEdge {
 
 """Represents a commit status."""
 type Status implements Node {
+  """A list of status contexts and check runs for this commit."""
+  combinedContexts(
+    """Returns the elements in the list that come after the specified cursor."""
+    after: String
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
+    before: String
+
+    """Returns the first _n_ elements from the list."""
+    first: Int
+
+    """Returns the last _n_ elements from the list."""
+    last: Int
+  ): StatusCheckRollupContextConnection!
+
   """The commit this status is attached to."""
   commit: Commit
 
@@ -21820,6 +22050,12 @@ type Topic implements Node & Starrable {
     first: Int = 3
   ): [Topic!]!
 
+  """
+  Returns a count of how many stargazers there are on this object
+  
+  """
+  stargazerCount: Int!
+
   """A list of users who have starred this starrable."""
   stargazers(
     """Returns the elements in the list that come after the specified cursor."""
@@ -22137,9 +22373,22 @@ type UnmarkedAsDuplicateEvent implements Node {
   """Identifies the actor who performed the event."""
   actor: Actor
 
+  """
+  The authoritative issue or pull request which has been duplicated by another.
+  """
+  canonical: IssueOrPullRequest
+
   """Identifies the date and time when the object was created."""
   createdAt: DateTime!
+
+  """
+  The issue or pull request which has been marked as a duplicate of another.
+  """
+  duplicate: IssueOrPullRequest
   id: ID!
+
+  """Canonical and duplicate belong to different repositories."""
+  isCrossRepository: Boolean!
 }
 
 """Autogenerated input type of UnmarkFileAsViewed"""
