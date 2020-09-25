@@ -78,10 +78,10 @@ jobs:
         sudo unzip -q /tmp/atom.zip -d /tmp/atom
     - name: install dependencies
       shell: bash
-      run: ${APM} ci
+      run: sh -c "${APM} ci"
     - name: run tests
       shell: bash
-      run: ${ATOM} --test test/
+      run: sh -c "${ATOM} --test test/"
     - name: report code coverage
       shell: bash
       env:
