@@ -38,12 +38,10 @@ jobs:
         dpkg-deb -x /tmp/atom-amd64.deb /tmp/atom
     - name: install dependencies
       shell: bash
-      run: |
-        "${APM}" ci
+      run: ${APM} ci
     - name: run tests
       shell: bash
-      run: |
-        "${ATOM}" --test test/
+      run: ${ATOM} --test test/
     - name: report code coverage
       shell: bash
       env:
@@ -65,8 +63,8 @@ jobs:
     env:
       ATOM_GITHUB_BABEL_ENV: coverage
       ATOM_CHANNEL: beta
-      ATOM: /tmp/atom/Atom Beta.app/Contents/Resources/app/atom.sh
-      APM: /tmp/atom/Atom Beta.app/Contents/Resources/app/apm/bin/apm
+      ATOM: /tmp/atom/Atom\ Beta.app/Contents/Resources/app/atom.sh
+      APM: /tmp/atom/Atom\ Beta.app/Contents/Resources/app/apm/bin/apm
       MOCHA_TIMEOUT: 60000
       UNTIL_TIMEOUT: 30000
     steps:
@@ -80,12 +78,10 @@ jobs:
         sudo unzip -q /tmp/atom.zip -d /tmp/atom
     - name: install dependencies
       shell: bash
-      run: |
-        "${APM}" ci
+      run: ${APM} ci
     - name: run tests
       shell: bash
-      run: |
-        "${ATOM}" --test test/
+      run: ${ATOM} --test test/
     - name: report code coverage
       shell: bash
       env:
@@ -127,8 +123,7 @@ jobs:
         dpkg-deb -x /tmp/atom-amd64.deb /tmp/atom
     - name: install dependencies
       shell: bash
-      run: |
-        "${APM}" ci
+      run: ${APM} ci
     - name: lint
       shell: bash
       run: npm run lint
@@ -161,9 +156,7 @@ jobs:
         dpkg-deb -x /tmp/atom-amd64.deb /tmp/atom
     - name: install dependencies
       shell: bash
-      run: |
-        "${APM}" ci
+      run: ${APM} ci
     - name: run snapshot tests
       shell: bash
-      run: |
-        "${ATOM}" --test test/
+      run: ${ATOM} --test test/
