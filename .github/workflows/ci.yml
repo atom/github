@@ -38,10 +38,12 @@ jobs:
         dpkg-deb -x /tmp/atom-amd64.deb /tmp/atom
     - name: install dependencies
       shell: bash
-      run: ${APM} ci
+      run: |
+        "${APM}" ci
     - name: run tests
       shell: bash
-      run: ${ATOM} --test test/
+      run: |
+        "${ATOM}" --test test/
     - name: report code coverage
       shell: bash
       env:
@@ -78,10 +80,12 @@ jobs:
         sudo unzip -q /tmp/atom.zip -d /tmp/atom
     - name: install dependencies
       shell: bash
-      run: ${APM} ci
+      run: |
+        "${APM}" ci
     - name: run tests
       shell: bash
-      run: ${ATOM} --test test/
+      run: |
+        "${ATOM}" --test test/
     - name: report code coverage
       shell: bash
       env:
@@ -123,7 +127,8 @@ jobs:
         dpkg-deb -x /tmp/atom-amd64.deb /tmp/atom
     - name: install dependencies
       shell: bash
-      run: ${APM} ci
+      run: |
+        "${APM}" ci
     - name: lint
       shell: bash
       run: npm run lint
@@ -156,7 +161,9 @@ jobs:
         dpkg-deb -x /tmp/atom-amd64.deb /tmp/atom
     - name: install dependencies
       shell: bash
-      run: ${APM} ci
+      run: |
+        "${APM}" ci
     - name: run snapshot tests
       shell: bash
-      run: ${ATOM} --test test/
+      run: |
+        "${ATOM}" --test test/
