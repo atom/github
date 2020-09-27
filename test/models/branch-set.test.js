@@ -1,5 +1,5 @@
 import BranchSet from '../../lib/models/branch-set';
-import Branch, {nullBranch} from '../../lib/models/branch';
+import Branch from '../../lib/models/branch';
 
 describe('BranchSet', function() {
   it('earmarks HEAD', function() {

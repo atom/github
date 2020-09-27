@@ -1,5 +1,3 @@
-import moment from 'moment';
-
 import Branch, {nullBranch} from '../../lib/models/branch';
 
 describe('Branch', function() {
