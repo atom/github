@@ -3,6 +3,7 @@ import temp from 'temp';
 import path from 'path';
 import React from 'react';
 import {mount} from 'enzyme';
+import {Point} from 'atom';
 
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
 import {OURS, BASE, THEIRS} from '../../lib/models/conflicts/source';
@@ -48,7 +49,7 @@ describe('EditorConflictController', function() {
     atomEnv.destroy();
   });
 
-  const useFixture = async function(fixtureName, {isRebase} = {isRebase: false}) {
+  const useFixture = async function(fixtureName, {isRebase, withEditor} = {isRebase: false}) {
     const fixturePath = path.join(
       path.dirname(__filename), '..', 'fixtures', 'conflict-marker-examples', fixtureName);
     const tempDir = temp.mkdirSync('conflict-fixture-');
@@ -56,6 +57,9 @@ describe('EditorConflictController', function() {
     fs.copySync(fixturePath, fixtureFile);
 
     editor = await workspace.open(fixtureFile);
+    if (withEditor) {
+      withEditor(editor);
+    }
     editorView = atomEnv.views.getView(editor);
 
     app = (
@@ -74,6 +78,14 @@ describe('EditorConflictController', function() {
   const textFromSide = function(side) {
     return editor.getTextInBufferRange(side.marker.getBufferRange());
   };
+
+  it('scrolls the first conflict into view', async function() {
+    await useFixture('triple-2way-diff.txt', {
+      withEditor(e) { sinon.stub(e, 'scrollToBufferPosition'); },
+    });
+
+    assert.isTrue(editor.scrollToBufferPosition.calledWith(new Point(4, 0), {center: true}));
+  });
 
   describe('on a file with 2-way diff markers', function() {
     let conflicts;
