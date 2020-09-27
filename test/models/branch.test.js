@@ -12,10 +12,12 @@ describe('Branch', function() {
     assert.isFalse(b.getUpstream().getRefName().isPresent());
     assert.strictEqual(b.getUpstream().getRemoteName(), '');
     assert.isFalse(b.getUpstream().getRemoteRefName().isPresent());
+    assert.isFalse(b.getUpstream().isRemoteTracking());
     assert.isFalse(b.getPush().isPresent());
     assert.isFalse(b.getPush().getRefName().isPresent());
     assert.strictEqual(b.getPush().getRemoteName(), '');
     assert.isFalse(b.getPush().getRemoteRefName().isPresent());
+    assert.isFalse(b.getPush().isRemoteTracking());
     assert.strictEqual(b.getFetchRefSpec(), '');
     assert.strictEqual(b.getPushRefSpec(), '');
     assert.strictEqual(b.getSha(), '');
@@ -51,12 +53,14 @@ describe('Branch', function() {
     assert.strictEqual(b.getUpstream().getRemoteName(), 'origin');
     assert.strictEqual(b.getUpstream().getRemoteRefName().full(), 'refs/heads/upstream');
     assert.strictEqual(b.getUpstream().getRemoteRefName().short(), 'upstream');
+    assert.isTrue(b.getUpstream().isRemoteTracking());
 
     assert.strictEqual(b.getPush().getRefName().full(), 'refs/remotes/origin/upstream');
     assert.strictEqual(b.getPush().getRefName().short(), 'upstream');
     assert.strictEqual(b.getPush().getRemoteName(), 'origin');
     assert.strictEqual(b.getPush().getRemoteRefName().full(), 'refs/heads/upstream');
     assert.strictEqual(b.getPush().getRemoteRefName().short(), 'upstream');
+    assert.isTrue(b.getPush().isRemoteTracking());
   });
 
   it('creates a branch with separate upstream and push destinations', function() {
@@ -76,10 +80,12 @@ describe('Branch', function() {
     assert.strictEqual(b.getUpstream().getRefName().full(), 'refs/remotes/from/source');
     assert.strictEqual(b.getUpstream().getRemoteName(), 'from');
     assert.strictEqual(b.getUpstream().getRemoteRefName().full(), 'refs/heads/source');
+    assert.isTrue(b.getUpstream().isRemoteTracking());
 
     assert.strictEqual(b.getPush().getRefName().full(), 'refs/remotes/to/sink');
     assert.strictEqual(b.getPush().getRemoteName(), 'to');
     assert.strictEqual(b.getPush().getRemoteRefName().full(), 'refs/heads/sink');
+    assert.isTrue(b.getPush().isRemoteTracking());
   });
 
   it('defaults missing push destination attributes to upstream ones individually', function() {
