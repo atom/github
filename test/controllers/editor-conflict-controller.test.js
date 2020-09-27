@@ -84,7 +84,7 @@ describe('EditorConflictController', function() {
       withEditor(e) { sinon.stub(e, 'scrollToBufferPosition'); },
     });
 
-    expect(editor.scrollToBufferPosition.calledWith(new Point(4, 0), {center: true}));
+    assert.isTrue(editor.scrollToBufferPosition.calledWith(new Point(4, 0), {center: true}));
   });
 
   describe('on a file with 2-way diff markers', function() {
