@@ -28,7 +28,7 @@ describe('ReviewsContainer', function() {
     sinon.stub(loginModel, 'getScopes').resolves(GithubLoginModel.REQUIRED_SCOPES);
 
     repoData = {
-      branches: await repository.getBranches(),
+      branches: await repository.getLocalBranches(),
       remotes: await repository.getRemotes(),
       isAbsent: repository.isAbsent(),
       isLoading: repository.isLoading(),

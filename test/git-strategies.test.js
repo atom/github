@@ -1003,7 +1003,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
       });
     });
 
-    describe('getBranches()', function() {
+    describe('getLocalBranches()', function() {
       const sha = '66d11860af6d28eb38349ef83de475597cb0e8b4';
 
       const master = {
@@ -1023,11 +1023,11 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
 
-        assert.deepEqual(await git.getBranches(), [currentMaster]);
+        assert.deepEqual(await git.getLocalBranches(), [currentMaster]);
         await git.checkout('new-branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), [master, {name: 'new-branch', head: true, sha}]);
+        assert.deepEqual(await git.getLocalBranches(), [master, {name: 'new-branch', head: true, sha}]);
         await git.checkout('another-branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), [
+        assert.deepEqual(await git.getLocalBranches(), [
           {name: 'another-branch', head: true, sha},
           master,
           {name: 'new-branch', head: false, sha},
@@ -1037,9 +1037,9 @@ import * as reporterProxy from '../lib/reporter-proxy';
       it('includes branches with slashes in the name', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        assert.deepEqual(await git.getBranches(), [currentMaster]);
+        assert.deepEqual(await git.getLocalBranches(), [currentMaster]);
         await git.checkout('a/fancy/new/branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), [{name: 'a/fancy/new/branch', head: true, sha}, master]);
+        assert.deepEqual(await git.getLocalBranches(), [{name: 'a/fancy/new/branch', head: true, sha}, master]);
       });
     });
 

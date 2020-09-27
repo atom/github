@@ -19,7 +19,7 @@ describe('GitHubTabContainer', function() {
     defaultRepositoryData = {
       workingDirectory: repository.getWorkingDirectoryPath(),
       allRemotes: await repository.getRemotes(),
-      branches: await repository.getBranches(),
+      branches: await repository.getLocalBranches(),
       selectedRemoteName: 'origin',
       aheadCount: 0,
       pushInProgress: false,

@@ -243,7 +243,7 @@ describe('integration: check out a pull request', function() {
     await wrapper.find('.github-IssueishDetailView-checkoutButton').prop('onClick')();
 
     // Ensure that the correct ref has been fetched and checked out
-    const branches = await git.getBranches();
+    const branches = await git.getLocalBranches();
     const head = branches.find(b => b.head);
     assert.strictEqual(head.name, 'pr-1/owner/pr-head');
 
