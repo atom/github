@@ -15,9 +15,9 @@ jobs:
     env:
       DISPLAY: ":99"
       ATOM_GITHUB_BABEL_ENV: coverage
-      ATOM_CHANNEL: beta
-      ATOM: /tmp/atom/usr/bin/atom-beta
-      APM: /tmp/atom/usr/share/atom-beta/resources/app/apm/bin/apm
+      ATOM_CHANNEL: nightly
+      ATOM: /tmp/atom/usr/bin/atom-nightly
+      APM: /tmp/atom/usr/share/atom-nightly/resources/app/apm/bin/apm
       MOCHA_TIMEOUT: 60000
       UNTIL_TIMEOUT: 30000
     steps:
@@ -62,9 +62,9 @@ jobs:
     runs-on: macos-10.14
     env:
       ATOM_GITHUB_BABEL_ENV: coverage
-      ATOM_CHANNEL: beta
-      ATOM: /tmp/atom/Atom\ Beta.app/Contents/Resources/app/atom.sh
-      APM: /tmp/atom/Atom\ Beta.app/Contents/Resources/app/apm/bin/apm
+      ATOM_CHANNEL: nightly
+      ATOM: /tmp/atom/Atom\ Nightly.app/Contents/Resources/app/atom.sh
+      APM: /tmp/atom/Atom\ Nightly.app/Contents/Resources/app/apm/bin/apm
       MOCHA_TIMEOUT: 60000
       UNTIL_TIMEOUT: 30000
     steps:
@@ -102,9 +102,9 @@ jobs:
     runs-on: ubuntu-18.04
     env:
       DISPLAY: ":99"
-      ATOM_CHANNEL: beta
-      ATOM: /tmp/atom/usr/bin/atom-beta
-      APM: /tmp/atom/usr/share/atom-beta/resources/app/apm/bin/apm
+      ATOM_CHANNEL: nightly
+      ATOM: /tmp/atom/usr/bin/atom-nightly
+      APM: /tmp/atom/usr/share/atom-nightly/resources/app/apm/bin/apm
     steps:
     - uses: actions/checkout@v1
     - name: install Atom
@@ -133,9 +133,9 @@ jobs:
     runs-on: ubuntu-18.04
     env:
       DISPLAY: ":99"
-      ATOM_CHANNEL: beta
-      ATOM: /tmp/atom/usr/bin/atom-beta
-      APM: /tmp/atom/usr/share/atom-beta/resources/app/apm/bin/apm
+      ATOM_CHANNEL: nightly
+      ATOM: /tmp/atom/usr/bin/atom-nightly
+      APM: /tmp/atom/usr/share/atom-nightly/resources/app/apm/bin/apm
       ATOM_GITHUB_BABEL_ENV: coverage
       ATOM_GITHUB_TEST_SUITE: snapshot
     steps:
