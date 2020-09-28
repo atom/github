@@ -47,14 +47,14 @@ describe('Branch', function() {
     });
 
     assert.strictEqual(b.getUpstream().getRefName().full(), 'refs/remotes/origin/upstream');
-    assert.strictEqual(b.getUpstream().getRefName().short(), 'upstream');
+    assert.strictEqual(b.getUpstream().getRefName().short(), 'origin/upstream');
     assert.strictEqual(b.getUpstream().getRemoteName(), 'origin');
     assert.strictEqual(b.getUpstream().getRemoteRefName().full(), 'refs/heads/upstream');
     assert.strictEqual(b.getUpstream().getRemoteRefName().short(), 'upstream');
     assert.isTrue(b.getUpstream().isRemoteTracking());
 
     assert.strictEqual(b.getPush().getRefName().full(), 'refs/remotes/origin/upstream');
-    assert.strictEqual(b.getPush().getRefName().short(), 'upstream');
+    assert.strictEqual(b.getPush().getRefName().short(), 'origin/upstream');
     assert.strictEqual(b.getPush().getRemoteName(), 'origin');
     assert.strictEqual(b.getPush().getRemoteRefName().full(), 'refs/heads/upstream');
     assert.strictEqual(b.getPush().getRemoteRefName().short(), 'upstream');
@@ -144,7 +144,7 @@ describe('Branch', function() {
   it('identifies a remote tracking branch', function() {
     const b = new Branch('refs/remotes/origin/something');
     assert.strictEqual(b.getName().full(), 'refs/remotes/origin/something');
-    assert.strictEqual(b.getName().short(), 'something');
+    assert.strictEqual(b.getName().short(), 'origin/something');
     assert.isFalse(b.isLocal());
     assert.isTrue(b.isRemoteTracking());
   });
