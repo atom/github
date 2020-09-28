@@ -1053,6 +1053,21 @@ import * as reporterProxy from '../lib/reporter-proxy';
       });
     });
 
+    describe('getRemoteBranches()', function() {
+      const emptyRemoteRef = {refName: '', remoteName: '', remoteRef: ''};
+      const committerDate = 'Sat Aug 13 11:40:56 2016 -0700';
+      const sha = '90b17a8e3fa0218f42afc1dd24c9003e285f4a82';
+
+      it('returns an array of all remote-tracking branches', async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+        const git = createTestStrategy(localRepoPath);
+        assert.deepEqual(await git.getRemoteBranches(), [
+          {committerDate, head: false, name: 'origin/HEAD', push: emptyRemoteRef, upstream: emptyRemoteRef, sha},
+          {committerDate, head: false, name: 'origin/master', push: emptyRemoteRef, upstream: emptyRemoteRef, sha},
+        ]);
+      });
+    });
+
     describe('getBranchesWithCommit', function() {
       let git;
 
