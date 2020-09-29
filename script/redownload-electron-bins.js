@@ -12,7 +12,7 @@ if (typeof(downloadMksnapshotPath) !== 'undefined') {
   const path = require('path');
   const fs = require('fs');
 
-  const atomRepoPath = path.join('..', '..', '..', '..', 'atom', 'package.json');
+  const atomRepoPath = path.join(__dirname, '..', '..', '..', '..', 'atom', 'package.json');
   const electronVersion = fs.existsSync(atomRepoPath) ? require(atomRepoPath).electronVersion : '6.1.12'
   // TODO: Keep the above "electronVersion" in sync with "electronVersion" from Atom's package.json
 
