@@ -23,3 +23,12 @@ This package is bundled with Atom starting in version 1.18, and does not need to
 The MIT license grant is not for GitHub's trademarks, which include the logo designs. GitHub reserves all trademark and copyright rights in and to all GitHub trademarks.
 
 GitHub® and its stylized versions and the Invertocat mark are GitHub's Trademarks or registered Trademarks. When using GitHub's logos, be sure to follow the GitHub [logo guidelines](https://github.com/logos).
+
+##  Contributing
+***
+###  any kind of contributions are welcome.
+1.  **Fork** the repository on Github.
+2.  **Clone** the project to your own machine.
+3.  **Commit** Changes to developement branch.
+4.  **Push** your work back up to your fork.
+5.  Submit a **Pull request** so that i can review your changes.
