@@ -8942,9 +8942,6 @@ type Milestone implements Node & Closable & UniformResourceLocatable {
   dueOn: DateTime
   id: ID!
 
-  """Just for debugging on review-lab"""
-  issuePrioritiesDebug: String!
-
   """A list of issues associated with the milestone."""
   issues(
     """Ordering options for issues returned from the connection."""
@@ -9949,7 +9946,9 @@ type Organization implements Node & Actor & PackageOwner & ProjectOwner & Reposi
     orderBy: IpAllowListEntryOrder = {field: ALLOW_LIST_VALUE, direction: ASC}
   ): IpAllowListEntryConnection!
 
-  """Whether the organization has verified its profile email and website."""
+  """
+  Whether the organization has verified its profile email and website, always false on Enterprise.
+  """
   isVerified: Boolean!
 
   """
