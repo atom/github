@@ -2877,6 +2877,15 @@ input CreateBranchProtectionRuleInput {
   """Are commits required to be signed."""
   requiresCommitSignatures: Boolean
 
+  """Are merge commits prohibited from being pushed to this branch."""
+  requiresLinearHistory: Boolean
+
+  """Are force pushes allowed on this branch."""
+  allowsForcePushes: Boolean
+
+  """Can this branch be deleted."""
+  allowsDeletions: Boolean
+
   """Can admins overwrite branch protection."""
   isAdminEnforced: Boolean
 
@@ -22484,6 +22493,15 @@ input UpdateBranchProtectionRuleInput {
 
   """Are commits required to be signed."""
   requiresCommitSignatures: Boolean
+
+  """Are merge commits prohibited from being pushed to this branch."""
+  requiresLinearHistory: Boolean
+
+  """Are force pushes allowed on this branch."""
+  allowsForcePushes: Boolean
+
+  """Can this branch be deleted."""
+  allowsDeletions: Boolean
 
   """Can admins overwrite branch protection."""
   isAdminEnforced: Boolean
