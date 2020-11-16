@@ -16,8 +16,13 @@ import remoteContainerQuery from '../../lib/containers/__generated__/remoteConta
 describe('IssueishSearchesController', function() {
   let atomEnv;
   const origin = new Remote('origin', 'git@github.com:atom/github.git');
-  const upstreamMaster = Branch.createRemoteTracking('origin/master', 'origin', 'refs/heads/master');
-  const master = new Branch('master', upstreamMaster);
+  const master = new Branch('master', {
+    upstream: {
+      refName: 'refs/remotes/origin/master',
+      remoteName: 'origin',
+      remoteRefName: 'refs/heads/master',
+    },
+  });
 
   beforeEach(function() {
     atomEnv = global.buildAtomEnvironment();

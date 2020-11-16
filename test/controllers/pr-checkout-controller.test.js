@@ -91,9 +91,15 @@ describe('PullRequestCheckoutController', function() {
   });
 
   it('is disabled if the current branch already corresponds to the pull request', function() {
-    const upstream = Branch.createRemoteTracking('remotes/origin/feature', 'origin', 'refs/heads/feature');
     const branches = new BranchSet([
-      new Branch('current', upstream, upstream, true),
+      new Branch('current', {
+        head: true,
+        upstream: {
+          refName: 'refs/remotes/origin/feature',
+          remoteName: 'origin',
+          remoteRefName: 'refs/heads/feature',
+        },
+      }),
     ]);
     const remotes = new RemoteSet([
       new Remote('origin', 'git@github.com:aaa/bbb.git'),
@@ -119,9 +125,15 @@ describe('PullRequestCheckoutController', function() {
   });
 
   it('recognizes a current branch even if it was pulled from the refs/pull/... ref', function() {
-    const upstream = Branch.createRemoteTracking('remotes/origin/pull/123/head', 'origin', 'refs/pull/123/head');
     const branches = new BranchSet([
-      new Branch('current', upstream, upstream, true),
+      new Branch('current', {
+        head: true,
+        upstream: {
+          refName: 'remotes/origin/pull/123/head',
+          remoteName: 'origin',
+          remoteRefName: 'refs/pull/123/head',
+        },
+      }),
     ]);
     const remotes = new RemoteSet([
       new Remote('origin', 'git@github.com:aaa/bbb.git'),
@@ -154,9 +166,15 @@ describe('PullRequestCheckoutController', function() {
   });
 
   it('creates a new remote, fetches a PR branch, and checks it out into a new local branch', async function() {
-    const upstream = Branch.createRemoteTracking('remotes/origin/current', 'origin', 'refs/heads/current');
     const branches = new BranchSet([
-      new Branch('current', upstream, upstream, true),
+      new Branch('current', {
+        head: true,
+        upstream: {
+          refName: 'remotes/origin/current',
+          remoteName: 'origin',
+          remoteRefName: 'refs/heads/current',
+        },
+      }),
     ]);
     const remotes = new RemoteSet([
       new Remote('origin', 'git@github.com:aaa/bbb.git'),
@@ -241,12 +259,11 @@ describe('PullRequestCheckoutController', function() {
     sinon.stub(localRepository, 'pull').resolves();
     sinon.stub(localRepository, 'checkout').resolves();
 
-    const currentUpstream = Branch.createRemoteTracking('remotes/origin/current', 'origin', 'refs/heads/current');
     const branches = new BranchSet([
-      new Branch('current', currentUpstream, currentUpstream, true),
-      new Branch('existing', Branch.createRemoteTracking('remotes/upstream/pull/123', 'upstream', 'refs/heads/yes')),
-      new Branch('wrong/remote', Branch.createRemoteTracking('remotes/wrong/pull/123', 'wrong', 'refs/heads/yes')),
-      new Branch('wrong/ref', Branch.createRemoteTracking('remotes/upstream/pull/123', 'upstream', 'refs/heads/no')),
+      new Branch('current', {head: true, upstream: {refName: 'refs/remotes/origin/current', remoteName: 'origin', remoteRefName: 'refs/heads/current'}}),
+      new Branch('existing', {upstream: {refName: 'remotes/upstream/pull/123', remoteName: 'upstream', remoteRefName: 'refs/heads/yes'}}),
+      new Branch('wrong/remote', {upstream: {refName: 'remotes/wrong/pull/123', remoteName: 'wrong', remoteRefName: 'refs/heads/yes'}}),
+      new Branch('wrong/ref', {upstream: {refName: 'remotes/upstream/pull/123', remoteName: 'upstream', remoteRefName: 'refs/heads/no'}}),
     ]);
     const remotes = new RemoteSet([
       new Remote('origin', 'git@github.com:aaa/bbb.git'),

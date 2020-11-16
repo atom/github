@@ -1003,16 +1003,20 @@ import * as reporterProxy from '../lib/reporter-proxy';
       });
     });
 
-    describe('getBranches()', function() {
+    describe('getLocalBranches()', function() {
       const sha = '66d11860af6d28eb38349ef83de475597cb0e8b4';
+      const committerDate = 'Wed Jun 22 16:10:45 2016 +0200';
 
       const master = {
+        committerDate,
         name: 'master',
         head: false,
         sha,
-        upstream: {trackingRef: 'refs/remotes/origin/master', remoteName: 'origin', remoteRef: 'refs/heads/master'},
-        push: {trackingRef: 'refs/remotes/origin/master', remoteName: 'origin', remoteRef: 'refs/heads/master'},
+        upstream: {refName: 'refs/remotes/origin/master', remoteName: 'origin', remoteRef: 'refs/heads/master'},
+        push: {refName: 'refs/remotes/origin/master', remoteName: 'origin', remoteRef: ''},
       };
+
+      const emptyRemoteRef = {refName: '', remoteName: '', remoteRef: ''};
 
       const currentMaster = {
         ...master,
@@ -1023,23 +1027,44 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
 
-        assert.deepEqual(await git.getBranches(), [currentMaster]);
+        assert.deepEqual(await git.getLocalBranches(), [currentMaster]);
         await git.checkout('new-branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), [master, {name: 'new-branch', head: true, sha}]);
-        await git.checkout('another-branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), [
-          {name: 'another-branch', head: true, sha},
+        assert.deepEqual(await git.getLocalBranches(), [
           master,
-          {name: 'new-branch', head: false, sha},
+          {name: 'new-branch', head: true, sha, push: emptyRemoteRef, upstream: emptyRemoteRef, committerDate},
+        ]);
+        await git.checkout('another-branch', {createNew: true});
+        assert.deepEqual(await git.getLocalBranches(), [
+          {name: 'another-branch', head: true, sha, push: emptyRemoteRef, upstream: emptyRemoteRef, committerDate},
+          master,
+          {name: 'new-branch', head: false, sha, push: emptyRemoteRef, upstream: emptyRemoteRef, committerDate},
         ]);
       });
 
       it('includes branches with slashes in the name', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        assert.deepEqual(await git.getBranches(), [currentMaster]);
+        assert.deepEqual(await git.getLocalBranches(), [currentMaster]);
         await git.checkout('a/fancy/new/branch', {createNew: true});
-        assert.deepEqual(await git.getBranches(), [{name: 'a/fancy/new/branch', head: true, sha}, master]);
+        assert.deepEqual(await git.getLocalBranches(), [
+          {name: 'a/fancy/new/branch', head: true, sha, push: emptyRemoteRef, upstream: emptyRemoteRef, committerDate},
+          master,
+        ]);
+      });
+    });
+
+    describe('getRemoteBranches()', function() {
+      const emptyRemoteRef = {refName: '', remoteName: '', remoteRef: ''};
+      const committerDate = 'Sat Aug 13 11:40:56 2016 -0700';
+      const sha = '90b17a8e3fa0218f42afc1dd24c9003e285f4a82';
+
+      it('returns an array of all remote-tracking branches', async function() {
+        const {localRepoPath} = await setUpLocalAndRemoteRepositories();
+        const git = createTestStrategy(localRepoPath);
+        assert.deepEqual(await git.getRemoteBranches(), [
+          {committerDate, head: false, name: 'origin/HEAD', push: emptyRemoteRef, upstream: emptyRemoteRef, sha},
+          {committerDate, head: false, name: 'origin/master', push: emptyRemoteRef, upstream: emptyRemoteRef, sha},
+        ]);
       });
     });
 

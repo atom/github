@@ -16,8 +16,14 @@ import currentQuery from '../../lib/containers/__generated__/currentPullRequestC
 describe('CurrentPullRequestContainer', function() {
   function buildApp(overrideProps = {}) {
     const origin = new Remote('origin', 'git@github.com:atom/github.git');
-    const upstreamBranch = Branch.createRemoteTracking('refs/remotes/origin/master', 'origin', 'refs/heads/master');
-    const branch = new Branch('master', upstreamBranch, upstreamBranch, true);
+    const branch = new Branch('master', {
+      head: true,
+      upstream: {
+        refName: 'refs/remotes/origin/master',
+        remoteName: 'origin',
+        remoteRefName: 'refs/heads/master',
+      },
+    });
 
     const branches = new BranchSet([branch]);
     const remotes = new RemoteSet([origin]);
@@ -75,8 +81,14 @@ describe('CurrentPullRequestContainer', function() {
   });
 
   it('performs no query without a valid push remote', function() {
-    const tracking = Branch.createRemoteTracking('remotes/nope/wat', 'nope', 'wat');
-    const branch = new Branch('local', nullBranch, tracking, true);
+    const branch = new Branch('local', {
+      head: true,
+      push: {
+        refName: 'remotes/nope/wat',
+        remoteName: 'wat',
+        remoteRefName: 'wat',
+      },
+    });
     const branches = new BranchSet([branch]);
 
     const wrapper = shallow(buildApp({branches}));
@@ -91,8 +103,14 @@ describe('CurrentPullRequestContainer', function() {
   });
 
   it('performs no query without a push remote on GitHub', function() {
-    const tracking = Branch.createRemoteTracking('remotes/elsewhere/wat', 'elsewhere', 'wat');
-    const branch = new Branch('local', nullBranch, tracking, true);
+    const branch = new Branch('local', {
+      head: true,
+      push: {
+        refName: 'remotes/elsewhere/wat',
+        remoteName: 'elsewhere',
+        remoteRefName: 'wat',
+      },
+    });
     const branches = new BranchSet([branch]);
 
     const remote = new Remote('elsewhere', 'git@elsewhere.wtf:atom/github.git');
@@ -130,8 +148,14 @@ describe('CurrentPullRequestContainer', function() {
   it('passes a configured pull request creation tile to the controller', function() {
     const {repository} = queryBuilder(repositoryQuery).build();
     const remote = new Remote('home', 'git@github.com:atom/atom.git');
-    const upstreamBranch = Branch.createRemoteTracking('refs/remotes/home/master', 'home', 'refs/heads/master');
-    const branch = new Branch('master', upstreamBranch, upstreamBranch, true);
+    const branch = new Branch('master', {
+      head: true,
+      upstream: {
+        refName: 'refs/remotes/home/master',
+        remoteName: 'home',
+        remoteRefName: 'refs/heads/master',
+      },
+    });
     const branches = new BranchSet([branch]);
     const remotes = new RemoteSet([remote]);
     const onCreatePr = sinon.spy();

@@ -108,7 +108,8 @@ describe('Repository', function() {
       });
 
       assert.strictEqual(await repository.getLastCommit(), nullCommit);
-      assert.lengthOf((await repository.getBranches()).getNames(), 0);
+      assert.lengthOf((await repository.getLocalBranches()).getNames(), 0);
+      assert.lengthOf((await repository.getRemoteBranches()).getNames(), 0);
       assert.isTrue((await repository.getRemotes()).isEmpty());
       assert.strictEqual(await repository.getHeadDescription(), '(no repository)');
       assert.strictEqual(await repository.getOperationStates(), nullOperationStates);
@@ -1780,8 +1781,8 @@ describe('Repository', function() {
         () => repository.getRecentCommits(),
       );
       calls.set(
-        'getBranches',
-        () => repository.getBranches(),
+        'getLocalBranches',
+        () => repository.getLocalBranches(),
       );
       calls.set(
         'getRemotes',

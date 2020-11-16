@@ -90,8 +90,14 @@ describe('CommentDecorationsContainer', function() {
     const wrapper = shallow(buildApp({localRepository, loginModel}));
 
     const origin = new Remote('origin', 'git@github.com:atom/github.git');
-    const upstreamBranch = Branch.createRemoteTracking('refs/remotes/origin/master', 'origin', 'refs/heads/master');
-    const branch = new Branch('master', upstreamBranch, nullBranch, true);
+    const branch = new Branch('master', {
+      head: true,
+      upstream: {
+        refName: 'refs/remotes/origin/master',
+        remoteName: 'origin',
+        remoteRefName: 'refs/heads/master',
+      },
+    });
 
     const repoData = {
       branches: new BranchSet([branch]),
@@ -108,8 +114,14 @@ describe('CommentDecorationsContainer', function() {
     const wrapper = shallow(buildApp({localRepository, loginModel}));
 
     const origin = new Remote('origin', 'git@github.com:atom/github.git');
-    const upstreamBranch = Branch.createRemoteTracking('refs/remotes/nope/master', 'nope', 'refs/heads/master');
-    const branch = new Branch('master', upstreamBranch, upstreamBranch, true);
+    const branch = new Branch('master', {
+      head: true,
+      upstream: {
+        refName: 'refs/remotes/nope/master',
+        remoteName: 'nope',
+        remoteRefName: 'refs/heads/master',
+      },
+    });
 
     const repoData = {
       branches: new BranchSet([branch]),
@@ -126,8 +138,14 @@ describe('CommentDecorationsContainer', function() {
     const wrapper = shallow(buildApp({localRepository, loginModel}));
 
     const origin = new Remote('origin', 'git@elsewhere.com:atom/github.git');
-    const upstreamBranch = Branch.createRemoteTracking('refs/remotes/origin/master', 'origin', 'refs/heads/master');
-    const branch = new Branch('master', upstreamBranch, upstreamBranch, true);
+    const branch = new Branch('master', {
+      head: true,
+      upstream: {
+        refName: 'refs/remotes/origin/master',
+        remoteName: 'origin',
+        remoteRefName: 'refs/heads/master',
+      },
+    });
 
     const repoData = {
       branches: new BranchSet([branch]),
@@ -152,8 +170,14 @@ describe('CommentDecorationsContainer', function() {
       wrapper = shallow(buildApp({localRepository: localRepo, loginModel}));
 
       const origin = new Remote('origin', 'git@github.com:atom/github.git');
-      const upstreamBranch = Branch.createRemoteTracking('refs/remotes/origin/master', 'origin', 'refs/heads/master');
-      const branch = new Branch('master', upstreamBranch, upstreamBranch, true);
+      const branch = new Branch('master', {
+        head: true,
+        upstream: {
+          refName: 'refs/remotes/origin/master',
+          remoteName: 'origin',
+          remoteRefName: 'refs/heads/master',
+        },
+      });
 
       repoData = {
         branches: new BranchSet([branch]),

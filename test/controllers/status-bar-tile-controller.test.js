@@ -110,7 +110,7 @@ describe('StatusBarTileController', function() {
           assert.deepEqual(branches, ['branch', 'master']);
 
           const branch0 = await repository.getCurrentBranch();
-          assert.equal(branch0.getName(), 'master');
+          assert.equal(branch0.getName().short(), 'master');
           assert.isFalse(branch0.isDetached());
           assert.equal(selectList.value, 'master');
 
@@ -119,7 +119,7 @@ describe('StatusBarTileController', function() {
 
           await until(async () => {
             const branch1 = await repository.getCurrentBranch();
-            return branch1.getName() === 'branch' && !branch1.isDetached();
+            return branch1.getName().short() === 'branch' && !branch1.isDetached();
           });
 
           await assert.async.equal(selectList.value, 'branch');
@@ -130,7 +130,7 @@ describe('StatusBarTileController', function() {
 
           await until(async () => {
             const branch2 = await repository.getCurrentBranch();
-            return branch2.getName() === 'master' && !branch2.isDetached();
+            return branch2.getName().short() === 'master' && !branch2.isDetached();
           });
           await assert.async.equal(selectList.value, 'master');
           await assert.async.isFalse(selectList.hasAttribute('disabled'));
@@ -154,7 +154,7 @@ describe('StatusBarTileController', function() {
           const selectList = tip.querySelector('select');
 
           const branch0 = await repository.getCurrentBranch();
-          assert.equal(branch0.getName(), 'branch');
+          assert.equal(branch0.getName().short(), 'branch');
           assert.isFalse(branch0.isDetached());
           assert.equal(selectList.value, 'branch');
 
@@ -190,7 +190,7 @@ describe('StatusBarTileController', function() {
           const branches = Array.from(tip.querySelectorAll('option'), option => option.value);
           assert.deepEqual(branches, ['master']);
           const branch0 = await repository.getCurrentBranch();
-          assert.equal(branch0.getName(), 'master');
+          assert.equal(branch0.getName().short(), 'master');
           assert.isFalse(branch0.isDetached());
           assert.equal(selectList.value, 'master');
 
@@ -205,7 +205,7 @@ describe('StatusBarTileController', function() {
 
           await until(async () => {
             const branch1 = await repository.getCurrentBranch();
-            return branch1.getName() === 'new-branch' && !branch1.isDetached();
+            return branch1.getName().short() === 'new-branch' && !branch1.isDetached();
           });
           repository.refresh(); // clear cache manually, since we're not listening for file system events here
           await assert.async.equal(selectList.value, 'new-branch');
@@ -228,7 +228,7 @@ describe('StatusBarTileController', function() {
           const branches = Array.from(tip.getElementsByTagName('option'), option => option.value);
           assert.deepEqual(branches, ['branch', 'master']);
           const branch0 = await repository.getCurrentBranch();
-          assert.equal(branch0.getName(), 'branch');
+          assert.equal(branch0.getName().short(), 'branch');
           assert.isFalse(branch0.isDetached());
           assert.equal(tip.querySelector('select').value, 'branch');
 
@@ -243,7 +243,7 @@ describe('StatusBarTileController', function() {
           assert.match(notificationArgs[1].description, /already exists/);
 
           const branch1 = await repository.getCurrentBranch();
-          assert.equal(branch1.getName(), 'branch');
+          assert.equal(branch1.getName().short(), 'branch');
           assert.isFalse(branch1.isDetached());
 
           assert.lengthOf(tip.querySelectorAll('.github-BranchMenuView-editor'), 1);
@@ -265,7 +265,7 @@ describe('StatusBarTileController', function() {
 
           await until('branch creation completes', async () => {
             const b = await repository.getCurrentBranch();
-            return b.getName() === 'new-branch-name' && !b.isDetached();
+            return b.getName().short() === 'new-branch-name' && !b.isDetached();
           });
           repository.refresh();
           await assert.async.isUndefined(

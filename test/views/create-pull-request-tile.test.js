@@ -70,12 +70,14 @@ describe('CreatePullRequestTile', function() {
     it('reports when you are still on the default ref', function() {
       // The destination ref of HEAD's *push* target is used to determine whether or not you're on the default ref
       const branches = new BranchSet([
-        new Branch(
-          'current',
-          nullBranch,
-          Branch.createRemoteTracking('refs/remotes/origin/current', 'origin', 'refs/heads/whatever'),
-          true,
-        ),
+        new Branch('current', {
+          head: true,
+          push: {
+            refName: 'refs/remotes/origin/current',
+            remoteName: 'origin',
+            remoteRefName: 'refs/heads/whatever',
+          },
+        }),
       ]);
       const repository = {
         defaultBranchRef: {
@@ -93,27 +95,19 @@ describe('CreatePullRequestTile', function() {
 
     it('reports when HEAD has not moved from the default ref', function() {
       const branches = new BranchSet([
-        new Branch(
-          'current',
-          nullBranch,
-          Branch.createRemoteTracking('refs/remotes/origin/current', 'origin', 'refs/heads/whatever'),
-          true,
-          {sha: '1234'},
-        ),
-        new Branch(
-          'pushes-to-main',
-          nullBranch,
-          Branch.createRemoteTracking('refs/remotes/origin/main', 'origin', 'refs/heads/main'),
-          false,
-          {sha: '1234'},
-        ),
-        new Branch(
-          'pushes-to-main-2',
-          nullBranch,
-          Branch.createRemoteTracking('refs/remotes/origin/main', 'origin', 'refs/heads/main'),
-          false,
-          {sha: '5678'},
-        ),
+        new Branch('current', {
+          head: true,
+          sha: '1234',
+          push: {refName: 'refs/remotes/origin/current', remoteName: 'origin', remoteRefName: 'refs/heads/whatever'},
+        }),
+        new Branch('pushes-to-main', {
+          sha: '1234',
+          push: {refName: 'refs/remotes/origin/main', remoteName: 'origin', remoteRefName: 'refs/heads/main'},
+        }),
+        new Branch('pushes-to-main-2', {
+          sha: '5678',
+          push: {refName: 'refs/remotes/origin/main', remoteName: 'origin', remoteRefName: 'refs/heads/main'},
+        }),
       ]);
       const repository = {
         defaultBranchRef: {
@@ -141,9 +135,11 @@ describe('CreatePullRequestTile', function() {
         },
       };
 
-      const masterTracking = Branch.createRemoteTracking('refs/remotes/origin/current', 'origin', 'refs/heads/current');
       branches = new BranchSet([
-        new Branch('current', masterTracking, masterTracking, true),
+        new Branch('current', {
+          head: true,
+          upstream: {refName: 'refs/remotes/origin/current', remoteName: 'origin', remoteRefName: 'refs/heads/current'},
+        }),
       ]);
     });
 
@@ -175,10 +171,11 @@ describe('CreatePullRequestTile', function() {
     });
 
     it('prompts to publish with an upstream on a different remote', function() {
-      const onDifferentRemote = Branch.createRemoteTracking(
-        'refs/remotes/upstream/current', 'upstream', 'refs/heads/current');
       branches = new BranchSet([
-        new Branch('current', nullBranch, onDifferentRemote, true),
+        new Branch('current', {
+          head: true,
+          push: {refName: 'refs/remotes/upstream/current', remoteName: 'upstream', remoteRefName: 'refs/heads/current'},
+        }),
       ]);
       const wrapper = shallow(buildApp({
         repository,
