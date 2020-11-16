@@ -74,7 +74,7 @@ describe('Repository', function() {
 
       // Methods that resolve to null
       for (const method of [
-        'getAheadCount', 'getBehindCount', 'getConfig', 'getLastHistorySnapshots', 'getCache',
+        'getAheadCount', 'getBehindCount', 'getLastHistorySnapshots', 'getCache',
       ]) {
         assert.isNull(await repository[method]());
       }
@@ -121,7 +121,7 @@ describe('Repository', function() {
         'init', 'clone', 'stageFiles', 'unstageFiles', 'stageFilesFromParentCommit', 'applyPatchToIndex',
         'applyPatchToWorkdir', 'commit', 'merge', 'abortMerge', 'checkoutSide', 'mergeFile',
         'writeMergeConflictToIndex', 'checkout', 'checkoutPathsAtRevision', 'undoLastCommit', 'fetch', 'pull',
-        'push', 'setConfig', 'unsetConfig', 'createBlob', 'expandBlobToFile', 'createDiscardHistoryBlob',
+        'push', 'unsetConfig', 'createBlob', 'expandBlobToFile', 'createDiscardHistoryBlob',
         'updateDiscardHistory', 'storeBeforeAndAfterBlobs', 'restoreLastDiscardInTempFiles', 'popDiscardHistory',
         'clearDiscardHistory', 'discardWorkDirChangesForPaths', 'addRemote', 'setCommitMessage',
         'fetchCommitMessageTemplate',
@@ -137,6 +137,12 @@ describe('Repository', function() {
         repository.getBlobContents('abcd'),
         /fatal: Not a valid object name abcd/,
       );
+    });
+
+    it('works anyway', async function() {
+      sinon.stub(atom, 'inSpecMode').returns(false);
+      await repository.setConfig('atomGithub.test', 'yes', {global: true});
+      assert.strictEqual(await repository.getConfig('atomGithub.test'), 'yes');
     });
   });
 
@@ -193,6 +199,8 @@ describe('Repository', function() {
     });
 
     it('returns null remote before repository has loaded', async function() {
+      sinon.stub(atom, 'inSpecMode').returns(false);
+
       const loadingRepository = new Repository(workdir);
       const remote = await loadingRepository.getCurrentGitHubRemote();
       assert.isFalse(remote.isPresent());
@@ -1321,14 +1329,17 @@ describe('Repository', function() {
     });
 
     it('does nothing on a destroyed repository', async function() {
+      sinon.spy(repository, 'setConfig');
       repository.destroy();
 
       await repository.saveDiscardHistory();
 
-      assert.isNull(await repository.getConfig('atomGithub.historySha'));
+      assert.isFalse(repository.setConfig.called);
     });
 
     it('does nothing if the repository is destroyed after the blob is created', async function() {
+      sinon.spy(repository, 'setConfig');
+
       let resolveCreateHistoryBlob = () => {};
       sinon.stub(repository, 'createDiscardHistoryBlob').callsFake(() => new Promise(resolve => {
         resolveCreateHistoryBlob = resolve;
@@ -1339,7 +1350,7 @@ describe('Repository', function() {
       resolveCreateHistoryBlob('nope');
       await promise;
 
-      assert.isNull(await repository.getConfig('atomGithub.historySha'));
+      assert.isFalse(repository.setConfig.called);
     });
 
     it('creates a blob and saves it in the git config', async function() {
