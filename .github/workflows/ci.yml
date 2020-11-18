@@ -39,6 +39,11 @@ jobs:
     - name: install dependencies
       shell: bash
       run: ${APM} ci
+    - name: configure git
+      shell: bash
+      run: |
+        git config --global user.name Hubot
+        git config --global user.email hubot@github.com
     - name: run tests
       shell: bash
       run: ${ATOM} --test test/
@@ -79,6 +84,11 @@ jobs:
     - name: install dependencies
       shell: bash
       run: sh -c "${APM} ci"
+    - name: configure git
+      shell: bash
+      run: |
+        git config --global user.name Hubot
+        git config --global user.email hubot@github.com
     - name: run tests
       shell: bash
       run: sh -c "${ATOM} --test test/"
