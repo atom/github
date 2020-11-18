@@ -199,8 +199,6 @@ describe('Repository', function() {
     });
 
     it('returns null remote before repository has loaded', async function() {
-      sinon.stub(atom, 'inSpecMode').returns(false);
-
       const loadingRepository = new Repository(workdir);
       const remote = await loadingRepository.getCurrentGitHubRemote();
       assert.isFalse(remote.isPresent());
