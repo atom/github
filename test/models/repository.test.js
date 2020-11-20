@@ -140,7 +140,6 @@ describe('Repository', function() {
     });
 
     it('works anyway', async function() {
-      sinon.stub(atom, 'inSpecMode').returns(false);
       await repository.setConfig('atomGithub.test', 'yes', {global: true});
       assert.strictEqual(await repository.getConfig('atomGithub.test'), 'yes');
     });
