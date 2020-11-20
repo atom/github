@@ -42,6 +42,7 @@ export async function setup(options = {}) {
   };
 
   const atomEnv = global.buildAtomEnvironment();
+  sinon.stub(atom, 'inSpecMode').returns(false);
 
   let suiteRoot = document.getElementById('github-IntegrationSuite');
   if (!suiteRoot) {
