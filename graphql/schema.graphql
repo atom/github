@@ -4169,6 +4169,9 @@ enum DeploymentState {
 
   """The deployment is in progress."""
   IN_PROGRESS
+
+  """The deployment is waiting."""
+  WAITING
 }
 
 """Describes the status of a given deployment attempt."""
@@ -7085,6 +7088,9 @@ type Issue implements Node & Assignable & Closable & Comment & Updatable & Updat
 
   """A list of comments associated with the Issue."""
   comments(
+    """Ordering options for issue comments returned from the connection."""
+    orderBy: IssueCommentOrder
+
     """Returns the elements in the list that come after the specified cursor."""
     after: String
 
@@ -7462,6 +7468,21 @@ type IssueCommentEdge {
 
   """The item at the end of the edge."""
   node: IssueComment
+}
+
+"""Ways in which lists of issue comments can be ordered upon return."""
+input IssueCommentOrder {
+  """The field in which to order issue comments by."""
+  field: IssueCommentOrderField!
+
+  """The direction in which to order issue comments by the specified field."""
+  direction: OrderDirection!
+}
+
+"""Properties by which issue comment connections can be ordered."""
+enum IssueCommentOrderField {
+  """Order issue comments by update time"""
+  UPDATED_AT
 }
 
 """The connection type for Issue."""
@@ -9898,7 +9919,13 @@ type Organization implements Node & Actor & PackageOwner & ProjectOwner & Reposi
 
   """The organization's public email."""
   email: String
+
+  """True if this user/organization has a GitHub Sponsors listing."""
+  hasSponsorsListing: Boolean!
   id: ID!
+
+  """The interaction ability settings for this organization."""
+  interactionAbility: RepositoryInteractionAbility
 
   """
   The setting value for whether the organization has an IP allow list enabled.
@@ -9926,6 +9953,9 @@ type Organization implements Node & Actor & PackageOwner & ProjectOwner & Reposi
     """Ordering options for IP allow list entries returned."""
     orderBy: IpAllowListEntryOrder = {field: ALLOW_LIST_VALUE, direction: ASC}
   ): IpAllowListEntryConnection!
+
+  """True if the viewer is sponsored by this user/organization."""
+  isSponsoringViewer: Boolean!
 
   """
   Whether the organization has verified its profile email and website, always false on Enterprise.
@@ -10193,7 +10223,7 @@ type Organization implements Node & Actor & PackageOwner & ProjectOwner & Reposi
   """The Organization's SAML identity providers"""
   samlIdentityProvider: OrganizationIdentityProvider
 
-  """The GitHub Sponsors listing for this user."""
+  """The GitHub Sponsors listing for this user or organization."""
   sponsorsListing: SponsorsListing
 
   """This object's sponsorships as the maintainer."""
@@ -10323,8 +10353,14 @@ type Organization implements Node & Actor & PackageOwner & ProjectOwner & Reposi
   """Viewer can create teams on this organization."""
   viewerCanCreateTeams: Boolean!
 
+  """Whether or not the viewer is able to sponsor this user/organization."""
+  viewerCanSponsor: Boolean!
+
   """Viewer is an active member of this organization."""
   viewerIsAMember: Boolean!
+
+  """True if the viewer is sponsoring this user/organization."""
+  viewerIsSponsoring: Boolean!
 
   """The organization's public profile URL."""
   websiteUrl: URI
@@ -13660,6 +13696,9 @@ type PullRequest implements Node & Assignable & Closable & Comment & Updatable &
 
   """A list of comments associated with the pull request."""
   comments(
+    """Ordering options for issue comments returned from the connection."""
+    orderBy: IssueCommentOrder
+
     """Returns the elements in the list that come after the specified cursor."""
     after: String
 
@@ -18027,6 +18066,9 @@ type Repository implements Node & ProjectOwner & PackageOwner & Subscribable & S
   homepageUrl: URI
   id: ID!
 
+  """The interaction ability settings for this repository."""
+  interactionAbility: RepositoryInteractionAbility
+
   """Indicates if the repository is unmaintained."""
   isArchived: Boolean!
 
@@ -18820,6 +18862,51 @@ interface RepositoryInfo {
   Whether this repository has a custom image to use with Open Graph as opposed to being represented by the owner's avatar.
   """
   usesCustomOpenGraphImage: Boolean!
+}
+
+"""Repository interaction limit that applies to this object."""
+type RepositoryInteractionAbility {
+  """The time the currently active limit expires."""
+  expiresAt: DateTime
+
+  """The current limit that is enabled on this object."""
+  limit: RepositoryInteractionLimit!
+
+  """The origin of the currently active interaction limit."""
+  origin: RepositoryInteractionLimitOrigin!
+}
+
+"""A repository interaction limit."""
+enum RepositoryInteractionLimit {
+  """
+  Users that have recently created their account will be unable to interact with the repository.
+  """
+  EXISTING_USERS
+
+  """
+  Users that have not previously committed to a repository’s default branch will be unable to interact with the repository.
+  """
+  CONTRIBUTORS_ONLY
+
+  """
+  Users that are not collaborators will not be able to interact with the repository.
+  """
+  COLLABORATORS_ONLY
+
+  """No interaction limits are enabled."""
+  NO_LIMIT
+}
+
+"""Indicates where an interaction limit is configured."""
+enum RepositoryInteractionLimitOrigin {
+  """A limit that is configured at the repository level."""
+  REPOSITORY
+
+  """A limit that is configured at the organization level."""
+  ORGANIZATION
+
+  """A limit that is configured at the user-wide level."""
+  USER
 }
 
 """An invitation for a user to be added to a repository."""
@@ -20051,7 +20138,13 @@ union Sponsor = Organization | User
 
 """Entities that can be sponsored through GitHub Sponsors"""
 interface Sponsorable {
-  """The GitHub Sponsors listing for this user."""
+  """True if this user/organization has a GitHub Sponsors listing."""
+  hasSponsorsListing: Boolean!
+
+  """True if the viewer is sponsored by this user/organization."""
+  isSponsoringViewer: Boolean!
+
+  """The GitHub Sponsors listing for this user or organization."""
   sponsorsListing: SponsorsListing
 
   """This object's sponsorships as the maintainer."""
@@ -20102,6 +20195,12 @@ interface Sponsorable {
     """
     orderBy: SponsorshipOrder
   ): SponsorshipConnection!
+
+  """Whether or not the viewer is able to sponsor this user/organization."""
+  viewerCanSponsor: Boolean!
+
+  """True if the viewer is sponsoring this user/organization."""
+  viewerIsSponsoring: Boolean!
 }
 
 """A sponsorship relationship between a sponsor and a maintainer"""
@@ -20114,7 +20213,7 @@ type Sponsorship implements Node {
   privacyLevel: SponsorshipPrivacy!
 
   """
-  The user or organization that is sponsoring. Returns null if the sponsorship is private.
+  The user or organization that is sponsoring, if you have permission to view them.
   """
   sponsorEntity: Sponsor
 
@@ -23779,12 +23878,18 @@ type User implements Node & Actor & PackageOwner & ProjectOwner & RepositoryOwne
     last: Int
   ): GistConnection!
 
+  """True if this user/organization has a GitHub Sponsors listing."""
+  hasSponsorsListing: Boolean!
+
   """The hovercard information for this user in a given context"""
   hovercard(
     """The ID of the subject to get the hovercard in the context of"""
     primarySubjectId: ID
   ): Hovercard!
   id: ID!
+
+  """The interaction ability settings for this user."""
+  interactionAbility: RepositoryInteractionAbility
 
   """
   Whether or not this user is a participant in the GitHub Security Bug Bounty.
@@ -23808,11 +23913,17 @@ type User implements Node & Actor & PackageOwner & ProjectOwner & RepositoryOwne
   """Whether or not this user is a site administrator."""
   isSiteAdmin: Boolean!
 
+  """True if the viewer is sponsored by this user/organization."""
+  isSponsoringViewer: Boolean!
+
   """Whether or not this user is the viewing user."""
   isViewer: Boolean!
 
   """A list of issue comments made by this user."""
   issueComments(
+    """Ordering options for issue comments returned from the connection."""
+    orderBy: IssueCommentOrder
+
     """Returns the elements in the list that come after the specified cursor."""
     after: String
 
@@ -24181,7 +24292,7 @@ type User implements Node & Actor & PackageOwner & ProjectOwner & RepositoryOwne
     orderBy: SavedReplyOrder = {field: UPDATED_AT, direction: DESC}
   ): SavedReplyConnection
 
-  """The GitHub Sponsors listing for this user."""
+  """The GitHub Sponsors listing for this user or organization."""
   sponsorsListing: SponsorsListing
 
   """This object's sponsorships as the maintainer."""
@@ -24305,8 +24416,14 @@ type User implements Node & Actor & PackageOwner & ProjectOwner & RepositoryOwne
   """Whether or not the viewer is able to follow the user."""
   viewerCanFollow: Boolean!
 
+  """Whether or not the viewer is able to sponsor this user/organization."""
+  viewerCanSponsor: Boolean!
+
   """Whether or not this user is followed by the viewer."""
   viewerIsFollowing: Boolean!
+
+  """True if the viewer is sponsoring this user/organization."""
+  viewerIsSponsoring: Boolean!
 
   """A list of repositories the given user is watching."""
   watching(
