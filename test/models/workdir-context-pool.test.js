@@ -368,4 +368,32 @@ describe('WorkdirContextPool', function() {
       });
     });
   });
+
+  describe('cross-instance cache invalidation', function() {
+    it('invalidates a config cache key in different instances when a global setting is changed', async function() {
+      const value = String(Date.now());
+
+      const repo0 = pool.add(await cloneRepository('three-files')).getRepository();
+      const repo1 = pool.add(await cloneRepository('three-files')).getRepository();
+      const repo2 = pool.add(temp.mkdirSync()).getRepository();
+
+      await Promise.all([repo0, repo1, repo2].map(repo => repo.getLoadPromise()));
+
+      const [before0, before1, before2] = await Promise.all(
+        [repo0, repo1, repo2].map(repo => repo.getConfig('atomGithub.test')),
+      );
+
+      assert.notInclude([before0, before1, before2], value);
+
+      await repo2.setConfig('atomGithub.test', value, {global: true});
+
+      const [after0, after1, after2] = await Promise.all(
+        [repo0, repo1, repo2].map(repo => repo.getConfig('atomGithub.test')),
+      );
+
+      assert.strictEqual(after0, value);
+      assert.strictEqual(after1, value);
+      assert.strictEqual(after2, value);
+    });
+  });
 });
