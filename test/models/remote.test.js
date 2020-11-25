@@ -76,6 +76,7 @@ describe('Remote', function() {
     assert.isNull(nullRemote.getSlug());
     assert.strictEqual(nullRemote.getNameOr('else'), 'else');
     assert.isNull(nullRemote.getEndpoint());
+    assert.strictEqual(nullRemote.getEndpointOrDotcom().getGraphQLRoot(), 'https://api.github.com/graphql');
   });
 
   describe('getEndpoint', function() {
@@ -87,6 +88,18 @@ describe('Remote', function() {
     it('returns null for non-GitHub URLs', function() {
       const elsewhere = new Remote('mirror', 'https://me@bitbucket.org/team/repo.git');
       assert.isNull(elsewhere.getEndpoint());
+    });
+  });
+
+  describe('getEndpointOrDotcom', function() {
+    it('accesses the same Endpoint for the corresponding GitHub host', function() {
+      const remote = new Remote('origin', 'git@github.com:atom/github.git');
+      assert.strictEqual(remote.getEndpointOrDotcom().getGraphQLRoot(), 'https://api.github.com/graphql');
+    });
+
+    it('returns dotcom for non-GitHub URLs', function() {
+      const elsewhere = new Remote('mirror', 'https://me@bitbucket.org/team/repo.git');
+      assert.strictEqual(elsewhere.getEndpointOrDotcom().getGraphQLRoot(), 'https://api.github.com/graphql');
     });
   });
 });
