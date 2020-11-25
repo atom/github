@@ -73,10 +73,13 @@ describe('Repository', function() {
       }
 
       // Methods that resolve to null
-      for (const method of [
-        'getAheadCount', 'getBehindCount', 'getLastHistorySnapshots', 'getCache',
-      ]) {
+      for (const method of ['getLastHistorySnapshots', 'getCache']) {
         assert.isNull(await repository[method]());
+      }
+
+      // Methods that resolve to 0
+      for (const method of ['getAheadCount', 'getBehindCount']) {
+        assert.strictEqual(await repository[method](), 0);
       }
 
       // Methods that resolve to an empty array
