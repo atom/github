@@ -6,11 +6,13 @@ import Repository from '../../lib/models/repository';
 import BranchSet from '../../lib/models/branch-set';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import RemoteSet from '../../lib/models/remote-set';
-import Remote from '../../lib/models/remote';
-import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
+import Remote, {nullRemote} from '../../lib/models/remote';
+import {DOTCOM} from '../../lib/models/endpoint';
+import {InMemoryStrategy, UNAUTHENTICATED} from '../../lib/shared/keytar-strategy';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import RefHolder from '../../lib/models/ref-holder';
 import Refresher from '../../lib/models/refresher';
+import * as reporterProxy from '../../lib/reporter-proxy';
 
 import {buildRepository, cloneRepository} from '../helpers';
 
@@ -34,12 +36,18 @@ describe('GitHubTabController', function() {
         workspace={atomEnv.workspace}
         refresher={new Refresher()}
         loginModel={new GithubLoginModel(InMemoryStrategy)}
+        token="1234"
         rootHolder={new RefHolder()}
 
         workingDirectory={repo.getWorkingDirectoryPath()}
         repository={repo}
         allRemotes={new RemoteSet()}
+        githubRemotes={new RemoteSet()}
+        currentRemote={nullRemote}
         branches={new BranchSet()}
+        currentBranch={nullBranch}
+        aheadCount={0}
+        manyRemotesAvailable={false}
         pushInProgress={false}
         isLoading={false}
         currentWorkDir={repo.getWorkingDirectoryPath()}
@@ -60,48 +68,15 @@ describe('GitHubTabController', function() {
   }
 
   describe('derived view props', function() {
-    const dotcom0 = new Remote('yes0', 'git@github.com:aaa/bbb.git');
-    const dotcom1 = new Remote('yes1', 'https://github.com/ccc/ddd.git');
-    const nonDotcom = new Remote('no0', 'git@sourceforge.net:eee/fff.git');
-
-    it('passes the current branch', function() {
-      const currentBranch = new Branch('aaa', nullBranch, nullBranch, true);
-      const otherBranch = new Branch('bbb');
-      const branches = new BranchSet([currentBranch, otherBranch]);
-      const wrapper = shallow(buildApp({branches}));
-
-      assert.strictEqual(wrapper.find('GitHubTabView').prop('currentBranch'), currentBranch);
+    it('passes the endpoint from the current GitHub remote when one exists', function() {
+      const remote = new Remote('hub', 'git@github.com:some/repo.git');
+      const wrapper = shallow(buildApp({currentRemote: remote}));
+      assert.strictEqual(wrapper.find('GitHubTabView').prop('endpoint'), remote.getEndpoint());
     });
 
-    it('passes remotes hosted on GitHub', function() {
-      const allRemotes = new RemoteSet([dotcom0, dotcom1, nonDotcom]);
-      const wrapper = shallow(buildApp({allRemotes}));
-
-      const passed = wrapper.find('GitHubTabView').prop('remotes');
-      assert.isTrue(passed.withName('yes0').isPresent());
-      assert.isTrue(passed.withName('yes1').isPresent());
-      assert.isFalse(passed.withName('no0').isPresent());
-    });
-
-    it('detects an explicitly specified current remote', function() {
-      const allRemotes = new RemoteSet([dotcom0, dotcom1, nonDotcom]);
-      const wrapper = shallow(buildApp({allRemotes, selectedRemoteName: 'yes1'}));
-      assert.strictEqual(wrapper.find('GitHubTabView').prop('currentRemote'), dotcom1);
-      assert.isFalse(wrapper.find('GitHubTabView').prop('manyRemotesAvailable'));
-    });
-
-    it('uses a single GitHub-hosted remote', function() {
-      const allRemotes = new RemoteSet([dotcom0, nonDotcom]);
-      const wrapper = shallow(buildApp({allRemotes}));
-      assert.strictEqual(wrapper.find('GitHubTabView').prop('currentRemote'), dotcom0);
-      assert.isFalse(wrapper.find('GitHubTabView').prop('manyRemotesAvailable'));
-    });
-
-    it('indicates when multiple remotes are available', function() {
-      const allRemotes = new RemoteSet([dotcom0, dotcom1]);
-      const wrapper = shallow(buildApp({allRemotes}));
-      assert.isFalse(wrapper.find('GitHubTabView').prop('currentRemote').isPresent());
-      assert.isTrue(wrapper.find('GitHubTabView').prop('manyRemotesAvailable'));
+    it('defaults the endpoint to dotcom', function() {
+      const wrapper = shallow(buildApp({currentRemote: nullRemote}));
+      assert.strictEqual(wrapper.find('GitHubTabView').prop('endpoint'), DOTCOM);
     });
   });
 
@@ -138,6 +113,27 @@ describe('GitHubTabController', function() {
 
       wrapper.find('GitHubTabView').prop('openBoundPublishDialog')();
       assert.isTrue(openPublishDialog.calledWith(someRepo));
+    });
+
+    it('handles and instruments a login', async function() {
+      sinon.stub(reporterProxy, 'incrementCounter');
+      const loginModel = new GithubLoginModel(InMemoryStrategy);
+
+      const wrapper = shallow(buildApp({loginModel}));
+      await wrapper.find('GitHubTabView').prop('handleLogin')('good-token');
+      assert.strictEqual(await loginModel.getToken(DOTCOM.getLoginAccount()), 'good-token');
+      assert.isTrue(reporterProxy.incrementCounter.calledWith('github-login'));
+    });
+
+    it('handles and instruments a logout', async function() {
+      sinon.stub(reporterProxy, 'incrementCounter');
+      const loginModel = new GithubLoginModel(InMemoryStrategy);
+      await loginModel.setToken(DOTCOM.getLoginAccount(), 'good-token');
+
+      const wrapper = shallow(buildApp({loginModel}));
+      await wrapper.find('GitHubTabView').prop('handleLogout')();
+      assert.strictEqual(await loginModel.getToken(DOTCOM.getLoginAccount()), UNAUTHENTICATED);
+      assert.isTrue(reporterProxy.incrementCounter.calledWith('github-logout'));
     });
   });
 });

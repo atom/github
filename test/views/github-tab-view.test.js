@@ -8,10 +8,10 @@ import RemoteSet from '../../lib/models/remote-set';
 import Branch, {nullBranch} from '../../lib/models/branch';
 import BranchSet from '../../lib/models/branch-set';
 import GitHubTabView from '../../lib/views/github-tab-view';
-import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
-import GithubLoginModel from '../../lib/models/github-login-model';
+import {DOTCOM} from '../../lib/models/endpoint';
 import RefHolder from '../../lib/models/ref-holder';
 import Refresher from '../../lib/models/refresher';
+import {UNAUTHENTICATED, INSUFFICIENT} from '../../lib/shared/keytar-strategy';
 
 import {buildRepository, cloneRepository} from '../helpers';
 
@@ -34,7 +34,8 @@ describe('GitHubTabView', function() {
         refresher={new Refresher()}
         rootHolder={new RefHolder()}
 
-        loginModel={new GithubLoginModel(InMemoryStrategy)}
+        endpoint={DOTCOM}
+        token="1234"
 
         workspace={atomEnv.workspace}
         workingDirectory={repo.getWorkingDirectoryPath()}
@@ -52,6 +53,9 @@ describe('GitHubTabView', function() {
         currentBranch={nullBranch}
         pushInProgress={false}
 
+        handleLogin={() => {}}
+        handleLogout={() => {}}
+        handleTokenRetry={() => {}}
         handleWorkDirSelect={() => {}}
         handlePushBranch={() => {}}
         handleRemoteSelect={() => {}}
@@ -65,6 +69,30 @@ describe('GitHubTabView', function() {
       />
     );
   }
+
+  it('renders a LoadingView if the token is still loading', function() {
+    const wrapper = shallow(buildApp({token: null}));
+    assert.isTrue(wrapper.exists('LoadingView'));
+  });
+
+  it('renders a login view if the token is missing or incorrect', function() {
+    const wrapper = shallow(buildApp({token: UNAUTHENTICATED}));
+    assert.isTrue(wrapper.exists('GithubLoginView'));
+  });
+
+  it('renders a login view with a custom message if the token has insufficient scopes', function() {
+    const wrapper = shallow(buildApp({token: INSUFFICIENT}));
+    assert.isTrue(wrapper.exists('GithubLoginView'));
+    assert.isTrue(wrapper.find('GithubLoginView').exists('p'));
+  });
+
+  it('renders an error view if there was an error acquiring the token', function() {
+    const e = new Error('oh no');
+    e.rawStack = e.stack;
+    const wrapper = shallow(buildApp({token: e}));
+    assert.isTrue(wrapper.exists('QueryErrorView'));
+    assert.strictEqual(wrapper.find('QueryErrorView').prop('error'), e);
+  });
 
   it('renders a LoadingView if data is still loading', function() {
     const wrapper = shallow(buildApp({isLoading: true}));
