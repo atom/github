@@ -195,10 +195,11 @@ describe('GitHubTabContainer', function() {
       branches = new BranchSet([otherBranch, mainBranch]);
     });
 
-    function installRemoteSet(remoteSet) {
-      return Promise.all(
-        Array.from(remoteSet, remote => loadedRepo.addRemote(remote.getName(), remote.getUrl())),
-      );
+    async function installRemoteSet(remoteSet) {
+      for (const remote of remoteSet) {
+        // In your face, no-await-in-loop rule
+        await loadedRepo.addRemote(remote.getName(), remote.getUrl());
+      }
     }
 
     it('derives the subset of GitHub remotes', async function() {
