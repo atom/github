@@ -20,29 +20,31 @@ Do you want to ask a question? Are you looking for support? The Atom message boa
 
 ### Description
 
-[Description of the issue]
+<!-- High-level description of what's going wrong. Please be sure to include any stack traces that appear in the developer console or the exact text of any error notifications that are shown. -->
 
 ### Steps to Reproduce
 
-1. [First Step]
-2. [Second Step]
-3. [and so on...]
+1. <!-- First Step -->
+2. <!-- Second Step -->
+3. <!-- and so on... -->
 
 **Expected behavior:**
 
-[What did you expect to happen?]
+<!-- What did you expect to happen? -->
 
 **Actual behavior:**
 
-[What actually happened instead?]
+<!-- What actually happened instead? -->
 
 **Reproduces how often:**
 
-[What percentage of the time does this happen?]
+<!-- Roughly what percentage of the time does this happen? Is this issue an intermittent glitch or does it occur consistently? -->
 
-### Versions
+### Platform and Versions
 
-You can get this information from copy and pasting the output of `atom --version` and `apm --version` from the command line. Also, please include the OS and what version of the OS you're running.
+What OS and version of OS are you running?
+
+What version of Atom are you using? You can get this information from copy and pasting the output of `atom --version` and `apm --version` from the command line.
 
 ### Additional Information
 
