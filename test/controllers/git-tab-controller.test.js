@@ -260,6 +260,21 @@ describe('GitTabController', function() {
       assert.isTrue(setConfig.calledWith('user.name', 'changed', {global: true}));
       assert.isTrue(setConfig.calledWith('user.email', 'changed@email.com', {global: true}));
     });
+
+    it('unsets config values when empty', async function() {
+      const repository = await buildRepository(await cloneRepository('three-files'));
+      const unsetConfig = sinon.stub(repository, 'unsetConfig');
+
+      const wrapper = mount(await buildApp(repository));
+
+      wrapper.find('GitTabView').prop('usernameBuffer').setText('');
+      wrapper.find('GitTabView').prop('emailBuffer').setText('');
+
+      await wrapper.find('GitTabView').prop('setLocalIdentity')();
+
+      assert.isTrue(unsetConfig.calledWith('user.name'));
+      assert.isTrue(unsetConfig.calledWith('user.email'));
+    });
   });
 
   describe('abortMerge()', function() {
