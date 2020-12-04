@@ -101,6 +101,8 @@ export async function gitTabViewProps(atomEnv, repository, overrides = {}) {
 
     toggleIdentityEditor: () => {},
     closeIdentityEditor: () => {},
+    setLocalIdentity: () => {},
+    setGlobalIdentity: () => {},
     openInitializeDialog: () => {},
     abortMerge: () => {},
     commit: () => {},

@@ -230,6 +230,51 @@ describe('GitTabController', function() {
       assert.strictEqual(wrapper.find('GitTabView').prop('emailBuffer'), emailBuffer);
       assert.strictEqual(emailBuffer.getText(), 'changed+@email.com');
     });
+
+    it('sets repository-local identity', async function() {
+      const repository = await buildRepository(await cloneRepository('three-files'));
+      const setConfig = sinon.stub(repository, 'setConfig');
+
+      const wrapper = mount(await buildApp(repository));
+
+      wrapper.find('GitTabView').prop('usernameBuffer').setText('changed');
+      wrapper.find('GitTabView').prop('emailBuffer').setText('changed@email.com');
+
+      await wrapper.find('GitTabView').prop('setLocalIdentity')();
+
+      assert.isTrue(setConfig.calledWith('user.name', 'changed', {}));
+      assert.isTrue(setConfig.calledWith('user.email', 'changed@email.com', {}));
+    });
+
+    it('sets account-global identity', async function() {
+      const repository = await buildRepository(await cloneRepository('three-files'));
+      const setConfig = sinon.stub(repository, 'setConfig');
+
+      const wrapper = mount(await buildApp(repository));
+
+      wrapper.find('GitTabView').prop('usernameBuffer').setText('changed');
+      wrapper.find('GitTabView').prop('emailBuffer').setText('changed@email.com');
+
+      await wrapper.find('GitTabView').prop('setGlobalIdentity')();
+
+      assert.isTrue(setConfig.calledWith('user.name', 'changed', {global: true}));
+      assert.isTrue(setConfig.calledWith('user.email', 'changed@email.com', {global: true}));
+    });
+
+    it('unsets config values when empty', async function() {
+      const repository = await buildRepository(await cloneRepository('three-files'));
+      const unsetConfig = sinon.stub(repository, 'unsetConfig');
+
+      const wrapper = mount(await buildApp(repository));
+
+      wrapper.find('GitTabView').prop('usernameBuffer').setText('');
+      wrapper.find('GitTabView').prop('emailBuffer').setText('');
+
+      await wrapper.find('GitTabView').prop('setLocalIdentity')();
+
+      assert.isTrue(unsetConfig.calledWith('user.name'));
+      assert.isTrue(unsetConfig.calledWith('user.email'));
+    });
   });
 
   describe('abortMerge()', function() {
