@@ -10,6 +10,9 @@ describe('GitIdentityView', function() {
       <GitIdentityView
         usernameBuffer={new TextBuffer()}
         emailBuffer={new TextBuffer()}
+        canWriteLocal={true}
+        setLocal={() => {}}
+        setGlobal={() => {}}
         close={() => {}}
         {...override}
       />
@@ -30,27 +33,37 @@ describe('GitIdentityView', function() {
     assert.strictEqual(getEditor('email address').prop('buffer'), emailBuffer);
   });
 
-  it('disables the "Continue" button if the name is blank', function() {
-    const usernameBuffer = new TextBuffer();
-    const wrapper = mount(buildApp({usernameBuffer}));
+  it('disables the local repo button when canWriteLocal is false', function() {
+    const wrapper = mount(buildApp({canWriteLocal: false}));
 
-    assert.isTrue(wrapper.find('.btn').prop('disabled'));
+    assert.isTrue(wrapper.find('.btn').filterWhere(each => /this repository/.test(each.text())).prop('disabled'));
   });
 
-  it('disables the "Continue" button if the email is blank', function() {
-    const emailBuffer = new TextBuffer();
-    const wrapper = mount(buildApp({emailBuffer}));
+  it('triggers a callback when "Use for this repository" is clicked', function() {
+    const setLocal = sinon.spy();
+    const wrapper = mount(buildApp({setLocal}));
 
-    assert.isTrue(wrapper.find('.btn').prop('disabled'));
+    wrapper.find('.btn').filterWhere(each => /this repository/.test(each.text())).simulate('click');
+
+    assert.isTrue(setLocal.called);
   });
 
-  it('triggers a callback when "Continue" is clicked', function() {
+  it('triggers a callback when "Use for all repositories" is clicked', function() {
+    const setGlobal = sinon.spy();
+    const wrapper = mount(buildApp({setGlobal}));
+
+    wrapper.find('.btn').filterWhere(each => /all repositories/.test(each.text())).simulate('click');
+
+    assert.isTrue(setGlobal.called);
+  });
+
+  it('triggers a callback when "Cancel" is clicked', function() {
     const usernameBuffer = new TextBuffer({text: 'Me'});
     const emailBuffer = new TextBuffer({text: 'me@email.com'});
     const close = sinon.spy();
     const wrapper = mount(buildApp({usernameBuffer, emailBuffer, close}));
 
-    wrapper.find('.btn').simulate('click');
+    wrapper.find('.btn').filterWhere(each => /Cancel/.test(each.text())).simulate('click');
 
     assert.isTrue(close.called);
   });
