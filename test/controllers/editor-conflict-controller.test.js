@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import {promises as fs} from 'fs';
 import temp from 'temp';
 import path from 'path';
 import React from 'react';
@@ -54,7 +54,7 @@ describe('EditorConflictController', function() {
       path.dirname(__filename), '..', 'fixtures', 'conflict-marker-examples', fixtureName);
     const tempDir = temp.mkdirSync('conflict-fixture-');
     fixtureFile = path.join(tempDir, fixtureName);
-    fs.copySync(fixturePath, fixtureFile);
+    await fs.copyFile(fixturePath, fixtureFile);
 
     editor = await workspace.open(fixtureFile);
     if (withEditor) {
@@ -354,7 +354,7 @@ describe('EditorConflictController', function() {
     });
 
     it('refreshes conflict markers on buffer reload', async function() {
-      fs.writeFileSync(fixtureFile, onlyTwoMarkers);
+      await fs.writeFile(fixtureFile, onlyTwoMarkers);
 
       await assert.async.equal(wrapper.state('conflicts').size, 2);
       wrapper.update();

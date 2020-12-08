@@ -1,5 +1,5 @@
 import path from 'path';
-import fs from 'fs-extra';
+import {promises as fs} from 'fs';
 
 import React from 'react';
 import {shallow, mount} from 'enzyme';
@@ -734,9 +734,9 @@ describe('RootController', function() {
       const workdirPath = await cloneRepository('three-files');
       const repository = await buildRepository(workdirPath);
 
-      fs.writeFileSync(path.join(workdirPath, 'file1.txt'), 'foo');
-      fs.writeFileSync(path.join(workdirPath, 'file2.txt'), 'bar');
-      fs.writeFileSync(path.join(workdirPath, 'file3.txt'), 'baz');
+      await fs.writeFile(path.join(workdirPath, 'file1.txt'), 'foo');
+      await fs.writeFile(path.join(workdirPath, 'file2.txt'), 'bar');
+      await fs.writeFile(path.join(workdirPath, 'file3.txt'), 'baz');
 
       sinon.stub(workspace, 'open');
       app = React.cloneElement(app, {repository});
@@ -777,7 +777,7 @@ describe('RootController', function() {
         const workdirPath = await cloneRepository('three-files');
         const repository = await buildRepository(workdirPath);
 
-        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'modification\n');
+        await fs.writeFile(path.join(workdirPath, 'a.txt'), 'modification\n');
         const multiFilePatch = await repository.getFilePatchForPath('a.txt');
         const unstagedFilePatch = multiFilePatch.getFilePatches()[0];
 
@@ -816,9 +816,9 @@ describe('RootController', function() {
         const workdirPath = await cloneRepository('three-files');
         const repository = await buildRepository(workdirPath);
 
-        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'do\n');
-        fs.writeFileSync(path.join(workdirPath, 'b.txt'), 'ray\n');
-        fs.writeFileSync(path.join(workdirPath, 'c.txt'), 'me\n');
+        await fs.writeFile(path.join(workdirPath, 'a.txt'), 'do\n');
+        await fs.writeFile(path.join(workdirPath, 'b.txt'), 'ray\n');
+        await fs.writeFile(path.join(workdirPath, 'c.txt'), 'me\n');
 
         const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
 
@@ -852,7 +852,7 @@ describe('RootController', function() {
           repository = await buildRepository(workdirPath);
 
           absFilePath = path.join(workdirPath, 'sample.js');
-          fs.writeFileSync(absFilePath, 'foo\nbar\nbaz\n');
+          await fs.writeFile(absFilePath, 'foo\nbar\nbaz\n');
           multiFilePatch = await repository.getFilePatchForPath('sample.js');
 
           app = React.cloneElement(app, {repository});
@@ -860,11 +860,11 @@ describe('RootController', function() {
         });
 
         it('reverses last discard for file path', async () => {
-          const contents1 = fs.readFileSync(absFilePath, 'utf8');
+          const contents1 = await fs.readFile(absFilePath, 'utf8');
 
           const rows0 = new Set(multiFilePatch.getFilePatches()[0].getHunks()[0].getBufferRows().slice(0, 2));
           await wrapper.instance().discardLines(multiFilePatch, rows0, repository);
-          const contents2 = fs.readFileSync(absFilePath, 'utf8');
+          const contents2 = await fs.readFile(absFilePath, 'utf8');
 
           assert.notEqual(contents1, contents2);
           await repository.refresh();
@@ -873,20 +873,20 @@ describe('RootController', function() {
 
           const rows1 = new Set(multiFilePatch.getFilePatches()[0].getHunks()[0].getBufferRows().slice(2, 4));
           await wrapper.instance().discardLines(multiFilePatch, rows1);
-          const contents3 = fs.readFileSync(absFilePath, 'utf8');
+          const contents3 = await fs.readFile(absFilePath, 'utf8');
           assert.notEqual(contents2, contents3);
 
           await wrapper.instance().undoLastDiscard('sample.js');
-          await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents2);
+          await assert.async.equal(await fs.readFile(absFilePath, 'utf8'), contents2);
           await wrapper.instance().undoLastDiscard('sample.js');
-          await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents1);
+          await assert.async.equal(await fs.readFile(absFilePath, 'utf8'), contents1);
         });
 
         it('does not undo if buffer is modified', async () => {
-          const contents1 = fs.readFileSync(absFilePath, 'utf8');
+          const contents1 = await fs.readFile(absFilePath, 'utf8');
           const rows0 = new Set(multiFilePatch.getFilePatches()[0].getHunks()[0].getBufferRows().slice(0, 2));
           await wrapper.instance().discardLines(multiFilePatch, rows0);
-          const contents2 = fs.readFileSync(absFilePath, 'utf8');
+          const contents2 = await fs.readFile(absFilePath, 'utf8');
           assert.notEqual(contents1, contents2);
 
           // modify buffer
@@ -906,34 +906,34 @@ describe('RootController', function() {
 
         describe('when file content has changed since last discard', () => {
           it('successfully undoes discard if changes do not conflict', async () => {
-            const contents1 = fs.readFileSync(absFilePath, 'utf8');
+            const contents1 = await fs.readFile(absFilePath, 'utf8');
             const rows0 = new Set(multiFilePatch.getFilePatches()[0].getHunks()[0].getBufferRows().slice(0, 2));
             await wrapper.instance().discardLines(multiFilePatch, rows0);
-            const contents2 = fs.readFileSync(absFilePath, 'utf8');
+            const contents2 = await fs.readFile(absFilePath, 'utf8');
             assert.notEqual(contents1, contents2);
 
             // change file contents on disk in non-conflicting way
             const change = '\nchange file contents';
-            fs.writeFileSync(absFilePath, contents2 + change);
+            await fs.writeFile(absFilePath, contents2 + change);
 
             await repository.refresh();
             await wrapper.instance().undoLastDiscard('sample.js');
 
-            await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), contents1 + change);
+            await assert.async.equal(await fs.readFile(absFilePath, 'utf8'), contents1 + change);
           });
 
           it('prompts user to continue if conflicts arise and proceeds based on user input', async () => {
             await repository.git.exec(['config', 'merge.conflictstyle', 'diff3']);
 
-            const contents1 = fs.readFileSync(absFilePath, 'utf8');
+            const contents1 = await fs.readFile(absFilePath, 'utf8');
             const rows0 = new Set(multiFilePatch.getFilePatches()[0].getHunks()[0].getBufferRows().slice(0, 2));
             await wrapper.instance().discardLines(multiFilePatch, rows0);
-            const contents2 = fs.readFileSync(absFilePath, 'utf8');
+            const contents2 = await fs.readFile(absFilePath, 'utf8');
             assert.notEqual(contents1, contents2);
 
             // change file contents on disk in a conflicting way
             const change = '\nchange file contents';
-            fs.writeFileSync(absFilePath, change + contents2);
+            await fs.writeFile(absFilePath, change + contents2);
 
             await repository.refresh();
 
@@ -943,7 +943,7 @@ describe('RootController', function() {
             assert.equal(confirm.callCount, 1);
             const confirmArg = confirm.args[0][0];
             assert.match(confirmArg.message, /Undoing will result in conflicts/);
-            await assert.async.equal(fs.readFileSync(absFilePath, 'utf8'), change + contents2);
+            await assert.async.equal(await fs.readFile(absFilePath, 'utf8'), change + contents2);
 
             // click 'Open in new buffer'
             confirm.returns(1);
@@ -958,8 +958,8 @@ describe('RootController', function() {
             confirm.returns(0);
             await wrapper.instance().undoLastDiscard('sample.js');
             assert.equal(confirm.callCount, 3);
-            await assert.async.isTrue(fs.readFileSync(absFilePath, 'utf8').includes('<<<<<<<'));
-            await assert.async.isTrue(fs.readFileSync(absFilePath, 'utf8').includes('>>>>>>>'));
+            await assert.async.isTrue((await fs.readFile(absFilePath, 'utf8')).includes('<<<<<<<'));
+            await assert.async.isTrue((await fs.readFile(absFilePath, 'utf8')).includes('>>>>>>>'));
 
             // index is updated accordingly
             const diff = await repository.git.exec(['diff', '--', 'sample.js']);
@@ -997,7 +997,7 @@ describe('RootController', function() {
           const {beforeSha} = await wrapper.instance().discardLines(multiFilePatch1, rows1);
 
           // remove blob from git object store
-          fs.unlinkSync(path.join(repository.getGitDirectoryPath(), 'objects', beforeSha.slice(0, 2), beforeSha.slice(2)));
+          await fs.unlink(path.join(repository.getGitDirectoryPath(), 'objects', beforeSha.slice(0, 2), beforeSha.slice(2)));
 
           sinon.stub(notificationManager, 'addError');
           assert.equal(repository.getDiscardHistory('sample.js').length, 2);
@@ -1010,31 +1010,32 @@ describe('RootController', function() {
       });
 
       describe('when partialDiscardFilePath is falsey', () => {
-        let repository, workdirPath, wrapper, pathA, pathB, pathDeleted, pathAdded, getFileContents;
+        let repository, workdirPath, wrapper, pathA, pathB, pathDeleted, pathAdded;
+
+        async function getFileContents(filePath) {
+          try {
+            return await fs.readFile(filePath, {encoding: 'utf8'});
+          } catch (e) {
+            if (e.code === 'ENOENT') {
+              return null;
+            } else {
+              throw e;
+            }
+          }
+        }
+
         beforeEach(async () => {
           workdirPath = await cloneRepository('three-files');
           repository = await buildRepository(workdirPath);
-
-          getFileContents = filePath => {
-            try {
-              return fs.readFileSync(filePath, 'utf8');
-            } catch (e) {
-              if (e.code === 'ENOENT') {
-                return null;
-              } else {
-                throw e;
-              }
-            }
-          };
 
           pathA = path.join(workdirPath, 'a.txt');
           pathB = path.join(workdirPath, 'subdir-1', 'b.txt');
           pathDeleted = path.join(workdirPath, 'c.txt');
           pathAdded = path.join(workdirPath, 'added-file.txt');
-          fs.writeFileSync(pathA, [1, 2, 3, 4, 5, 6, 7, 8, 9].join('\n'));
-          fs.writeFileSync(pathB, ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'].join('\n'));
-          fs.writeFileSync(pathAdded, ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')'].join('\n'));
-          fs.unlinkSync(pathDeleted);
+          await fs.writeFile(pathA, [1, 2, 3, 4, 5, 6, 7, 8, 9].join('\n'));
+          await fs.writeFile(pathB, ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'].join('\n'));
+          await fs.writeFile(pathAdded, ['!', '@', '#', '$', '%', '^', '&', '*', '(', ')'].join('\n'));
+          await fs.unlink(pathDeleted);
 
           app = React.cloneElement(app, {repository});
           wrapper = shallow(app);
@@ -1042,42 +1043,42 @@ describe('RootController', function() {
 
         it('reverses last discard if there are no conflicts', async () => {
           const contents1 = {
-            pathA: getFileContents(pathA),
-            pathB: getFileContents(pathB),
-            pathDeleted: getFileContents(pathDeleted),
-            pathAdded: getFileContents(pathAdded),
+            pathA: await getFileContents(pathA),
+            pathB: await getFileContents(pathB),
+            pathDeleted: await getFileContents(pathDeleted),
+            pathAdded: await getFileContents(pathAdded),
           };
           await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'subdir-1/b.txt']);
           const contents2 = {
-            pathA: getFileContents(pathA),
-            pathB: getFileContents(pathB),
-            pathDeleted: getFileContents(pathDeleted),
-            pathAdded: getFileContents(pathAdded),
+            pathA: await getFileContents(pathA),
+            pathB: await getFileContents(pathB),
+            pathDeleted: await getFileContents(pathDeleted),
+            pathAdded: await getFileContents(pathAdded),
           };
           assert.notDeepEqual(contents1, contents2);
 
           await wrapper.instance().discardWorkDirChangesForPaths(['c.txt', 'added-file.txt']);
           const contents3 = {
-            pathA: getFileContents(pathA),
-            pathB: getFileContents(pathB),
-            pathDeleted: getFileContents(pathDeleted),
-            pathAdded: getFileContents(pathAdded),
+            pathA: await getFileContents(pathA),
+            pathB: await getFileContents(pathB),
+            pathDeleted: await getFileContents(pathDeleted),
+            pathAdded: await getFileContents(pathAdded),
           };
           assert.notDeepEqual(contents2, contents3);
 
           await wrapper.instance().undoLastDiscard();
           await assert.async.deepEqual({
-            pathA: getFileContents(pathA),
-            pathB: getFileContents(pathB),
-            pathDeleted: getFileContents(pathDeleted),
-            pathAdded: getFileContents(pathAdded),
+            pathA: await getFileContents(pathA),
+            pathB: await getFileContents(pathB),
+            pathDeleted: await getFileContents(pathDeleted),
+            pathAdded: await getFileContents(pathAdded),
           }, contents2);
           await wrapper.instance().undoLastDiscard();
           await assert.async.deepEqual({
-            pathA: getFileContents(pathA),
-            pathB: getFileContents(pathB),
-            pathDeleted: getFileContents(pathDeleted),
-            pathAdded: getFileContents(pathAdded),
+            pathA: await getFileContents(pathA),
+            pathB: await getFileContents(pathB),
+            pathDeleted: await getFileContents(pathDeleted),
+            pathAdded: await getFileContents(pathAdded),
           }, contents1);
         });
 
@@ -1107,38 +1108,38 @@ describe('RootController', function() {
         describe('when file content has changed since last discard', () => {
           it('successfully undoes discard if changes do not conflict', async () => {
             pathDeleted = path.join(workdirPath, 'deleted-file.txt');
-            fs.writeFileSync(pathDeleted, 'this file will be deleted\n');
+            await fs.writeFile(pathDeleted, 'this file will be deleted\n');
             await repository.git.exec(['add', '.']);
             await repository.git.exec(['commit', '-m', 'commit files lengthy enough that changes don\'t conflict']);
 
             pathAdded = path.join(workdirPath, 'another-added-file.txt');
 
             // change files
-            fs.writeFileSync(pathA, 'change at beginning\n' + fs.readFileSync(pathA, 'utf8'));
-            fs.writeFileSync(pathB, 'change at beginning\n' + fs.readFileSync(pathB, 'utf8'));
-            fs.unlinkSync(pathDeleted);
-            fs.writeFileSync(pathAdded, 'foo\nbar\baz\n');
+            await fs.writeFile(pathA, 'change at beginning\n' + await fs.readFile(pathA, 'utf8'));
+            await fs.writeFile(pathB, 'change at beginning\n' + await fs.readFile(pathB, 'utf8'));
+            await fs.unlink(pathDeleted);
+            await fs.writeFile(pathAdded, 'foo\nbar\baz\n');
 
             const contentsBeforeDiscard = {
-              pathA: getFileContents(pathA),
-              pathB: getFileContents(pathB),
-              pathDeleted: getFileContents(pathDeleted),
-              pathAdded: getFileContents(pathAdded),
+              pathA: await getFileContents(pathA),
+              pathB: await getFileContents(pathB),
+              pathDeleted: await getFileContents(pathDeleted),
+              pathAdded: await getFileContents(pathAdded),
             };
 
             await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'subdir-1/b.txt', 'deleted-file.txt', 'another-added-file.txt']);
 
             // change file contents on disk in non-conflicting way
-            fs.writeFileSync(pathA, fs.readFileSync(pathA, 'utf8') + 'change at end');
-            fs.writeFileSync(pathB, fs.readFileSync(pathB, 'utf8') + 'change at end');
+            await fs.writeFile(pathA, await fs.readFile(pathA, 'utf8') + 'change at end');
+            await fs.writeFile(pathB, await fs.readFile(pathB, 'utf8') + 'change at end');
 
             await wrapper.instance().undoLastDiscard();
 
             await assert.async.deepEqual({
-              pathA: getFileContents(pathA),
-              pathB: getFileContents(pathB),
-              pathDeleted: getFileContents(pathDeleted),
-              pathAdded: getFileContents(pathAdded),
+              pathA: await getFileContents(pathA),
+              pathB: await getFileContents(pathB),
+              pathDeleted: await getFileContents(pathDeleted),
+              pathAdded: await getFileContents(pathAdded),
             }, {
               pathA: contentsBeforeDiscard.pathA + 'change at end',
               pathB: contentsBeforeDiscard.pathB + 'change at end',
@@ -1149,29 +1150,29 @@ describe('RootController', function() {
 
           it('prompts user to continue if conflicts arise and proceeds based on user input, updating index to reflect files under conflict', async () => {
             pathDeleted = path.join(workdirPath, 'deleted-file.txt');
-            fs.writeFileSync(pathDeleted, 'this file will be deleted\n');
+            await fs.writeFile(pathDeleted, 'this file will be deleted\n');
             await repository.git.exec(['add', '.']);
             await repository.git.exec(['commit', '-m', 'commit files lengthy enough that changes don\'t conflict']);
 
             pathAdded = path.join(workdirPath, 'another-added-file.txt');
-            fs.writeFileSync(pathA, 'change at beginning\n' + fs.readFileSync(pathA, 'utf8'));
-            fs.writeFileSync(pathB, 'change at beginning\n' + fs.readFileSync(pathB, 'utf8'));
-            fs.unlinkSync(pathDeleted);
-            fs.writeFileSync(pathAdded, 'foo\nbar\baz\n');
+            await fs.writeFile(pathA, 'change at beginning\n' + await fs.readFile(pathA, 'utf8'));
+            await fs.writeFile(pathB, 'change at beginning\n' + await fs.readFile(pathB, 'utf8'));
+            await fs.unlink(pathDeleted);
+            await fs.writeFile(pathAdded, 'foo\nbar\baz\n');
 
             await wrapper.instance().discardWorkDirChangesForPaths(['a.txt', 'subdir-1/b.txt', 'deleted-file.txt', 'another-added-file.txt']);
 
             // change files in a conflicting way
-            fs.writeFileSync(pathA, 'conflicting change\n' + fs.readFileSync(pathA, 'utf8'));
-            fs.writeFileSync(pathB, 'conflicting change\n' + fs.readFileSync(pathB, 'utf8'));
-            fs.writeFileSync(pathDeleted, 'conflicting change\n');
-            fs.writeFileSync(pathAdded, 'conflicting change\n');
+            await fs.writeFile(pathA, 'conflicting change\n' + await fs.readFile(pathA, 'utf8'));
+            await fs.writeFile(pathB, 'conflicting change\n' + await fs.readFile(pathB, 'utf8'));
+            await fs.writeFile(pathDeleted, 'conflicting change\n');
+            await fs.writeFile(pathAdded, 'conflicting change\n');
 
             const contentsAfterConflictingChange = {
-              pathA: getFileContents(pathA),
-              pathB: getFileContents(pathB),
-              pathDeleted: getFileContents(pathDeleted),
-              pathAdded: getFileContents(pathAdded),
+              pathA: await getFileContents(pathA),
+              pathB: await getFileContents(pathB),
+              pathDeleted: await getFileContents(pathDeleted),
+              pathAdded: await getFileContents(pathAdded),
             };
 
             // click 'Cancel'
@@ -1181,10 +1182,10 @@ describe('RootController', function() {
             const confirmArg = confirm.args[0][0];
             assert.match(confirmArg.message, /Undoing will result in conflicts/);
             await assert.async.deepEqual({
-              pathA: getFileContents(pathA),
-              pathB: getFileContents(pathB),
-              pathDeleted: getFileContents(pathDeleted),
-              pathAdded: getFileContents(pathAdded),
+              pathA: await getFileContents(pathA),
+              pathB: await getFileContents(pathB),
+              pathDeleted: await getFileContents(pathDeleted),
+              pathAdded: await getFileContents(pathAdded),
             }, contentsAfterConflictingChange);
 
             // click 'Open in new editors'
@@ -1221,10 +1222,10 @@ describe('RootController', function() {
             await wrapper.instance().undoLastDiscard();
             assert.equal(confirm.callCount, 3);
             const contentsAfterUndo = {
-              pathA: getFileContents(pathA),
-              pathB: getFileContents(pathB),
-              pathDeleted: getFileContents(pathDeleted),
-              pathAdded: getFileContents(pathAdded),
+              pathA: await getFileContents(pathA),
+              pathB: await getFileContents(pathB),
+              pathDeleted: await getFileContents(pathDeleted),
+              pathAdded: await getFileContents(pathAdded),
             };
             await assert.async.isTrue(contentsAfterUndo.pathA.includes('<<<<<<<'));
             await assert.async.isTrue(contentsAfterUndo.pathA.includes('>>>>>>>'));
@@ -1247,7 +1248,7 @@ describe('RootController', function() {
           const {beforeSha} = snapshots['subdir-1/b.txt'];
 
           // remove blob from git object store
-          fs.unlinkSync(path.join(repository.getGitDirectoryPath(), 'objects', beforeSha.slice(0, 2), beforeSha.slice(2)));
+          await fs.unlink(path.join(repository.getGitDirectoryPath(), 'objects', beforeSha.slice(0, 2), beforeSha.slice(2)));
 
           sinon.stub(notificationManager, 'addError');
           assert.equal(repository.getDiscardHistory().length, 2);
@@ -1268,7 +1269,7 @@ describe('RootController', function() {
         const repository = await buildRepository(workdirPath);
         const wrapper = mount(React.cloneElement(app, {repository}));
 
-        fs.writeFileSync(path.join(workdirPath, 'a.txt'), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].join('\n'));
+        await fs.writeFile(path.join(workdirPath, 'a.txt'), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].join('\n'));
 
         const editor = await workspace.open(path.join(workdirPath, 'a.txt'));
         editor.setCursorBufferPosition([7, 0]);
@@ -1312,7 +1313,7 @@ describe('RootController', function() {
         const repository = await buildRepository(workdirPath);
         const wrapper = mount(React.cloneElement(app, {repository}));
 
-        fs.writeFileSync(path.join(workdirPath, 'a.txt'), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].join('\n'));
+        await fs.writeFile(path.join(workdirPath, 'a.txt'), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].join('\n'));
         await repository.stageFiles(['a.txt']);
 
         const editor = await workspace.open(path.join(workdirPath, 'a.txt'));

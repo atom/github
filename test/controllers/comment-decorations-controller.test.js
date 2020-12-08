@@ -1,7 +1,7 @@
 import React from 'react';
 import {mount, shallow} from 'enzyme';
 import path from 'path';
-import fs from 'fs-extra';
+import {promises as fs} from 'fs';
 
 import {BareCommentDecorationsController} from '../../lib/controllers/comment-decorations-controller';
 import RelayNetworkLayerManager from '../../lib/relay-network-layer-manager';
@@ -25,7 +25,13 @@ describe('CommentDecorationsController', function() {
 
   afterEach(async function() {
     atomEnv.destroy();
-    await fs.remove(path.join(__dirname, 'file0.txt'));
+    try {
+      await fs.unlink(path.join(__dirname, 'file0.txt'));
+    } catch (e) {
+      if (e.code !== 'ENOENT') {
+        throw e;
+      }
+    }
   });
 
   function buildApp(override = {}) {

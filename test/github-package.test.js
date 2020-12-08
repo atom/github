@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import {promises as fs} from 'fs';
 import path from 'path';
 import temp from 'temp';
 import until from 'test-until';
@@ -264,7 +264,7 @@ describe('GithubPackage', function() {
       let confFile;
       beforeEach(async function() {
         confFile = path.join(configDirPath, 'github.cson');
-        await fs.remove(confFile);
+        await fs.unlink(confFile);
 
         config.set('welcome.showOnStartup', true);
         await githubPackage.activate();
@@ -287,7 +287,7 @@ describe('GithubPackage', function() {
       let confFile;
       beforeEach(async function() {
         confFile = path.join(configDirPath, 'github.cson');
-        await fs.remove(confFile);
+        await fs.unlink(confFile);
 
         config.set('welcome.showOnStartup', false);
         await githubPackage.activate();
@@ -572,7 +572,7 @@ describe('GithubPackage', function() {
         workdirMergeConflict = await cloneRepository('merge-conflict');
         workdirNoConflict = await cloneRepository('three-files');
         nonRepositoryPath = await fs.realpath(temp.mkdirSync());
-        fs.writeFileSync(path.join(nonRepositoryPath, 'c.txt'));
+        await fs.writeFile(path.join(nonRepositoryPath, 'c.txt'));
         project.setPaths([workdirMergeConflict, workdirNoConflict, nonRepositoryPath]);
         await contextUpdateAfter(githubPackage, () => githubPackage.activate());
         const resolutionMergeConflict = contextPool.getContext(workdirMergeConflict).getResolutionProgress();
@@ -772,7 +772,7 @@ describe('GithubPackage', function() {
         }
         const workdirPath = await cloneRepository('three-files');
         const symlinkPath = (await fs.realpath(temp.mkdirSync())) + '-symlink';
-        fs.symlinkSync(workdirPath, symlinkPath);
+        await fs.symlink(workdirPath, symlinkPath);
         project.setPaths([symlinkPath]);
 
         await githubPackage.scheduleActiveContextUpdate();
@@ -1020,8 +1020,8 @@ describe('GithubPackage', function() {
         cloneRepository('three-files'),
       ]);
 
-      fs.writeFileSync(path.join(workdirPath1, 'c.txt'), 'ch-ch-ch-changes', 'utf8');
-      fs.writeFileSync(path.join(workdirPath2, 'c.txt'), 'ch-ch-ch-changes', 'utf8');
+      await fs.writeFile(path.join(workdirPath1, 'c.txt'), 'ch-ch-ch-changes', 'utf8');
+      await fs.writeFile(path.join(workdirPath2, 'c.txt'), 'ch-ch-ch-changes', 'utf8');
     });
 
     // Setup up GitHub Package and file watchers
@@ -1062,12 +1062,12 @@ describe('GithubPackage', function() {
     });
 
     describe('when a file change is made outside Atom in workspace 1', function() {
-      beforeEach(function() {
+      beforeEach(async function() {
         if (process.platform === 'linux') {
           this.skip();
         }
 
-        fs.writeFileSync(path.join(workdirPath1, 'a.txt'), 'some changes', 'utf8');
+        await fs.writeFile(path.join(workdirPath1, 'a.txt'), 'some changes', 'utf8');
       });
 
       it('refreshes the corresponding repository', async function() {
@@ -1080,12 +1080,12 @@ describe('GithubPackage', function() {
     });
 
     describe('when a file change is made outside Atom in workspace 2', function() {
-      beforeEach(function() {
+      beforeEach(async function() {
         if (process.platform === 'linux') {
           this.skip();
         }
 
-        fs.writeFileSync(path.join(workdirPath2, 'b.txt'), 'other changes', 'utf8');
+        await fs.writeFile(path.join(workdirPath2, 'b.txt'), 'other changes', 'utf8');
       });
 
       it('refreshes the corresponding repository', async function() {

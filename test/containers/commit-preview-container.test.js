@@ -1,6 +1,6 @@
 import React from 'react';
 import {mount} from 'enzyme';
-import fs from 'fs-extra';
+import {promises as fs} from 'fs';
 import path from 'path';
 
 import CommitPreviewContainer from '../../lib/containers/commit-preview-container';

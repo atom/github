@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import {promises as fs} from 'fs';
 import path from 'path';
 
 import {setup, teardown} from './helpers';

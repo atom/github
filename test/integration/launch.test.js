@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import {promises as fs} from 'fs';
 import path from 'path';
 
 import {setup, teardown} from './helpers';
@@ -14,7 +14,6 @@ describe('integration: package initialization', function() {
 
   it('reveals the tabs on first run when the welcome package has been dismissed', async function() {
     context = await setup({
-      initConfigDir: configDirPath => fs.remove(path.join(configDirPath, 'github.cson')),
       initAtomEnv: env => env.config.set('welcome.showOnStartup', false),
     });
 
@@ -29,7 +28,6 @@ describe('integration: package initialization', function() {
 
   it('renders but does not reveal the tabs on first run when the welcome package has not been dismissed', async function() {
     context = await setup({
-      initConfigDir: configDirPath => fs.remove(path.join(configDirPath, 'github.cson')),
       initAtomEnv: env => env.config.set('welcome.showOnStartup', true),
     });
 

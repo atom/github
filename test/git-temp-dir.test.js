@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import {promises as fs, constants as fsConstants} from 'fs';
 import path from 'path';
 
 import GitTempDir, {BIN_SCRIPTS} from '../lib/git-temp-dir';
@@ -15,7 +15,7 @@ describe('GitTempDir', function() {
       assert.isTrue(stat.isFile());
       if (script.endsWith('.sh') && process.platform !== 'win32') {
         // eslint-disable-next-line no-bitwise
-        assert.isTrue((stat.mode & fs.constants.S_IXUSR) === fs.constants.S_IXUSR);
+        assert.isTrue((stat.mode & fsConstants.S_IXUSR) === fsConstants.S_IXUSR);
       }
     }
 

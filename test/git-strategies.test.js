@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import {promises as fs, constants as fsConstants} from 'fs';
 import path from 'path';
 import http from 'http';
 import os from 'os';
@@ -100,7 +100,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
       const hookPath = path.join(workingDirPath, '.git', 'hooks', 'pre-commit');
       await fs.writeFile(hookPath, hookContent, {encoding: 'utf8'});
-      fs.chmodSync(hookPath, 0o755);
+      await fs.chmod(hookPath, 0o755);
 
       delete process.env.ALLOWCOMMIT;
       await assert.isRejected(git.exec(['commit', '--allow-empty', '-m', 'commit yo']), /ALLOWCOMMIT/);
@@ -115,9 +115,12 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const git = createTestStrategy(workingDirPath);
         const dotGitFolder = await git.resolveDotGitDir(workingDirPath);
         assert.equal(dotGitFolder, path.join(workingDirPath, '.git'));
+      });
 
-        fs.removeSync(path.join(workingDirPath, '.git'));
-        assert.isNull(await git.resolveDotGitDir(workingDirPath));
+      it('returns null if the .git dir does not exist', async function() {
+        const emptyDir = await getTempDir();
+        const git = createTestStrategy(emptyDir);
+        assert.isNull(await git.resolveDotGitDir(emptyDir));
       });
 
       it('supports gitdir files', async function() {
@@ -187,7 +190,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
       it('interprets relative paths local to the working directory', async function() {
         const subDir = path.join(workingDirPath, 'abc/def/ghi');
         const subPath = path.join(subDir, 'template.txt');
-        await fs.mkdirs(subDir);
+        await fs.mkdir(subDir, {recursive: true});
         await fs.writeFile(subPath, templateText, {encoding: 'utf8'});
         await git.setConfig('commit.template', path.join('abc/def/ghi/template.txt'));
         assert.strictEqual(await git.fetchCommitMessageTemplate(), templateText);
@@ -516,10 +519,10 @@ import * as reporterProxy from '../lib/reporter-proxy';
       it('returns an object with working directory file diff status between relative to specified target commit', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
-        fs.unlinkSync(path.join(workingDirPath, 'b.txt'));
-        fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'));
-        fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8');
+        await fs.writeFile(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+        await fs.unlink(path.join(workingDirPath, 'b.txt'));
+        await fs.rename(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'));
+        await fs.writeFile(path.join(workingDirPath, 'e.txt'), 'qux', 'utf8');
         const diffOutput = await git.diffFileStatus({target: 'HEAD'});
         assert.deepEqual(diffOutput, {
           'a.txt': 'modified',
@@ -540,7 +543,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
       it('only returns untracked files if the staged option is not passed', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'qux', 'utf8');
+        await fs.writeFile(path.join(workingDirPath, 'new-file.txt'), 'qux', 'utf8');
         let diffOutput = await git.diffFileStatus({target: 'HEAD'});
         assert.deepEqual(diffOutput, {'new-file.txt': 'added'});
         diffOutput = await git.diffFileStatus({target: 'HEAD', staged: true});
@@ -552,20 +555,20 @@ import * as reporterProxy from '../lib/reporter-proxy';
       it('returns an array of untracked file paths', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        fs.writeFileSync(path.join(workingDirPath, 'd.txt'), 'foo', 'utf8');
-        fs.writeFileSync(path.join(workingDirPath, 'e.txt'), 'bar', 'utf8');
-        fs.writeFileSync(path.join(workingDirPath, 'f.txt'), 'qux', 'utf8');
+        await fs.writeFile(path.join(workingDirPath, 'd.txt'), 'foo', 'utf8');
+        await fs.writeFile(path.join(workingDirPath, 'e.txt'), 'bar', 'utf8');
+        await fs.writeFile(path.join(workingDirPath, 'f.txt'), 'qux', 'utf8');
         assert.deepEqual(await git.getUntrackedFiles(), ['d.txt', 'e.txt', 'f.txt']);
       });
 
       it('handles untracked files in nested folders', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        fs.writeFileSync(path.join(workingDirPath, 'd.txt'), 'foo', 'utf8');
+        await fs.writeFile(path.join(workingDirPath, 'd.txt'), 'foo', 'utf8');
         const folderPath = path.join(workingDirPath, 'folder', 'subfolder');
         mkdirp.sync(folderPath);
-        fs.writeFileSync(path.join(folderPath, 'e.txt'), 'bar', 'utf8');
-        fs.writeFileSync(path.join(folderPath, 'f.txt'), 'qux', 'utf8');
+        await fs.writeFile(path.join(folderPath, 'e.txt'), 'bar', 'utf8');
+        await fs.writeFile(path.join(folderPath, 'f.txt'), 'qux', 'utf8');
         assert.deepEqual(await git.getUntrackedFiles(), [
           'd.txt',
           path.join('folder', 'subfolder', 'e.txt'),
@@ -600,7 +603,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
 
-        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+        await fs.writeFile(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
         process.env.GIT_EXTERNAL_DIFF = 'bogus_app_name';
         const diffOutput = await git.getDiffsForFilePath('a.txt');
         delete process.env.GIT_EXTERNAL_DIFF;
@@ -648,8 +651,8 @@ import * as reporterProxy from '../lib/reporter-proxy';
         it('returns a diff comparing the working directory copy of the file and the version on the index', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
-          fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
-          fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'));
+          await fs.writeFile(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+          await fs.rename(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'));
 
           assertDeepPropertyVals(await git.getDiffsForFilePath('a.txt'), [{
             oldPath: 'a.txt',
@@ -715,8 +718,8 @@ import * as reporterProxy from '../lib/reporter-proxy';
         it('returns a diff comparing the index and head versions of the file', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
-          fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
-          fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'));
+          await fs.writeFile(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+          await fs.rename(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'd.txt'));
           await git.exec(['add', '.']);
 
           assertDeepPropertyVals(await git.getDiffsForFilePath('a.txt', {staged: true}), [{
@@ -808,7 +811,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         it('returns a diff representing the addition of the file', async function() {
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
-          fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'qux\nfoo\nbar\n', 'utf8');
+          await fs.writeFile(path.join(workingDirPath, 'new-file.txt'), 'qux\nfoo\nbar\n', 'utf8');
           assertDeepPropertyVals(await git.getDiffsForFilePath('new-file.txt'), [{
             oldPath: null,
             newPath: 'new-file.txt',
@@ -842,7 +845,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
               data.writeUInt8(i + 200, i);
             }
             // make the file executable so we test that executable mode is set correctly
-            fs.writeFileSync(path.join(workingDirPath, 'new-file.bin'), data, {mode: 0o755});
+            await fs.writeFile(path.join(workingDirPath, 'new-file.bin'), data, {mode: 0o755});
 
             const expectedFileMode = process.platform === 'win32' ? '100644' : '100755';
 
@@ -901,7 +904,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         isMerging = await git.isMerging(dotGitDir);
         assert.isTrue(isMerging);
 
-        fs.unlinkSync(path.join(workingDirPath, '.git', 'MERGE_HEAD'));
+        await fs.unlink(path.join(workingDirPath, '.git', 'MERGE_HEAD'));
         isMerging = await git.isMerging(dotGitDir);
         assert.isFalse(isMerging);
       });
@@ -952,7 +955,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
 
-          fs.appendFileSync(path.join(workingDirPath, 'a.txt'), 'bar\n', 'utf8');
+          await fs.appendFile(path.join(workingDirPath, 'a.txt'), 'bar\n', 'utf8');
           await git.exec(['add', '.']);
           await git.commit('add stuff');
 
@@ -987,7 +990,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         assert.lengthOf(await git.getCommits({max: 10}), 1);
 
         // Put something into the index to ensure it doesn't get lost
-        fs.appendFileSync(path.join(workingDirPath, 'a.txt'), 'zzz\n', 'utf8');
+        await fs.appendFile(path.join(workingDirPath, 'a.txt'), 'zzz\n', 'utf8');
         await git.exec(['add', '.']);
 
         await git.deleteRef('HEAD');
@@ -1552,7 +1555,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
       it('creates a blob for the file path specified and returns its sha', async function() {
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
-        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+        await fs.writeFile(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
         const sha = await git.createBlob({filePath: 'a.txt'});
         assert.equal(sha, 'c9f54222977c93ea17ba4a5a53c611fa7f1aaf56');
         const contents = await git.exec(['cat-file', '-p', sha]);
@@ -1588,11 +1591,11 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
         const absFilePath = path.join(workingDirPath, 'a.txt');
-        fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
+        await fs.writeFile(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
         const sha = await git.createBlob({filePath: 'a.txt'});
-        fs.writeFileSync(absFilePath, 'modifications', 'utf8');
+        await fs.writeFile(absFilePath, 'modifications', 'utf8');
         await git.expandBlobToFile(absFilePath, sha);
-        assert.equal(fs.readFileSync(absFilePath), 'qux\nfoo\nbar\n');
+        assert.equal(await fs.readFile(absFilePath), 'qux\nfoo\nbar\n');
       });
     });
 
@@ -1611,7 +1614,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
         const absFilePath = path.join(workingDirPath, 'a.txt');
-        fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
+        await fs.writeFile(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
 
         assert.equal(await git.getFileMode('a.txt'), '100644');
 
@@ -1623,19 +1626,19 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const workingDirPath = await cloneRepository('three-files');
         const git = createTestStrategy(workingDirPath);
         const absFilePath = path.join(workingDirPath, 'new-file.txt');
-        fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
+        await fs.writeFile(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
         const regularMode = (await fs.stat(absFilePath)).mode;
-        const executableMode = regularMode | fs.constants.S_IXUSR; // eslint-disable-line no-bitwise
+        const executableMode = regularMode | fsConstants.S_IXUSR; // eslint-disable-line no-bitwise
 
         assert.equal(await git.getFileMode('new-file.txt'), '100644');
 
-        fs.chmodSync(absFilePath, executableMode);
+        await fs.chmod(absFilePath, executableMode);
         const expectedFileMode = process.platform === 'win32' ? '100644' : '100755';
         assert.equal(await git.getFileMode('new-file.txt'), expectedFileMode);
 
         const targetPath = path.join(workingDirPath, 'a.txt');
         const symlinkPath = path.join(workingDirPath, 'symlink.txt');
-        fs.symlinkSync(targetPath, symlinkPath);
+        await fs.symlink(targetPath, symlinkPath);
         assert.equal(await git.getFileMode('symlink.txt'), '120000');
       });
 
@@ -1663,7 +1666,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
             resultPath: 'results-without-conflict.txt',
             conflict: false,
           });
-          assert.equal(fs.readFileSync(withoutConflictPath, 'utf8'), fs.readFileSync(aPath, 'utf8'));
+          assert.equal(await fs.readFile(withoutConflictPath, 'utf8'), await fs.readFile(aPath, 'utf8'));
 
           // contents of current and other paths conflict
           const resultsWithConflict = await git.mergeFile('a.txt', 'b.txt', 'c.txt', 'results-with-conflict.txt');
@@ -1672,7 +1675,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
             resultPath: 'results-with-conflict.txt',
             conflict: true,
           });
-          const contents = fs.readFileSync(withConflictPath, 'utf8');
+          const contents = await fs.readFile(withConflictPath, 'utf8');
           assert.isTrue(contents.includes('<<<<<<<'));
           assert.isTrue(contents.includes('>>>>>>>'));
         });
@@ -1691,7 +1694,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
           const absFilePath = path.join(workingDirPath, 'a.txt');
-          fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
+          await fs.writeFile(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
           await git.exec(['update-index', '--chmod=+x', 'a.txt']);
 
           const commonBaseSha = '7f95a814cbd9b366c5dedb6d812536dfef2fffb7';
@@ -1711,7 +1714,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
           const workingDirPath = await cloneRepository('three-files');
           const git = createTestStrategy(workingDirPath);
           const absFilePath = path.join(workingDirPath, 'a.txt');
-          fs.writeFileSync(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
+          await fs.writeFile(absFilePath, 'qux\nfoo\nbar\n', 'utf8');
           await git.exec(['update-index', '--chmod=+x', 'a.txt']);
 
           const commonBaseSha = '7f95a814cbd9b366c5dedb6d812536dfef2fffb7';
