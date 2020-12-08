@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import {promises as fs} from 'fs';
 import path from 'path';
 import temp from 'temp';
 import until from 'test-until';
@@ -24,13 +24,36 @@ assert.autocrlfEqual = (actual, expected, ...args) => {
   return assert.equal(newActual, newExpected, ...args);
 };
 
+// Naive, Promise-based recursive copy, to avoid carrying a full dependency we can't snapshot just for this.
+async function copyDirectory(src, dest) {
+  const entries = await fs.readdir(src, {withFileTypes: true});
+
+  const directories = entries.filter(entry => entry.isDirectory());
+  await Promise.all(
+    directories.map(directory => fs.mkdir(path.join(dest, directory.name), {recursive: true})),
+  );
+
+  return Promise.all(
+    entries.map(entry => {
+      const fullSrc = path.join(src, entry.name);
+      const fullDest = path.join(dest, entry.name);
+
+      if (entry.isDirectory()) {
+        return copyDirectory(fullSrc, fullDest);
+      } else {
+        return fs.copyFile(fullSrc, fullDest);
+      }
+    }),
+  );
+}
+
 // cloning a repo into a folder and then copying it
 // for each subsequent request to clone makes cloning
 // 2-3x faster on macOS and 5-10x faster on Windows
 const cachedClonedRepos = {};
 async function copyCachedRepo(repoName) {
   const workingDirPath = temp.mkdirSync('git-fixture-');
-  await fs.copy(cachedClonedRepos[repoName], workingDirPath);
+  await copyDirectory(cachedClonedRepos[repoName], workingDirPath);
   return fs.realpath(workingDirPath);
 }
 
@@ -284,7 +307,7 @@ export function transpile(...relPaths) {
       const untranspiledSource = await fs.readFile(untranspiledPath, {encoding: 'utf8'});
       const transpiledSource = transpiler.transpile(untranspiledSource, untranspiledPath, {}, {}).code;
 
-      await fs.mkdirs(path.dirname(transpiledPath));
+      await fs.mkdir(path.dirname(transpiledPath), {recursive: true});
       await fs.writeFile(transpiledPath, transpiledSource, {encoding: 'utf8'});
       return transpiledPath;
     }),
