@@ -1,22 +1,26 @@
 import path from 'path';
-import fs from 'fs-extra';
+import {promises as fs} from 'fs';
 import React from 'react';
 import {shallow, mount} from 'enzyme';
 
 import Commit from '../../lib/models/commit';
 import {nullBranch} from '../../lib/models/branch';
 import UserStore from '../../lib/models/user-store';
+import {fileExists} from '../../lib/helpers';
 
 import CommitController, {COMMIT_GRAMMAR_SCOPE} from '../../lib/controllers/commit-controller';
 import CommitPreviewItem from '../../lib/items/commit-preview-item';
-import {cloneRepository, buildRepository, buildRepositoryWithPipeline, registerGitHubOpener} from '../helpers';
+import WorkdirContext from '../../lib/models/workdir-context';
+import getRepoPipelineManager from '../../lib/get-repo-pipeline-manager';
+import {cloneRepository, buildRepository, registerGitHubOpener} from '../helpers';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('CommitController', function() {
   let atomEnvironment, workspace, commands, notificationManager, lastCommit, config, confirm, tooltips;
-  let app;
+  let app, contexts;
 
   beforeEach(function() {
+    contexts = [];
     atomEnvironment = global.buildAtomEnvironment();
     workspace = atomEnvironment.workspace;
     commands = atomEnvironment.commands;
@@ -53,19 +57,32 @@ describe('CommitController', function() {
     );
   });
 
-  afterEach(function() {
+  async function watchedRepository(options = {}) {
+    const workdirPath = await cloneRepository('three-files');
+    const context = new WorkdirContext(workdirPath, options);
+    contexts.push(context);
+
+    await Promise.all([
+      context.getRepository().getLoadPromise(),
+      context.getObserverStartedPromise(),
+    ]);
+
+    return context.getRepository();
+  }
+
+  afterEach(async function() {
+    await Promise.all(contexts.map(context => context.destroy()));
+    contexts = [];
     atomEnvironment.destroy();
   });
 
   it('correctly updates state when switching repos', async function() {
-    const workdirPath1 = await cloneRepository('three-files');
-    const repository1 = await buildRepository(workdirPath1);
-    const workdirPath2 = await cloneRepository('three-files');
-    const repository2 = await buildRepository(workdirPath2);
+    const repository1 = await watchedRepository();
+    const repository2 = await watchedRepository();
 
     // set commit template for repository2
-    const templatePath = path.join(workdirPath2, 'a.txt');
-    const templateText = fs.readFileSync(templatePath, 'utf8');
+    const templatePath = path.join(repository2.getWorkingDirectoryPath(), 'a.txt');
+    const templateText = await fs.readFile(templatePath, {encoding: 'utf8'});
     await repository2.git.setConfig('commit.template', templatePath);
     await assert.async.strictEqual(repository2.getCommitMessage(), templateText);
 
@@ -119,10 +136,11 @@ describe('CommitController', function() {
     let workdirPath, repository, commit;
 
     beforeEach(async function() {
-      workdirPath = await cloneRepository('three-files');
-      repository = await buildRepositoryWithPipeline(workdirPath, {confirm, notificationManager, workspace});
-      commit = sinon.stub().callsFake((...args) => repository.commit(...args));
+      const pipelineManager = getRepoPipelineManager({confirm, notificationManager, workspace});
+      repository = await watchedRepository({pipelineManager});
+      workdirPath = repository.getWorkingDirectoryPath();
 
+      commit = sinon.stub().callsFake((...args) => repository.commit(...args));
       app = React.cloneElement(app, {repository, commit});
     });
 
@@ -173,7 +191,7 @@ describe('CommitController', function() {
 
     it('restores template after committing', async function() {
       const templatePath = path.join(workdirPath, 'a.txt');
-      const templateText = fs.readFileSync(templatePath, 'utf8');
+      const templateText = await fs.readFile(templatePath, 'utf8');
       await repository.git.setConfig('commit.template', templatePath);
       await assert.async.strictEqual(repository.getCommitMessage(), templateText);
 
@@ -345,7 +363,7 @@ describe('CommitController', function() {
       });
 
       it('takes the commit message from the editor and deletes the `ATOM_COMMIT_EDITMSG` file', async function() {
-        fs.writeFileSync(path.join(workdirPath, 'a.txt'), 'some changes');
+        await fs.writeFile(path.join(workdirPath, 'a.txt'), 'some changes');
         await repository.stageFiles(['a.txt']);
 
         app = React.cloneElement(app, {prepareToCommit: () => true, stagedChangesExist: true});
@@ -361,7 +379,7 @@ describe('CommitController', function() {
         await wrapper.find('CommitView').prop('commit')('message in box');
 
         assert.strictEqual((await repository.getLastCommit()).getMessageSubject(), 'message in editor');
-        assert.isFalse(fs.existsSync(wrapper.instance().getCommitMessagePath()));
+        assert.isFalse(await fileExists(wrapper.instance().getCommitMessagePath()));
         assert.isTrue(commit.calledWith('message in editor', {
           amend: false, coAuthors: [], verbatim: false,
         }));

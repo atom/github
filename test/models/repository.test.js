@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import {promises as fs} from 'fs';
 import path from 'path';
 import dedent from 'dedent-js';
 import temp from 'temp';
@@ -295,7 +295,7 @@ describe('Repository', function() {
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
       const [patch] = await repo.getUnstagedChanges();
       const filePath = patch.filePath;
 
@@ -315,7 +315,7 @@ describe('Repository', function() {
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      fs.unlinkSync(path.join(workingDirPath, 'subdir-1', 'b.txt'));
+      await fs.unlink(path.join(workingDirPath, 'subdir-1', 'b.txt'));
       const [patch] = await repo.getUnstagedChanges();
       const filePath = patch.filePath;
 
@@ -335,7 +335,7 @@ describe('Repository', function() {
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      fs.renameSync(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'subdir-1', 'd.txt'));
+      await fs.rename(path.join(workingDirPath, 'c.txt'), path.join(workingDirPath, 'subdir-1', 'd.txt'));
       const patches = await repo.getUnstagedChanges();
       const filePath1 = patches[0].filePath;
       const filePath2 = patches[1].filePath;
@@ -353,10 +353,10 @@ describe('Repository', function() {
 
     it('can stage and unstage added files, including those in added directories', async function() {
       const workingDirPath = await cloneRepository('three-files');
-      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'e.txt'), 'qux', 'utf8');
-      fs.mkdirSync(path.join(workingDirPath, 'new-folder'));
-      fs.writeFileSync(path.join(workingDirPath, 'new-folder', 'b.txt'), 'bar\n', 'utf8');
-      fs.writeFileSync(path.join(workingDirPath, 'new-folder', 'c.txt'), 'baz\n', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'subdir-1', 'e.txt'), 'qux', 'utf8');
+      await fs.mkdir(path.join(workingDirPath, 'new-folder'));
+      await fs.writeFile(path.join(workingDirPath, 'new-folder', 'b.txt'), 'bar\n', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'new-folder', 'c.txt'), 'baz\n', 'utf8');
 
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
@@ -389,8 +389,8 @@ describe('Repository', function() {
 
       const {mode, oid} = await indexModeAndOid(path.join(workingDirPath, filePath));
       assert.equal(mode, '100644');
-      fs.chmodSync(path.join(workingDirPath, filePath), 0o755);
-      fs.writeFileSync(path.join(workingDirPath, filePath), 'qux\nfoo\nbar\n', 'utf8');
+      await fs.chmod(path.join(workingDirPath, filePath), 0o755);
+      await fs.writeFile(path.join(workingDirPath, filePath), 'qux\nfoo\nbar\n', 'utf8');
 
       await repo.stageFileModeChange(filePath, '100755');
       assert.deepEqual(await indexModeAndOid(filePath), {mode: '100755', oid});
@@ -420,12 +420,12 @@ describe('Repository', function() {
       }
 
       const deletedSymlinkAddedFilePath = 'symlink.txt';
-      fs.unlinkSync(path.join(workingDirPath, deletedSymlinkAddedFilePath));
-      fs.writeFileSync(path.join(workingDirPath, deletedSymlinkAddedFilePath), 'qux\nfoo\nbar\n', 'utf8');
+      await fs.unlink(path.join(workingDirPath, deletedSymlinkAddedFilePath));
+      await fs.writeFile(path.join(workingDirPath, deletedSymlinkAddedFilePath), 'qux\nfoo\nbar\n', 'utf8');
 
       const deletedFileAddedSymlinkPath = 'a.txt';
-      fs.unlinkSync(path.join(workingDirPath, deletedFileAddedSymlinkPath));
-      fs.symlinkSync(path.join(workingDirPath, 'regular-file.txt'), path.join(workingDirPath, deletedFileAddedSymlinkPath));
+      await fs.unlink(path.join(workingDirPath, deletedFileAddedSymlinkPath));
+      await fs.symlink(path.join(workingDirPath, 'regular-file.txt'), path.join(workingDirPath, deletedFileAddedSymlinkPath));
 
       // Stage symlink change, leaving added file unstaged
       assert.equal((await indexModeAndOid(deletedSymlinkAddedFilePath)).mode, '120000');
@@ -476,9 +476,9 @@ describe('Repository', function() {
       const zShortPath = path.join('z-dir', 'a.txt');
       const zFilePath = path.join(workingDirPath, zShortPath);
       const wFilePath = path.join(workingDirPath, 'w.txt');
-      fs.mkdirSync(path.join(workingDirPath, 'z-dir'));
-      fs.renameSync(path.join(workingDirPath, 'a.txt'), zFilePath);
-      fs.renameSync(path.join(workingDirPath, 'b.txt'), wFilePath);
+      await fs.mkdir(path.join(workingDirPath, 'z-dir'));
+      await fs.rename(path.join(workingDirPath, 'a.txt'), zFilePath);
+      await fs.rename(path.join(workingDirPath, 'b.txt'), wFilePath);
       const unstagedChanges = await repo.getUnstagedChanges();
       const unstagedPaths = unstagedChanges.map(change => change.filePath);
 
@@ -553,8 +553,8 @@ describe('Repository', function() {
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'foooooo', 'utf8');
-      fs.writeFileSync(path.join(workingDirPath, 'file.txt'), 'qux\nfoo\nbar\n', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'new-file.txt'), 'foooooo', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'file.txt'), 'qux\nfoo\nbar\n', 'utf8');
       await repo.stageFiles(['file.txt']);
 
       const unstagedFilePatch = await repo.getFilePatchForPath('new-file.txt');
@@ -568,7 +568,7 @@ describe('Repository', function() {
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
 
       const filePatchA = await repo.getFilePatchForPath('a.txt');
       assert.equal(await repo.getFilePatchForPath('a.txt'), filePatchA);
@@ -613,10 +613,10 @@ describe('Repository', function() {
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'modified file', 'utf8');
-      fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'foo\nbar\nbaz\n', 'utf8');
-      fs.writeFileSync(path.join(workingDirPath, 'b.txt'), 'blah blah blah', 'utf8');
-      fs.unlinkSync(path.join(workingDirPath, 'c.txt'));
+      await fs.writeFile(path.join(workingDirPath, 'a.txt'), 'modified file', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'new-file.txt'), 'foo\nbar\nbaz\n', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'b.txt'), 'blah blah blah', 'utf8');
+      await fs.unlink(path.join(workingDirPath, 'c.txt'));
 
       assert.isFalse(await repo.isPartiallyStaged('a.txt'));
       assert.isFalse(await repo.isPartiallyStaged('b.txt'));
@@ -632,13 +632,13 @@ describe('Repository', function() {
       assert.isFalse(await repo.isPartiallyStaged('new-file.txt'));
 
       // modified on both
-      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'more mods', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'a.txt'), 'more mods', 'utf8');
       // modified in working directory, added on index
-      fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'foo\nbar\nbaz\nqux\n', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'new-file.txt'), 'foo\nbar\nbaz\nqux\n', 'utf8');
       // deleted in working directory, modified on index
-      fs.unlinkSync(path.join(workingDirPath, 'b.txt'));
+      await fs.unlink(path.join(workingDirPath, 'b.txt'));
       // untracked in working directory, deleted on index
-      fs.writeFileSync(path.join(workingDirPath, 'c.txt'), 'back baby', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'c.txt'), 'back baby', 'utf8');
       repo.refresh();
 
       assert.isTrue(await repo.isPartiallyStaged('a.txt'));
@@ -654,10 +654,10 @@ describe('Repository', function() {
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
       const unstagedPatch1 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'));
 
-      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8');
       repo.refresh();
       const unstagedPatch2 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'));
 
@@ -700,9 +700,9 @@ describe('Repository', function() {
 
       assert.equal((await repo.getLastCommit()).getMessageSubject(), 'Initial commit');
 
-      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
       const unstagedPatch1 = await repo.getFilePatchForPath(path.join('subdir-1', 'a.txt'));
-      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8');
       repo.refresh();
       await repo.applyPatchToIndex(unstagedPatch1);
       await repo.commit('Commit 1');
@@ -761,7 +761,7 @@ describe('Repository', function() {
     it('executes hook scripts with a sane environment', async function() {
       const workingDirPath = await cloneRepository('three-files');
       const scriptDirPath = path.join(getPackageRoot(), 'test', 'scripts');
-      await fs.copy(
+      await fs.copyFile(
         path.join(scriptDirPath, 'hook.sh'),
         path.join(workingDirPath, '.git', 'hooks', 'pre-commit'),
       );
@@ -782,8 +782,8 @@ describe('Repository', function() {
         sinon.stub(reporterProxy, 'addEvent');
 
         // stage only subset of total changes
-        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
-        fs.writeFileSync(path.join(workingDirPath, 'b.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8');
+        await fs.writeFile(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+        await fs.writeFile(path.join(workingDirPath, 'b.txt'), 'qux\nfoo\nbar\nbaz\n', 'utf8');
         await repo.stageFiles(['a.txt']);
         repo.refresh();
 
@@ -930,7 +930,7 @@ describe('Repository', function() {
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      fs.appendFileSync(path.join(workingDirPath, 'file.txt'), 'qqq\n', 'utf8');
+      await fs.appendFile(path.join(workingDirPath, 'file.txt'), 'qqq\n', 'utf8');
       await repo.git.exec(['add', '.']);
       await repo.git.commit('add stuff');
 
@@ -960,7 +960,7 @@ describe('Repository', function() {
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      fs.appendFileSync(path.join(workingDirPath, 'b.txt'), 'qqq\n', 'utf8');
+      await fs.appendFile(path.join(workingDirPath, 'b.txt'), 'qqq\n', 'utf8');
       await repo.git.exec(['add', '.']);
 
       await repo.undoLastCommit();
@@ -1415,7 +1415,7 @@ describe('Repository', function() {
 
         assertDeepPropertyVals(mergeConflicts, expected);
 
-        fs.unlinkSync(path.join(workingDirPath, 'removed-on-branch.txt'));
+        await fs.unlink(path.join(workingDirPath, 'removed-on-branch.txt'));
         repo.refresh();
         mergeConflicts = await repo.getMergeConflicts();
         expected[3].status.file = 'deleted';
@@ -1452,7 +1452,7 @@ describe('Repository', function() {
         assert.deepEqual(stagedFilePatches.map(patch => patch.filePath), ['added-to-both.txt']);
 
         // choose version of the file on head
-        fs.writeFileSync(path.join(workingDirPath, 'modified-on-both-ours.txt'), 'master modification\n', 'utf8');
+        await fs.writeFile(path.join(workingDirPath, 'modified-on-both-ours.txt'), 'master modification\n', 'utf8');
         await repo.stageFiles(['modified-on-both-ours.txt']);
         repo.refresh();
         stagedFilePatches = await repo.getStagedChanges();
@@ -1460,21 +1460,21 @@ describe('Repository', function() {
         assert.deepEqual(stagedFilePatches.map(patch => patch.filePath), ['added-to-both.txt']);
 
         // choose version of the file on branch
-        fs.writeFileSync(path.join(workingDirPath, 'modified-on-both-ours.txt'), 'branch modification\n', 'utf8');
+        await fs.writeFile(path.join(workingDirPath, 'modified-on-both-ours.txt'), 'branch modification\n', 'utf8');
         await repo.stageFiles(['modified-on-both-ours.txt']);
         repo.refresh();
         stagedFilePatches = await repo.getStagedChanges();
         assert.deepEqual(stagedFilePatches.map(patch => patch.filePath), ['added-to-both.txt', 'modified-on-both-ours.txt']);
 
         // remove file that was deleted on branch
-        fs.unlinkSync(path.join(workingDirPath, 'removed-on-branch.txt'));
+        await fs.unlink(path.join(workingDirPath, 'removed-on-branch.txt'));
         await repo.stageFiles(['removed-on-branch.txt']);
         repo.refresh();
         stagedFilePatches = await repo.getStagedChanges();
         assert.deepEqual(stagedFilePatches.map(patch => patch.filePath), ['added-to-both.txt', 'modified-on-both-ours.txt', 'removed-on-branch.txt']);
 
         // remove file that was deleted on master
-        fs.unlinkSync(path.join(workingDirPath, 'removed-on-master.txt'));
+        await fs.unlink(path.join(workingDirPath, 'removed-on-master.txt'));
         await repo.stageFiles(['removed-on-master.txt']);
         repo.refresh();
         stagedFilePatches = await repo.getStagedChanges();
@@ -1493,7 +1493,7 @@ describe('Repository', function() {
         assert.isTrue(await repo.pathHasMergeMarkers('added-to-both.txt'));
         assert.isFalse(await repo.pathHasMergeMarkers('removed-on-master.txt'));
 
-        fs.writeFileSync(path.join(workingDirPath, 'file-with-chevrons.txt'), dedent`
+        await fs.writeFile(path.join(workingDirPath, 'file-with-chevrons.txt'), dedent`
           no branch name:
           >>>>>>>
           <<<<<<<
@@ -1556,14 +1556,14 @@ describe('Repository', function() {
           await repo.getLoadPromise();
           await assert.isRejected(repo.git.merge('origin/spanish'));
 
-          fs.writeFileSync(path.join(workingDirPath, 'fruit.txt'), 'a change\n');
+          await fs.writeFile(path.join(workingDirPath, 'fruit.txt'), 'a change\n');
           assert.equal(await repo.isMerging(), true);
 
           await repo.abortMerge();
           assert.equal(await repo.isMerging(), false);
           assert.equal((await repo.getStagedChanges()).length, 0);
           assert.equal((await repo.getUnstagedChanges()).length, 1);
-          assert.equal(fs.readFileSync(path.join(workingDirPath, 'fruit.txt')), 'a change\n');
+          assert.equal(await fs.readFile(path.join(workingDirPath, 'fruit.txt')), 'a change\n');
         });
       });
 
@@ -1574,7 +1574,7 @@ describe('Repository', function() {
           await repo.getLoadPromise();
           await assert.isRejected(repo.git.merge('origin/spanish'));
 
-          fs.writeFileSync(path.join(workingDirPath, 'animal.txt'), 'a change\n');
+          await fs.writeFile(path.join(workingDirPath, 'animal.txt'), 'a change\n');
           const stagedChanges = await repo.getStagedChanges();
           const unstagedChanges = await repo.getUnstagedChanges();
 
@@ -1607,9 +1607,9 @@ describe('Repository', function() {
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
-      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'b.txt'), 'qux\nfoo\nbar\n', 'utf8');
-      fs.writeFileSync(path.join(workingDirPath, 'new-file.txt'), 'hello there', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'subdir-1', 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'subdir-1', 'b.txt'), 'qux\nfoo\nbar\n', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'new-file.txt'), 'hello there', 'utf8');
       const unstagedChanges = await repo.getUnstagedChanges();
 
       assert.equal(unstagedChanges.length, 3);
@@ -1623,8 +1623,8 @@ describe('Repository', function() {
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      fs.unlinkSync(path.join(workingDirPath, 'subdir-1', 'a.txt'));
-      fs.unlinkSync(path.join(workingDirPath, 'subdir-1', 'b.txt'));
+      await fs.unlink(path.join(workingDirPath, 'subdir-1', 'a.txt'));
+      await fs.unlink(path.join(workingDirPath, 'subdir-1', 'b.txt'));
       const unstagedChanges = await repo.getUnstagedChanges();
 
       assert.equal(unstagedChanges.length, 2);
@@ -1638,8 +1638,8 @@ describe('Repository', function() {
       const repo = new Repository(workingDirPath);
       await repo.getLoadPromise();
 
-      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'e.txt'), 'qux', 'utf8');
-      fs.writeFileSync(path.join(workingDirPath, 'subdir-1', 'f.txt'), 'qux', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'subdir-1', 'e.txt'), 'qux', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'subdir-1', 'f.txt'), 'qux', 'utf8');
       const unstagedChanges = await repo.getUnstagedChanges();
 
       assert.equal(unstagedChanges.length, 2);
@@ -1655,17 +1655,17 @@ describe('Repository', function() {
       const repo1 = new Repository(workingDirPath);
       await repo1.getLoadPromise();
 
-      fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
-      fs.writeFileSync(path.join(workingDirPath, 'b.txt'), 'woohoo', 'utf8');
-      fs.writeFileSync(path.join(workingDirPath, 'c.txt'), 'yayeah', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'a.txt'), 'qux\nfoo\nbar\n', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'b.txt'), 'woohoo', 'utf8');
+      await fs.writeFile(path.join(workingDirPath, 'c.txt'), 'yayeah', 'utf8');
 
       const isSafe = () => true;
       await repo1.storeBeforeAndAfterBlobs(['a.txt'], isSafe, () => {
-        fs.writeFileSync(path.join(workingDirPath, 'a.txt'), 'foo\nbar\n', 'utf8');
+        return fs.writeFile(path.join(workingDirPath, 'a.txt'), 'foo\nbar\n', 'utf8');
       }, 'a.txt');
-      await repo1.storeBeforeAndAfterBlobs(['b.txt', 'c.txt'], isSafe, () => {
-        fs.writeFileSync(path.join(workingDirPath, 'b.txt'), 'woot', 'utf8');
-        fs.writeFileSync(path.join(workingDirPath, 'c.txt'), 'yup', 'utf8');
+      await repo1.storeBeforeAndAfterBlobs(['b.txt', 'c.txt'], isSafe, async () => {
+        await fs.writeFile(path.join(workingDirPath, 'b.txt'), 'woot', 'utf8');
+        await fs.writeFile(path.join(workingDirPath, 'c.txt'), 'yup', 'utf8');
       });
       const repo1HistorySha = await repo1.createDiscardHistoryBlob();
 
@@ -2557,7 +2557,7 @@ describe('Repository', function() {
           repository,
           path.join('.git', 'config'),
         );
-        await assert.async.strictEqual(repository.getCommitMessage(), fs.readFileSync(templatePath, 'utf8'));
+        await assert.async.strictEqual(repository.getCommitMessage(), await fs.readFile(templatePath, 'utf8'));
       });
 
       it('leaves the commit message alone if the template content did not change', async function() {
@@ -2598,7 +2598,7 @@ describe('Repository', function() {
           path.join('.git', 'config'),
         );
 
-        await assert.async.strictEqual(repository.getCommitMessage(), fs.readFileSync(templatePath, 'utf8'));
+        await assert.async.strictEqual(repository.getCommitMessage(), await fs.readFile(templatePath, 'utf8'));
 
         await repository.git.unsetConfig('commit.template');
 
@@ -2634,7 +2634,7 @@ describe('Repository', function() {
           await observer.start();
 
           const templatePath = path.join(repository.getWorkingDirectoryPath(), 'added-to-both.txt');
-          const templateText = fs.readFileSync(templatePath, 'utf8');
+          const templateText = await fs.readFile(templatePath, 'utf8');
           await repository.git.setConfig('commit.template', templatePath);
           await expectEvents(
             repository,
@@ -2697,7 +2697,7 @@ describe('Repository', function() {
             await observer.start();
 
             const templatePath = path.join(repository.getWorkingDirectoryPath(), 'added-to-both.txt');
-            const templateText = fs.readFileSync(templatePath, 'utf8');
+            const templateText = await fs.readFile(templatePath, 'utf8');
             await repository.git.setConfig('commit.template', templatePath);
             await expectEvents(
               repository,

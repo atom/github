@@ -1,5 +1,5 @@
 import path from 'path';
-import fs from 'fs-extra';
+import {promises as fs} from 'fs';
 
 import until from 'test-until';
 

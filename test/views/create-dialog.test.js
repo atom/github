@@ -1,6 +1,6 @@
 import React from 'react';
 import {shallow} from 'enzyme';
-import fs from 'fs-extra';
+import {promises as fs} from 'fs';
 import temp from 'temp';
 
 import CreateDialog, {createRepository, publishRepository} from '../../lib/views/create-dialog';

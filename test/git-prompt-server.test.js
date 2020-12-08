@@ -1,6 +1,6 @@
 import {execFile} from 'child_process';
 import path from 'path';
-import fs from 'fs-extra';
+import {promises as fs} from 'fs';
 
 import GitPromptServer from '../lib/git-prompt-server';
 import GitTempDir from '../lib/git-temp-dir';

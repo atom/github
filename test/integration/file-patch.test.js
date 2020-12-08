@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import {promises as fs} from 'fs';
 import path from 'path';
 import until from 'test-until';
 import dedent from 'dedent-js';
@@ -324,7 +324,7 @@ describe('integration: file patches', function() {
     beforeEach(async function() {
       await useFixture('multi-line-file');
 
-      await fs.remove(repoPath('sample.js'));
+      await fs.unlink(repoPath('sample.js'));
       triggerChange();
     });
 
@@ -490,7 +490,7 @@ describe('integration: file patches', function() {
   describe('with a symlink that used to be a file', function() {
     beforeEach(async function() {
       await useFixture('multi-line-file');
-      await fs.remove(repoPath('sample.js'));
+      await fs.unlink(repoPath('sample.js'));
       await fs.writeFile(repoPath('target.txt'), 'something to point the symlink to', {encoding: 'utf8'});
       await fs.symlink(repoPath('target.txt'), repoPath('sample.js'));
       triggerChange();
@@ -607,7 +607,7 @@ describe('integration: file patches', function() {
     beforeEach(async function() {
       await useFixture('symlinks');
 
-      await fs.remove(repoPath('symlink.txt'));
+      await fs.unlink(repoPath('symlink.txt'));
       await fs.writeFile(repoPath('symlink.txt'), "Guess what I'm a text file now suckers", {encoding: 'utf8'});
       triggerChange();
     });

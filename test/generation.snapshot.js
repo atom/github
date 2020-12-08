@@ -1,6 +1,6 @@
 // Ensure that all of our source can be snapshotted correctly.
 
-import fs from 'fs-extra';
+import {promises as fs} from 'fs';
 import vm from 'vm';
 import path from 'path';
 import temp from 'temp';
