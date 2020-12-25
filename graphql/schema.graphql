@@ -1309,6 +1309,9 @@ enum CheckStatusState {
   """The check suite or run has been completed."""
   COMPLETED
 
+  """The check suite or run is in waiting state."""
+  WAITING
+
   """The check suite or run has been requested."""
   REQUESTED
 }
@@ -19410,6 +19413,9 @@ enum RequestableCheckStatusState {
 
   """The check suite or run has been completed."""
   COMPLETED
+
+  """The check suite or run is in waiting state."""
+  WAITING
 }
 
 """Types that can be requested reviewers."""
