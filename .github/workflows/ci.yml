@@ -1,52 +1,52 @@
 name: ci
 on:
+  pull_request:
   push:
     branches:
     - master
-  pull_request:
-    types:
-    - opened
-    - reopened
-    - synchronize
 jobs:
-  linux-tests:
-    name: linux tests
-    runs-on: ubuntu-18.04
+  tests:
+    name: tests
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, macos-10.14, windows-latest]
+        channel: [beta, nightly]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
     env:
-      DISPLAY: ":99"
       ATOM_GITHUB_BABEL_ENV: coverage
-      ATOM_CHANNEL: nightly
-      ATOM: /tmp/atom/usr/bin/atom-nightly
-      APM: /tmp/atom/usr/share/atom-nightly/resources/app/apm/bin/apm
       MOCHA_TIMEOUT: 60000
       UNTIL_TIMEOUT: 30000
     steps:
     - uses: actions/checkout@v1
     - name: install Atom
-      shell: bash
+      uses: UziTech/action-setup-atom@v1
+      with:
+        channel: ${{ matrix.channel }}
+
+    - name: install windows build tools
+      if: contains(matrix.os, 'windows')
       run: |
-        curl -s -L https://atom.io/download/deb?channel=${ATOM_CHANNEL} \
-          -H 'Accept: application/octet-stream' \
-          -o /tmp/atom-amd64.deb
-        /sbin/start-stop-daemon --start --quiet \
-          --pidfile /tmp/custom_xvfb_99.pid \
-          --make-pidfile --background \
-          --exec /usr/bin/Xvfb \
-          -- :99 -ac -screen 0 1280x1024x16
-        sudo apt-get update
-        sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev gvfs-bin
-        dpkg-deb -x /tmp/atom-amd64.deb /tmp/atom
+        choco install visualcpp-build-tools --version=14.0.25420.1 --ignore-dependencies -y --params "'/IncludeRequired'"
+        echo "VCTargetsPath='C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\v140'" >> $GITHUB_ENV
     - name: install dependencies
-      shell: bash
-      run: ${APM} ci
+      run: apm ci
+
     - name: configure git
       shell: bash
       run: |
         git config --global user.name Hubot
         git config --global user.email hubot@github.com
-    - name: run tests
-      shell: bash
-      run: ${ATOM} --test test/
+
+    - name: Run the tests
+      if: ${{ !contains(matrix.os, 'windows') }}
+      run: atom --test test
+
+    - name: Run the tests on Windows
+      if: ${{ contains(matrix.os, 'windows') }}
+      continue-on-error: true # due to https://github.com/atom/github/pull/2459#issuecomment-624725972
+      run: atom --test test
+
     - name: report code coverage
       shell: bash
       env:
@@ -54,119 +54,44 @@ jobs:
         SYSTEM_PULLREQUEST_PULLREQUESTNUMBER: ${{ github.event.number }}
         SYSTEM_PULLREQUEST_SOURCEBRANCH: ${{ github.head_ref }}
         BUILD_SOURCEBRANCH: ${{ github.event.ref }}
+        OS_NAME: ${{ matrix.os }}
       run: |
         npm run report:coverage
+        COVERAGE_NAME=$([[ "${OS_NAME}" == macos* ]] && echo "macOS" || echo "Linux")
         bash <(curl -s https://codecov.io/bash) \
-          -n "Linux" \
+          -n "${COVERAGE_NAME}" \
           -P "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER:-}" \
           -B "${SYSTEM_PULLREQUEST_SOURCEBRANCH:-${BUILD_SOURCEBRANCH}}"
-      if: success() || failure()
-
-  macos-tests:
-    name: macos tests
-    runs-on: macos-10.14
-    env:
-      ATOM_GITHUB_BABEL_ENV: coverage
-      ATOM_CHANNEL: nightly
-      ATOM: /tmp/atom/Atom\ Nightly.app/Contents/Resources/app/atom.sh
-      APM: /tmp/atom/Atom\ Nightly.app/Contents/Resources/app/apm/bin/apm
-      MOCHA_TIMEOUT: 60000
-      UNTIL_TIMEOUT: 30000
-    steps:
-    - uses: actions/checkout@v1
-    - name: install Atom
-      shell: bash
-      run: |
-        curl -s -L https://atom.io/download/mac?channel=${ATOM_CHANNEL} \
-          -H 'Accept: application/octet-stream' \
-          -o /tmp/atom.zip
-        sudo unzip -q /tmp/atom.zip -d /tmp/atom
-    - name: install dependencies
-      shell: bash
-      run: sh -c "${APM} ci"
-    - name: configure git
-      shell: bash
-      run: |
-        git config --global user.name Hubot
-        git config --global user.email hubot@github.com
-    - name: run tests
-      shell: bash
-      run: sh -c "${ATOM} --test test/"
-    - name: report code coverage
-      shell: bash
-      env:
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        SYSTEM_PULLREQUEST_PULLREQUESTNUMBER: ${{ github.event.number }}
-        SYSTEM_PULLREQUEST_SOURCEBRANCH: ${{ github.head_ref }}
-        BUILD_SOURCEBRANCH: ${{ github.event.ref }}
-      run: |
-        npm run report:coverage
-        bash <(curl -s https://codecov.io/bash) \
-          -n "macOS" \
-          -P "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER:-}" \
-          -B "${SYSTEM_PULLREQUEST_SOURCEBRANCH:-${BUILD_SOURCEBRANCH}}"
-      if: success() || failure()
-
+      if: |
+        !contains(matrix.os, 'windows') &&
+        (success() || failure())
   lint:
     name: lint
     runs-on: ubuntu-18.04
-    env:
-      DISPLAY: ":99"
-      ATOM_CHANNEL: nightly
-      ATOM: /tmp/atom/usr/bin/atom-nightly
-      APM: /tmp/atom/usr/share/atom-nightly/resources/app/apm/bin/apm
     steps:
     - uses: actions/checkout@v1
     - name: install Atom
-      shell: bash
-      run: |
-        curl -s -L https://atom.io/download/deb?channel=${ATOM_CHANNEL} \
-          -H 'Accept: application/octet-stream' \
-          -o /tmp/atom-amd64.deb
-        /sbin/start-stop-daemon --start --quiet \
-          --pidfile /tmp/custom_xvfb_99.pid \
-          --make-pidfile --background \
-          --exec /usr/bin/Xvfb \
-          -- :99 -ac -screen 0 1280x1024x16
-        sudo apt-get update
-        sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev gvfs-bin
-        dpkg-deb -x /tmp/atom-amd64.deb /tmp/atom
+      uses: UziTech/action-setup-atom@v1
+      with:
+        channel: nightly
     - name: install dependencies
-      shell: bash
-      run: ${APM} ci
+      run: apm ci
     - name: lint
-      shell: bash
       run: npm run lint
 
   snapshot-tests:
     name: snapshot tests
     runs-on: ubuntu-18.04
     env:
-      DISPLAY: ":99"
-      ATOM_CHANNEL: nightly
-      ATOM: /tmp/atom/usr/bin/atom-nightly
-      APM: /tmp/atom/usr/share/atom-nightly/resources/app/apm/bin/apm
       ATOM_GITHUB_BABEL_ENV: coverage
       ATOM_GITHUB_TEST_SUITE: snapshot
     steps:
     - uses: actions/checkout@v1
     - name: install Atom
-      shell: bash
-      run: |
-        curl -s -L https://atom.io/download/deb?channel=${ATOM_CHANNEL} \
-          -H 'Accept: application/octet-stream' \
-          -o /tmp/atom-amd64.deb
-        /sbin/start-stop-daemon --start --quiet \
-          --pidfile /tmp/custom_xvfb_99.pid \
-          --make-pidfile --background \
-          --exec /usr/bin/Xvfb \
-          -- :99 -ac -screen 0 1280x1024x16
-        sudo apt-get update
-        sudo apt-get install -yyq libgconf-2-4 build-essential git libsecret-1-dev gvfs-bin
-        dpkg-deb -x /tmp/atom-amd64.deb /tmp/atom
+      uses: UziTech/action-setup-atom@v1
+      with:
+        channel: nightly
     - name: install dependencies
-      shell: bash
-      run: ${APM} ci
+      run: apm ci
     - name: run snapshot tests
-      shell: bash
-      run: ${ATOM} --test test/
+      run: atom --test test/
