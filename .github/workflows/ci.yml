@@ -32,6 +32,12 @@ jobs:
     - name: install dependencies
       run: apm ci
 
+    - name: configure git
+      shell: bash
+      run: |
+        git config --global user.name Hubot
+        git config --global user.email hubot@github.com
+
     - name: Run the tests
       if: ${{ !contains(matrix.os, 'windows') }}
       run: atom --test test
