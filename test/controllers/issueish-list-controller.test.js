@@ -90,7 +90,7 @@ describe('IssueishListController', function() {
 
     it('calls shell.openExternal with specified url', async function() {
       const wrapper = shallow(buildApp());
-      sinon.stub(shell, 'openExternal').callsArg(2);
+      sinon.stub(shell, 'openExternal').callsFake(() => { });
 
       await wrapper.instance().openOnGitHub(url);
       assert.isTrue(shell.openExternal.calledWith(url));
@@ -98,7 +98,7 @@ describe('IssueishListController', function() {
 
     it('fires `open-issueish-in-browser` event upon success', async function() {
       const wrapper = shallow(buildApp());
-      sinon.stub(shell, 'openExternal').callsArg(2);
+      sinon.stub(shell, 'openExternal').callsFake(() => {});
       sinon.stub(reporterProxy, 'addEvent');
 
       await wrapper.instance().openOnGitHub(url);
@@ -109,7 +109,7 @@ describe('IssueishListController', function() {
 
     it('handles error when openOnGitHub fails', async function() {
       const wrapper = shallow(buildApp());
-      sinon.stub(shell, 'openExternal').callsArgWith(2, new Error('oh noes'));
+      sinon.stub(shell, 'openExternal').throws(new Error('oh noes'));
       sinon.stub(reporterProxy, 'addEvent');
 
       try {
