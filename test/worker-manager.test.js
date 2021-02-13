@@ -167,7 +167,7 @@ describe('WorkerManager', function() {
       });
       `;
 
-      await new Promise(resolve => browserWindow.webContents.executeJavaScript(script, resolve));
+      await browserWindow.webContents.executeJavaScript(script);
 
       workerManager.destroy(true);
       workerManager = new WorkerManager();

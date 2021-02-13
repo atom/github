@@ -24,7 +24,7 @@ describe('DirectorySelect', function() {
       <DirectorySelect
         currentWindow={atomEnv.getCurrentWindow()}
         buffer={buffer}
-        showOpenDialog={() => {}}
+        showOpenDialog={() => Promise.resolve()}
         tabGroup={new TabGroup()}
         {...override}
       />
