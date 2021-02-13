@@ -47,7 +47,7 @@ describe('DirectorySelect', function() {
 
   describe('clicking the directory button', function() {
     it('populates the destination path buffer on accept', async function() {
-      const showOpenDialog = sinon.stub().callsArgWith(2, ['/some/directory/path']);
+      const showOpenDialog = sinon.stub().callsArgWith(2, {filePaths: ['/some/directory/path']});
       const buffer = new TextBuffer({text: '/original'});
 
       const wrapper = shallow(buildApp({showOpenDialog, buffer}));
@@ -58,7 +58,7 @@ describe('DirectorySelect', function() {
     });
 
     it('leaves the destination path buffer unmodified on cancel', async function() {
-      const showOpenDialog = sinon.stub().callsArgWith(2, undefined);
+      const showOpenDialog = sinon.stub().callsArgWith(2, {filePaths: undefined});
       const buffer = new TextBuffer({text: '/original'});
 
       const wrapper = shallow(buildApp({showOpenDialog, buffer}));
