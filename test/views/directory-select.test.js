@@ -58,7 +58,7 @@ describe('DirectorySelect', function() {
     });
 
     it('leaves the destination path buffer unmodified on cancel', async function() {
-      const showOpenDialog = sinon.stub().returns(Promise.resolve({filePaths: undefined}));
+      const showOpenDialog = sinon.stub().returns(Promise.resolve({filePaths: []}));
       const buffer = new TextBuffer({text: '/original'});
 
       const wrapper = shallow(buildApp({showOpenDialog, buffer}));
