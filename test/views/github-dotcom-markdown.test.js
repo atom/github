@@ -140,6 +140,7 @@ describe('GithubDotcomMarkdown', function() {
     });
 
     it('opens item in pane and activates accordingly', async function() {
+      atom.workspace = {open: () => {}};
       sinon.stub(atom.workspace, 'open').returns(Promise.resolve());
       const issueishLink = wrapper.getDOMNode().querySelector('a.issue-link');
 
