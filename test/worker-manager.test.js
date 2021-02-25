@@ -151,20 +151,22 @@ describe('WorkerManager', function() {
     it('destroys all the renderer processes that were created', async function() {
       this.retries(5); // FLAKE
 
-      const browserWindow = new BrowserWindow({show: !!process.env.ATOM_GITHUB_SHOW_RENDERER_WINDOW, webPreferences: {nodeIntegration: true}});
+      const browserWindow = new BrowserWindow({show: !!process.env.ATOM_GITHUB_SHOW_RENDERER_WINDOW, webPreferences: {nodeIntegration: true, enableRemoteModule: true}});
       browserWindow.loadURL('about:blank');
       sinon.stub(Worker.prototype, 'getWebContentsId').returns(browserWindow.webContents.id);
 
       const script = `
       const ipc = require('electron').ipcRenderer;
-      ipc.on('${Worker.channelName}', function() {
-        const args = Array.prototype.slice.apply(arguments)
-        args.shift();
+      (function() {
+        ipc.on('${Worker.channelName}', function() {
+          const args = Array.prototype.slice.apply(arguments)
+          args.shift();
 
-        args.unshift('${Worker.channelName}');
-        args.unshift(${remote.getCurrentWebContents().id})
-        ipc.sendTo.apply(ipc, args);
-      });
+          args.unshift('${Worker.channelName}');
+          args.unshift(${remote.getCurrentWebContents().id})
+          ipc.sendTo.apply(ipc, args);
+        });
+      })()
       `;
 
       await browserWindow.webContents.executeJavaScript(script);
