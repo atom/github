@@ -55,7 +55,7 @@
     "dompurify": "2.0.17",
     "dugite": "1.92.0",
     "event-kit": "2.5.3",
-    "fs-extra": "4.0.3",
+    "fs-extra": "10.0.0",
     "graphql": "14.5.8",
     "keytar": "4.13.0",
     "lodash.memoize": "4.1.2",
