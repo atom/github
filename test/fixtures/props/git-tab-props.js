@@ -1,8 +1,11 @@
+import {TextBuffer} from 'atom';
+
 import ResolutionProgress from '../../../lib/models/conflicts/resolution-progress';
 import {InMemoryStrategy} from '../../../lib/shared/keytar-strategy';
 import GithubLoginModel from '../../../lib/models/github-login-model';
 import RefHolder from '../../../lib/models/ref-holder';
 import UserStore from '../../../lib/models/user-store';
+import {nullAuthor} from '../../../lib/models/author';
 
 function noop() {}
 
@@ -10,6 +13,8 @@ export function gitTabItemProps(atomEnv, repository, overrides = {}) {
   return {
     repository,
     loginModel: new GithubLoginModel(InMemoryStrategy),
+    username: 'Me',
+    email: 'me@email.com',
     workspace: atomEnv.workspace,
     commands: atomEnv.commands,
     grammars: atomEnv.grammars,
@@ -25,6 +30,11 @@ export function gitTabItemProps(atomEnv, repository, overrides = {}) {
     discardWorkDirChangesForPaths: noop,
     openFiles: noop,
     openInitializeDialog: noop,
+    changeWorkingDirectory: noop,
+    contextLocked: false,
+    setContextLock: () => {},
+    onDidChangeWorkDirs: () => ({dispose: () => {}}),
+    getCurrentWorkDirs: () => new Set(),
     ...overrides
   };
 }
@@ -46,6 +56,7 @@ export async function gitTabControllerProps(atomEnv, repository, overrides = {})
     mergeConflicts: await repository.getMergeConflicts(),
     workingDirectoryPath: repository.getWorkingDirectoryPath(),
     fetchInProgress: false,
+    repositoryDrift: false,
     ...overrides,
   };
 
@@ -61,7 +72,10 @@ export async function gitTabViewProps(atomEnv, repository, overrides = {}) {
 
     repository,
     isLoading: false,
+    editingIdentity: false,
 
+    usernameBuffer: new TextBuffer(),
+    emailBuffer: new TextBuffer(),
     lastCommit: await repository.getLastCommit(),
     currentBranch: await repository.getCurrentBranch(),
     recentCommits: await repository.getRecentCommits({max: 10}),
@@ -85,6 +99,10 @@ export async function gitTabViewProps(atomEnv, repository, overrides = {}) {
     project: atomEnv.project,
     tooltips: atomEnv.tooltips,
 
+    toggleIdentityEditor: () => {},
+    closeIdentityEditor: () => {},
+    setLocalIdentity: () => {},
+    setGlobalIdentity: () => {},
     openInitializeDialog: () => {},
     abortMerge: () => {},
     commit: () => {},
@@ -97,6 +115,14 @@ export async function gitTabViewProps(atomEnv, repository, overrides = {}) {
     attemptFileStageOperation: () => {},
     discardWorkDirChangesForPaths: () => {},
     openFiles: () => {},
+
+    contextLocked: false,
+    changeWorkingDirectory: () => {},
+    setContextLock: () => {},
+    onDidChangeWorkDirs: () => ({dispose: () => {}}),
+    getCurrentWorkDirs: () => new Set(),
+    onDidUpdateRepo: () => ({dispose: () => {}}),
+    getCommitter: () => nullAuthor,
 
     ...overrides,
   };

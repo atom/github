@@ -11,6 +11,7 @@ import {GitProcess} from 'dugite';
 import CompositeGitStrategy from '../lib/composite-git-strategy';
 import GitShellOutStrategy, {LargeRepoError} from '../lib/git-shell-out-strategy';
 import WorkerManager from '../lib/worker-manager';
+import Author from '../lib/models/author';
 
 import {cloneRepository, initRepository, assertDeepPropertyVals, setUpLocalAndRemoteRepositories} from './helpers';
 import {normalizeGitHelperPath, getTempDir} from '../lib/helpers';
@@ -49,6 +50,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
           git.setPromptCallback(promptStub);
 
           const stdin = dedent`
+            protocol=https
             host=noway.com
             username=me
 
@@ -270,8 +272,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
         assert.deepEqual(commits[0], {
           sha: '90b17a8e3fa0218f42afc1dd24c9003e285f4a82',
-          authorEmail: 'kuychaco@github.com',
-          authorName: 'Katrina Uychaco',
+          author: new Author('kuychaco@github.com', 'Katrina Uychaco'),
           authorDate: 1471113656,
           messageSubject: 'third commit',
           messageBody: '',
@@ -281,8 +282,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         });
         assert.deepEqual(commits[1], {
           sha: '18920c900bfa6e4844853e7e246607a31c3e2e8c',
-          authorEmail: 'kuychaco@github.com',
-          authorName: 'Katrina Uychaco',
+          author: new Author('kuychaco@github.com', 'Katrina Uychaco'),
           authorDate: 1471113642,
           messageSubject: 'second commit',
           messageBody: '',
@@ -292,8 +292,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
         });
         assert.deepEqual(commits[2], {
           sha: '46c0d7179fc4e348c3340ff5e7957b9c7d89c07f',
-          authorEmail: 'kuychaco@github.com',
-          authorName: 'Katrina Uychaco',
+          author: new Author('kuychaco@github.com', 'Katrina Uychaco'),
           authorDate: 1471113625,
           messageSubject: 'first commit',
           messageBody: '',
@@ -334,18 +333,9 @@ import * as reporterProxy from '../lib/reporter-proxy';
         const commits = await git.getCommits({max: 1});
         assert.lengthOf(commits, 1);
         assert.deepEqual(commits[0].coAuthors, [
-          {
-            name: 'name',
-            email: 'name@example.com',
-          },
-          {
-            name: 'another-name',
-            email: 'another-name@example.com',
-          },
-          {
-            name: 'yet-another',
-            email: 'yet-another@example.com',
-          },
+          new Author('name@example.com', 'name'),
+          new Author('another-name@example.com', 'another-name'),
+          new Author('yet-another@example.com', 'yet-another'),
         ]);
       });
 
@@ -1434,7 +1424,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
           const [args, options] = execStub.getCall(1).args;
           assertGitConfigSetting(args, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
-          assert.isDefined(options.env.ATOM_GITHUB_SOCK_PATH);
+          assert.isDefined(options.env.ATOM_GITHUB_SOCK_ADDR);
           assert.isDefined(options.env.ATOM_GITHUB_GPG_PROMPT);
         });
 
@@ -1460,12 +1450,12 @@ import * as reporterProxy from '../lib/reporter-proxy';
 
             const [args0, options0] = execStub.getCall(0).args;
             assertGitConfigSetting(args0, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
-            assert.isUndefined(options0.env.ATOM_GITHUB_SOCK_PATH);
+            assert.isUndefined(options0.env.ATOM_GITHUB_SOCK_ADDR);
             assert.isUndefined(options0.env.ATOM_GITHUB_GPG_PROMPT);
 
             const [args1, options1] = execStub.getCall(1).args;
             assertGitConfigSetting(args1, op.command, 'gpg.program', '.*gpg-wrapper\\.sh$');
-            assert.isDefined(options1.env.ATOM_GITHUB_SOCK_PATH);
+            assert.isDefined(options1.env.ATOM_GITHUB_SOCK_ADDR);
             assert.isDefined(options1.env.ATOM_GITHUB_GPG_PROMPT);
           });
         }
@@ -1847,8 +1837,6 @@ import * as reporterProxy from '../lib/reporter-proxy';
       }
 
       it('prompts for authentication data through Atom', async function() {
-        this.retries(5); // FLAKE
-
         let query = null;
         const git = await withHttpRemote({
           prompt: q => {

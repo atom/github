@@ -4,6 +4,7 @@ import {createSpecBuilderClass} from './base';
 
 import {RepositoryBuilder} from './repository';
 import {PullRequestBuilder} from './pr';
+import {UserBuilder} from './user';
 
 import {
   AddPullRequestReviewPayloadBuilder,
@@ -16,6 +17,7 @@ import {
   UnresolveReviewThreadPayloadBuilder,
   AddReactionPayloadBuilder,
   RemoveReactionPayloadBuilder,
+  CreateRepositoryPayloadBuilder,
 } from './mutations';
 
 class SearchResultItemBuilder {
@@ -45,6 +47,7 @@ const SearchResultBuilder = createSpecBuilderClass('SearchResultItemConnection',
 const QueryBuilder = createSpecBuilderClass('Query', {
   repository: {linked: RepositoryBuilder, nullable: true},
   search: {linked: SearchResultBuilder},
+  viewer: {linked: UserBuilder},
 
   // Mutations
   addPullRequestReview: {linked: AddPullRequestReviewPayloadBuilder},
@@ -57,6 +60,7 @@ const QueryBuilder = createSpecBuilderClass('Query', {
   unresolveReviewThread: {linked: UnresolveReviewThreadPayloadBuilder},
   addReaction: {linked: AddReactionPayloadBuilder},
   removeReaction: {linked: RemoveReactionPayloadBuilder},
+  createRepository: {linked: CreateRepositoryPayloadBuilder},
 });
 
 export function queryBuilder(...nodes) {

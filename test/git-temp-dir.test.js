@@ -42,18 +42,19 @@ describe('GitTempDir', function() {
   });
 
   if (process.platform === 'win32') {
-    it('generates a valid named pipe path for its socket', async function() {
+    it('generates options to create a TCP socket on an unbound port', async function() {
       const tempDir = new GitTempDir();
       await tempDir.ensure();
 
-      assert.match(tempDir.getSocketPath(), /^\\\\\?\\pipe\\/);
+      assert.deepEqual(tempDir.getSocketOptions(), {port: 0, host: 'localhost'});
     });
   } else {
     it('generates a socket path within the directory', async function() {
       const tempDir = new GitTempDir();
       await tempDir.ensure();
 
-      assert.isTrue(tempDir.getSocketPath().startsWith(tempDir.getRootPath()));
+      const opts = tempDir.getSocketOptions();
+      assert.isTrue(opts.path.startsWith(tempDir.getRootPath()));
     });
   }
 

@@ -41,9 +41,9 @@ describe('GitPromptServer', function() {
     async function runCredentialScript(command, queryHandler, processHandler) {
       await server.start(queryHandler);
 
-      return new Promise((resolve, reject) => {
+      return new Promise(resolve => {
         const child = execFile(
-          getAtomHelperPath(), [tempDir.getCredentialHelperJs(), tempDir.getSocketPath(), command],
+          getAtomHelperPath(), [tempDir.getCredentialHelperJs(), server.getAddress(), command],
           {env: electronEnv},
           (err, stdout, stderr) => {
             resolve({err, stdout, stderr});
@@ -72,7 +72,6 @@ describe('GitPromptServer', function() {
     });
 
     it('prompts for user input and writes collected credentials to stdout', async function() {
-      this.retries(5); // Known Flake
       this.timeout(10000);
 
       let queried = null;
@@ -108,7 +107,6 @@ describe('GitPromptServer', function() {
 
     it('preserves a provided username', async function() {
       this.timeout(10000);
-      this.retries(5);
 
       let queried = null;
 
@@ -142,7 +140,6 @@ describe('GitPromptServer', function() {
 
     it('parses input without the terminating blank line', async function() {
       this.timeout(10000);
-      this.retries(5);
 
       function queryHandler(query) {
         return {
@@ -169,9 +166,8 @@ describe('GitPromptServer', function() {
 
     it('creates a flag file if remember is set to true', async function() {
       this.timeout(10000);
-      this.retries(5);
 
-      function queryHandler(query) {
+      function queryHandler() {
         return {
           username: 'old-man-from-scene-24',
           password: 'Green. I mean blue! AAAhhhh...',
@@ -192,7 +188,6 @@ describe('GitPromptServer', function() {
 
     it('uses matching credentials from keytar if available without prompting', async function() {
       this.timeout(10000);
-      this.retries(5);
 
       let called = false;
       function queryHandler() {
@@ -230,7 +225,6 @@ describe('GitPromptServer', function() {
 
     it('uses a default username for the appropriate host if one is available', async function() {
       this.timeout(10000);
-      this.retries(5);
 
       let called = false;
       function queryHandler() {
@@ -273,7 +267,6 @@ describe('GitPromptServer', function() {
 
     it('uses credentials from the GitHub tab if available', async function() {
       this.timeout(10000);
-      this.retries(5);
 
       let called = false;
       function queryHandler() {
@@ -307,7 +300,6 @@ describe('GitPromptServer', function() {
 
     it('stores credentials in keytar if a flag file is present', async function() {
       this.timeout(10000);
-      this.retries(5);
 
       let called = false;
       function queryHandler() {
@@ -341,7 +333,6 @@ describe('GitPromptServer', function() {
 
     it('forgets stored credentials from keytar if authentication fails', async function() {
       this.timeout(10000);
-      this.retries(5);
 
       function queryHandler() {
         return {};
@@ -387,7 +378,6 @@ describe('GitPromptServer', function() {
   describe('askpass helper', function() {
     it('prompts for user input and writes the response to stdout', async function() {
       this.timeout(10000);
-      this.retries(5);
 
       let queried = null;
 
@@ -400,9 +390,9 @@ describe('GitPromptServer', function() {
       });
 
       let err, stdout;
-      await new Promise((resolve, reject) => {
+      await new Promise(resolve => {
         const child = execFile(
-          getAtomHelperPath(), [tempDir.getAskPassJs(), tempDir.getSocketPath(), 'Please enter your password for "updog"'],
+          getAtomHelperPath(), [tempDir.getAskPassJs(), server.getAddress(), 'Please enter your password for "updog"'],
           {env: electronEnv},
           (_err, _stdout, _stderr) => {
             err = _err;

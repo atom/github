@@ -42,14 +42,6 @@
     }
   }
 
-  &Info {
-    display: inline-block;
-
-    li {
-      display: inline-block;
-    }
-  }
-
   &Footer {
     display: flex;
     flex-direction: row;
@@ -57,9 +49,14 @@
   }
 
   &Info {
+    display: inline-block;
     flex-grow: 1;
     margin: @github-dialog-spacing;
     padding: @github-dialog-spacing;
+
+    li {
+      display: inline-block;
+    }
   }
 
   &Buttons {
@@ -117,6 +114,12 @@
     }
   }
 
+  &-row {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+  }
+
   atom-text-editor[mini].editor {
     margin: 0;
 
@@ -131,5 +134,161 @@
   &:not(:focus-within) {
     padding-bottom: 1px;
     transition: padding-bottom 0.01s;
+  }
+}
+
+.github-TabbableWrapper {
+  display: flex;
+  flex: 1;
+}
+
+.github-RepositoryHome {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+
+  &-owner {
+    flex: 1;
+
+    .Select-control {
+      border-color: @button-border-color;
+    }
+
+    &.Select--single > .Select-control .Select-value.Select-value {
+      background: @button-background-color;
+    }
+
+    &.Select.has-value.Select--single > .Select-control .Select-value .Select-value-label {
+      color: @text-color;
+    }
+
+    .Select-option {
+      background: @button-background-color;
+      color: @text-color;
+
+      &.is-focused {
+        background: @button-background-color-selected;
+      }
+
+      &.is-disabled {
+        color: @text-color-subtle;
+      }
+    }
+
+    &Option {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-items: center;
+    }
+
+    &Avatar {
+      flex: 0;
+      border-radius: @component-padding/4;
+      margin: 0 @component-padding 0 0;
+    }
+
+    &Unwritable {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+      align-items: center;
+    }
+  }
+
+  &-separator {
+    flex: 0;
+    margin: 0 @component-padding;
+  }
+
+  .github-AtomTextEditor-container {
+    flex: 1.5;
+  }
+}
+
+.github-RemoteConfiguration {
+  &-details {
+    summary {
+      cursor: default;
+      user-select: none;
+      margin: @component-padding 0;
+
+      &:focus {
+        border: solid 1px @button-background-color-selected;
+        border-radius: 4px;
+      }
+    }
+
+    main {
+      padding-top: @component-padding;
+    }
+  }
+
+  &-protocol {
+    display: inline-flex;
+    align-items: center;
+
+    &Heading {
+      display: inline-block;
+      margin-right: @component-padding;
+    }
+
+    &Option {
+      display: inline-flex;
+      align-items: center;
+      padding: @component-padding/4;
+      margin-right: @component-padding;
+
+      &:focus-within {
+        border: solid 1px @button-background-color-selected;
+        border-radius: 4px;
+      }
+    }
+  }
+
+  &-sourceRemote {
+    width: 60%;
+
+    label {
+      display: flex;
+      align-items: center;
+      width: 100%;
+
+      .github-AtomTextEditor-container {
+        flex: 1;
+        margin-left: @component-padding;
+      }
+    }
+  }
+}
+
+.github-Create {
+  &-visibility {
+    display: inline-flex;
+    align-items: center;
+
+    &Heading {
+      display: inline-block;
+      margin-right: @component-padding*2;
+    }
+
+    &Option {
+      display: inline-flex;
+      align-items: center;
+      padding: @component-padding/4;
+      margin-right: @component-padding;
+
+      &:focus-within {
+        border: solid 1px @button-background-color-selected;
+        border-radius: 4px;
+      }
+
+      span::before {
+        margin-left: @component-padding/2;
+        margin-right: @component-padding/2;
+      }
+    }
   }
 }

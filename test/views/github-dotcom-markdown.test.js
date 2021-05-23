@@ -140,6 +140,7 @@ describe('GithubDotcomMarkdown', function() {
     });
 
     it('opens item in pane and activates accordingly', async function() {
+      atom.workspace = {open: () => {}};
       sinon.stub(atom.workspace, 'open').returns(Promise.resolve());
       const issueishLink = wrapper.getDOMNode().querySelector('a.issue-link');
 
@@ -213,7 +214,7 @@ describe('GithubDotcomMarkdown', function() {
     });
 
     it('records event for opening issueish in browser', async function() {
-      sinon.stub(shell, 'openExternal').callsArg(2);
+      sinon.stub(shell, 'openExternal').callsFake(() => {});
       sinon.stub(reporterProxy, 'addEvent');
 
       const issueishLink = wrapper.getDOMNode().querySelector('a.issue-link');
@@ -228,7 +229,7 @@ describe('GithubDotcomMarkdown', function() {
     });
 
     it('does not record event if opening issueish in browser fails', function() {
-      sinon.stub(shell, 'openExternal').callsArgWith(2, new Error('oh noes'));
+      sinon.stub(shell, 'openExternal').throws(new Error('oh noes'));
       sinon.stub(reporterProxy, 'addEvent');
 
       // calling `handleClick` directly rather than dispatching event so that we can catch the error thrown and prevent errors in the console

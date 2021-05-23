@@ -1,5 +1,6 @@
 import React from 'react';
 import {shallow} from 'enzyme';
+import path from 'path';
 
 import {BareReviewsController} from '../../lib/controllers/reviews-controller';
 import PullRequestCheckoutController from '../../lib/controllers/pr-checkout-controller';
@@ -758,7 +759,7 @@ describe('ReviewsController', function() {
     it('opens file on disk', async function() {
       await wrapper.find(ReviewsView).prop('openFile')('filepath', 420);
       assert.isTrue(atomEnv.workspace.open.calledWith(
-        'filepath', {
+        path.join(localRepository.getWorkingDirectoryPath(), 'filepath'), {
           initialLine: 420 - 1,
           initialColumn: 0,
           pending: true,

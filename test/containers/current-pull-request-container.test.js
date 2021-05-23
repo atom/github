@@ -3,7 +3,6 @@ import {shallow} from 'enzyme';
 import {QueryRenderer} from 'react-relay';
 
 import CurrentPullRequestContainer from '../../lib/containers/current-pull-request-container';
-import {ManualStateObserver} from '../helpers';
 import {queryBuilder} from '../builder/graphql/query';
 import Remote from '../../lib/models/remote';
 import RemoteSet from '../../lib/models/remote-set';
@@ -15,12 +14,6 @@ import repositoryQuery from '../../lib/containers/__generated__/remoteContainerQ
 import currentQuery from '../../lib/containers/__generated__/currentPullRequestContainerQuery.graphql.js';
 
 describe('CurrentPullRequestContainer', function() {
-  let observer;
-
-  beforeEach(function() {
-    observer = new ManualStateObserver();
-  });
-
   function buildApp(overrideProps = {}) {
     const origin = new Remote('origin', 'git@github.com:atom/github.git');
     const upstreamBranch = Branch.createRemoteTracking('refs/remotes/origin/master', 'origin', 'refs/heads/master');
@@ -37,7 +30,6 @@ describe('CurrentPullRequestContainer', function() {
 
         token="1234"
         endpoint={origin.getEndpoint()}
-        remoteOperationObserver={observer}
         remote={origin}
         remotes={remotes}
         branches={branches}
@@ -45,6 +37,7 @@ describe('CurrentPullRequestContainer', function() {
         pushInProgress={false}
 
         onOpenIssueish={() => {}}
+        onOpenReviews={() => {}}
         onCreatePr={() => {}}
 
         {...overrideProps}
@@ -207,16 +200,5 @@ describe('CurrentPullRequestContainer', function() {
     const filterFn = resultWrapper.find(IssueishListController).prop('resultFilter');
     assert.isTrue(filterFn({getHeadRepositoryID: () => '100'}));
     assert.isFalse(filterFn({getHeadRepositoryID: () => '12'}));
-  });
-
-  it('performs the query again when a remote operation completes', function() {
-    const wrapper = shallow(buildApp());
-
-    const props = queryBuilder(currentQuery).build();
-    const retry = sinon.spy();
-    wrapper.find(QueryRenderer).renderProp('render')({error: null, props, retry});
-
-    observer.trigger();
-    assert.isTrue(retry.called);
   });
 });

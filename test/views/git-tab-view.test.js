@@ -1,5 +1,6 @@
 import React from 'react';
 import {shallow, mount} from 'enzyme';
+import {TextBuffer} from 'atom';
 
 import {cloneRepository, buildRepository} from '../helpers';
 import GitTabView from '../../lib/views/git-tab-view';
@@ -221,6 +222,20 @@ describe('GitTabView', function() {
     });
   });
 
+  it('renders the identity panel when requested', async function() {
+    const usernameBuffer = new TextBuffer();
+    const emailBuffer = new TextBuffer();
+    const wrapper = shallow(await buildApp({
+      editingIdentity: true,
+      usernameBuffer,
+      emailBuffer,
+    }));
+
+    assert.isTrue(wrapper.exists('GitIdentityView'));
+    assert.strictEqual(wrapper.find('GitIdentityView').prop('usernameBuffer'), usernameBuffer);
+    assert.strictEqual(wrapper.find('GitIdentityView').prop('emailBuffer'), emailBuffer);
+  });
+
   it('selects a staging item', async function() {
     const wrapper = mount(await buildApp({
       unstagedChanges: [{filePath: 'aaa.txt', status: 'modified'}],
@@ -281,5 +296,12 @@ describe('GitTabView', function() {
     const setFocus = sinon.spy(wrapper.find('RecentCommitsView').instance(), 'setFocus');
     wrapper.instance().focusAndSelectRecentCommit();
     assert.isTrue(setFocus.calledWith(GitTabView.focus.RECENT_COMMIT));
+  });
+
+  it('calls changeWorkingDirectory when a project is selected', async function() {
+    const changeWorkingDirectory = sinon.spy();
+    const wrapper = shallow(await buildApp({changeWorkingDirectory}));
+    wrapper.find('GitTabHeaderController').prop('changeWorkingDirectory')('some-path');
+    assert.isTrue(changeWorkingDirectory.calledWith('some-path'));
   });
 });

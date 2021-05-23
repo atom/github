@@ -69,17 +69,17 @@ describe('ActionableReviewView', function() {
       }
 
       it("opens the content object's URL with 'Open on GitHub'", async function() {
-        sinon.stub(shell, 'openExternal').callsArg(2);
+        sinon.stub(shell, 'openExternal').callsFake(() => {});
 
         const item = triggerMenu({url: 'https://github.com'}, {}).items.find(i => i.label === 'Open on GitHub');
         await item.click();
 
-        assert.isTrue(shell.openExternal.calledWith('https://github.com', {}));
+        assert.isTrue(shell.openExternal.calledWith('https://github.com'));
         assert.isTrue(reporterProxy.addEvent.calledWith('open-comment-in-browser'));
       });
 
       it("rejects the promise when 'Open on GitHub' fails", async function() {
-        sinon.stub(shell, 'openExternal').callsArgWith(2, new Error("I don't feel like it"));
+        sinon.stub(shell, 'openExternal').throws(new Error("I don't feel like it"));
 
         const item = triggerMenu({url: 'https://github.com'}, {}).items.find(i => i.label === 'Open on GitHub');
         await assert.isRejected(item.click());
@@ -87,7 +87,7 @@ describe('ActionableReviewView', function() {
       });
 
       it('opens a prepopulated abuse-reporting link with "Report abuse"', async function() {
-        sinon.stub(shell, 'openExternal').callsArg(2);
+        sinon.stub(shell, 'openExternal').callsFake(() => {});
 
         const item = triggerMenu({url: 'https://github.com/a/b'}, {login: 'tyrion'})
           .items.find(i => i.label === 'Report abuse');
@@ -95,13 +95,12 @@ describe('ActionableReviewView', function() {
 
         assert.isTrue(shell.openExternal.calledWith(
           'https://github.com/contact/report-content?report=tyrion&content_url=https%3A%2F%2Fgithub.com%2Fa%2Fb',
-          {},
         ));
         assert.isTrue(reporterProxy.addEvent.calledWith('report-abuse'));
       });
 
       it("rejects the promise when 'Report abuse' fails", async function() {
-        sinon.stub(shell, 'openExternal').callsArgWith(2, new Error('nah'));
+        sinon.stub(shell, 'openExternal').throws(new Error('nah'));
 
         const item = triggerMenu({url: 'https://github.com/a/b'}, {login: 'tyrion'})
           .items.find(i => i.label === 'Report abuse');

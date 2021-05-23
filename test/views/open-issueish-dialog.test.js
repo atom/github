@@ -24,6 +24,7 @@ describe('OpenIssueishDialog', function() {
     return (
       <OpenIssueishDialog
         request={request}
+        inProgress={false}
         workspace={atomEnv.workspace}
         commands={atomEnv.commands}
         {...overrides}

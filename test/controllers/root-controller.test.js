@@ -11,7 +11,10 @@ import {multiFilePatchBuilder} from '../builder/patch';
 import Repository from '../../lib/models/repository';
 import WorkdirContextPool from '../../lib/models/workdir-context-pool';
 import ResolutionProgress from '../../lib/models/conflicts/resolution-progress';
+import RemoteSet from '../../lib/models/remote-set';
+import Remote from '../../lib/models/remote';
 import RefHolder from '../../lib/models/ref-holder';
+import {getEndpoint} from '../../lib/models/endpoint';
 import GithubLoginModel from '../../lib/models/github-login-model';
 import {InMemoryStrategy} from '../../lib/shared/keytar-strategy';
 import {dialogRequests} from '../../lib/controllers/dialogs-controller';
@@ -20,6 +23,9 @@ import GitHubTabItem from '../../lib/items/github-tab-item';
 import IssueishDetailItem from '../../lib/items/issueish-detail-item';
 import CommitPreviewItem from '../../lib/items/commit-preview-item';
 import CommitDetailItem from '../../lib/items/commit-detail-item';
+import RelayNetworkLayerManager, {expectRelayQuery} from '../../lib/relay-network-layer-manager';
+import createRepositoryQuery from '../../lib/mutations/__generated__/createRepositoryMutation.graphql';
+import {relayResponseBuilder} from '../builder/graphql/query';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 import RootController from '../../lib/controllers/root-controller';
@@ -52,22 +58,28 @@ describe('RootController', function() {
         workspace={workspace}
         commands={commands}
         deserializers={deserializers}
-        grammars={grammars}
         notificationManager={notificationManager}
         tooltips={tooltips}
-        config={config}
-        confirm={confirm}
-        project={project}
         keymaps={atomEnv.keymaps}
+        grammars={grammars}
+        config={config}
+        project={project}
+        confirm={confirm}
+        currentWindow={atomEnv.getCurrentWindow()}
 
         loginModel={loginModel}
         workdirContextPool={workdirContextPool}
         repository={absentRepository}
         resolutionProgress={emptyResolutionProgress}
 
+        currentWorkDir={null}
+
         initialize={() => {}}
         clone={() => {}}
 
+        contextLocked={false}
+        changeWorkingDirectory={() => {}}
+        setContextLock={() => {}}
         startOpen={false}
         startRevealed={false}
       />
@@ -550,6 +562,168 @@ describe('RootController', function() {
       await req0.cancel(new Error('cancelled'));
       await assert.isRejected(credentialPromise);
 
+      const req1 = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
+    });
+  });
+
+  describe('openCreateDialog()', function() {
+    it('renders the modal create dialog', function() {
+      const wrapper = shallow(app);
+
+      wrapper.find('Command[command="github:create-repository"]').prop('callback')();
+      assert.strictEqual(wrapper.find('DialogsController').prop('request').identifier, 'create');
+    });
+
+    it('creates a repository on GitHub on accept', async function() {
+      expectRelayQuery({
+        name: createRepositoryQuery.operation.name,
+        variables: {input: {name: 'repo-name', ownerId: 'user0', visibility: 'PUBLIC'}},
+      }, op => {
+        return relayResponseBuilder(op)
+          .createRepository(m => {
+            m.repository(r => {
+              r.sshUrl('ssh@github.com:user0/repo-name.git');
+              r.url('https://github.com/user0/repo-name');
+            });
+          })
+          .build();
+      }).resolve();
+
+      RelayNetworkLayerManager.getEnvironmentForHost(getEndpoint('github.com'), 'good-token');
+      const clone = sinon.spy();
+      const localPath = temp.path({prefix: 'rootctrl-'});
+
+      const wrapper = shallow(React.cloneElement(app, {clone}));
+      wrapper.find('Command[command="github:create-repository"]').prop('callback')();
+
+      const req0 = wrapper.find('DialogsController').prop('request');
+      await req0.accept({
+        ownerID: 'user0',
+        name: 'repo-name',
+        visibility: 'PUBLIC',
+        localPath,
+        protocol: 'https',
+        sourceRemoteName: 'home',
+      });
+
+      assert.isTrue(clone.calledWith('https://github.com/user0/repo-name', localPath, 'home'));
+
+      const req1 = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
+    });
+
+    it('dismisses the CreateDialog on cancel', function() {
+      const wrapper = shallow(app);
+      wrapper.find('Command[command="github:create-repository"]').prop('callback')();
+
+      const req0 = wrapper.find('DialogsController').prop('request');
+      req0.cancel();
+
+      wrapper.update();
+      const req1 = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
+    });
+  });
+
+  describe('openPublishDialog()', function() {
+    let publishable;
+
+    beforeEach(async function() {
+      publishable = await buildRepository(await cloneRepository());
+    });
+
+    it('does not register the command while repository data is being fetched', function() {
+      const wrapper = shallow(app);
+      const inner = wrapper.find('ObserveModel').renderProp('children')(null);
+      assert.isTrue(inner.isEmptyRender());
+    });
+
+    it('does not register the command when the repository is not publishable', function() {
+      const wrapper = shallow(app);
+      const inner = wrapper.find('ObserveModel').renderProp('children')({isPublishable: false});
+      assert.isTrue(inner.isEmptyRender());
+    });
+
+    it('does not register the command when the repository already has a GitHub remote', function() {
+      const remotes = new RemoteSet([
+        new Remote('origin', 'git@github.com:atom/github'),
+      ]);
+
+      const wrapper = shallow(app);
+      const inner = wrapper.find('ObserveModel').renderProp('children')({isPublishable: true, remotes});
+      assert.isTrue(inner.isEmptyRender());
+    });
+
+    it('renders the modal publish dialog', async function() {
+      const wrapper = shallow(app);
+      const observer = wrapper.find('ObserveModel');
+
+      const payload = await observer.prop('fetchData')(publishable);
+      assert.isTrue(payload.isPublishable);
+      assert.isTrue(payload.remotes.filter(each => each.isGithubRepo()).isEmpty());
+      const inner = observer.renderProp('children')(payload);
+
+      inner.find('Command[command="github:publish-repository"]').prop('callback')();
+      assert.strictEqual(wrapper.find('DialogsController').prop('request').identifier, 'publish');
+    });
+
+    it('publishes the active repository to GitHub on accept', async function() {
+      expectRelayQuery({
+        name: createRepositoryQuery.operation.name,
+        variables: {input: {name: 'repo-name', ownerId: 'user0', visibility: 'PUBLIC'}},
+      }, op => {
+        return relayResponseBuilder(op)
+          .createRepository(m => {
+            m.repository(r => {
+              r.sshUrl('ssh@github.com:user0/repo-name.git');
+              r.url('https://github.com/user0/repo-name');
+            });
+          })
+          .build();
+      }).resolve();
+      RelayNetworkLayerManager.getEnvironmentForHost(getEndpoint('github.com'), 'good-token');
+      sinon.stub(publishable, 'push').resolves();
+
+      const wrapper = shallow(React.cloneElement(app, {repository: publishable}));
+      const inner = wrapper.find('ObserveModel').renderProp('children')({
+        isPublishable: true,
+        remotes: new RemoteSet(),
+      });
+      inner.find('Command[command="github:publish-repository"]').prop('callback')();
+
+      const req0 = wrapper.find('DialogsController').prop('request');
+      await req0.accept({
+        ownerID: 'user0',
+        name: 'repo-name',
+        visibility: 'PUBLIC',
+        protocol: 'ssh',
+        sourceRemoteName: 'home',
+      });
+
+      const remoteSet = await publishable.getRemotes();
+      const addedRemote = remoteSet.withName('home');
+      assert.isTrue(addedRemote.isPresent());
+      assert.strictEqual(addedRemote.getUrl(), 'ssh@github.com:user0/repo-name.git');
+
+      assert.isTrue(publishable.push.calledWith('master', {setUpstream: true, remote: addedRemote}));
+
+      const req1 = wrapper.find('DialogsController').prop('request');
+      assert.strictEqual(req1, dialogRequests.null);
+    });
+
+    it('dismisses the CreateDialog on cancel', function() {
+      const wrapper = shallow(React.cloneElement(app, {repository: publishable}));
+      const inner = wrapper.find('ObserveModel').renderProp('children')({
+        isPublishable: true,
+        remotes: new RemoteSet(),
+      });
+      inner.find('Command[command="github:publish-repository"]').prop('callback')();
+
+      const req0 = wrapper.find('DialogsController').prop('request');
+      req0.cancel();
+
+      wrapper.update();
       const req1 = wrapper.find('DialogsController').prop('request');
       assert.strictEqual(req1, dialogRequests.null);
     });
