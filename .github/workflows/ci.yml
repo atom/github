@@ -24,11 +24,6 @@ jobs:
       with:
         channel: ${{ matrix.channel }}
 
-    - name: install windows build tools
-      if: contains(matrix.os, 'windows')
-      run: |
-        choco install visualcpp-build-tools --version=14.0.25420.1 --ignore-dependencies -y --params "'/IncludeRequired'"
-        echo "VCTargetsPath='C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\v140'" >> $GITHUB_ENV
     - name: install dependencies
       run: apm ci
 
