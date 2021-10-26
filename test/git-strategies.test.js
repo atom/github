@@ -837,7 +837,7 @@ import * as reporterProxy from '../lib/reporter-proxy';
           it('returns an empty diff', async function() {
             const workingDirPath = await cloneRepository('three-files');
             const git = createTestStrategy(workingDirPath);
-            const data = new Buffer(10);
+            const data = Buffer.alloc(10);
             for (let i = 0; i < 10; i++) {
               data.writeUInt8(i + 200, i);
             }
