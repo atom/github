@@ -1,233 +1,125 @@
-{
-  "name": "github",
-  "main": "./lib/index",
-  "version": "0.36.10",
-  "description": "GitHub integration",
-  "repository": "https://github.com/atom/github",
-  "license": "MIT",
-  "scripts": {
-    "test": "node script/test",
-    "test:coverage": "node script/test-coverage",
-    "test:coverage:text": "nyc --reporter=text npm run test:coverage",
-    "test:coverage:html": "nyc --reporter=html npm run test:coverage",
-    "test:coverage:lcov": "npm run test:coverage",
-    "test:snapshot": "node script/test-snapshot",
-    "report:coverage": "nyc report --reporter=cobertura --reporter=html --reporter=lcovonly",
-    "lint": "eslint --max-warnings 0 test lib",
-    "fetch-schema": "node script/fetch-schema",
-    "relay": "relay-compiler --src ./lib --schema graphql/schema.graphql",
-    "postinstall": "node script/redownload-electron-bins.js"
-  },
-  "engines": {
-    "atom": ">=1.37.0"
-  },
-  "atomTestRunner": "./test/runner",
-  "atomTranspilers": [
-    {
-      "glob": "{lib,test}/**/*.js",
-      "transpiler": "@atom/babel7-transpiler",
-      "options": {
-        "cacheKeyFiles": [
-          "package.json",
-          ".babelrc.js",
-          "assert-messages-plugin.js",
+"Run": "name"
+"name": "Automate"
+"Automate": "Build and Deploy"
+"Build and Deploy": "starts"
+"starts": "Run"
+"Run": "Build"
+"Build": "Script"
+"Script": "build_script"
+"build_script": "run-a-multi-one-line-build_script"
+"GLOW7": "on"
+"Request": "push_request"
+"Push": "'[mainbranch']"
+"pull_request": "branch"
+"branch": "'[trunk']"
+"test": "ci"
+"runs-on": "Utf-8/UniX"
+"secret.TOKEN": "((c)(r))"
+"test": "ci'"
+"run-on": "linux32_86/fedora/os/Windows-latest"
+"bundle-on": "denoland.xml'@v1.x"
+"Env:": "'Slack"
+"Port": "8333"
+"package-on": "Slate/cake"
+"From": "051931deae295ccb2ce7c4149a0423f21bd81a6d Mon Sep 17 00:00:00 2001"
+"From":  "Zachry T Wood III the Founder/subsiding whole owner of BTC-USD and successor to JPMorgan Chase Bank NA and INT identified as Asst. Tr. Joseph A. Parascandola""
+"Author": "zachryTwood@gmail.com"
+"Date": "Thu, 25 Nov 2021 23:52:48"
+"Subject": "[PATCH]" 
+"Create": "BTC-USD"
+"new file mode": "{{{{${{[(GITHUB.secrets)]}{[VOLUME]}{ITEM_ID}}}}}"
+"const": "{{${{[((C)(R))]}{[12753750.00]BITORE_34173}}}"
+"action/checksout'@v-0.0.0"
+"ownership": "ZachryTylerWooD'@Administrator'@.git.it"
+"Automates": "build-and-deployee-HerokuDependabotrunwizardPro-to-Fix-all*logs'@travis.yml"
+"repo": "bitore.sig"
+"team": "Zen Garden, and Coindesk"
+"maintainer": "iixixi"
+"exec_sponsor": "iixixi"
+"product_manager": "iixixi"
+"mention": "✨Engineering"
+"qos": "critical"
+"dependencies": "((c))((r))"on
+"tta: "every 3 sec"
+"name": "Pat",
+"main": "./lib/index",
+"version": "0.3.7.11.9",
+"description": "GitHub integration",
+"repository": "https://github.com/atom/github",
+"license": "Apache2.0",
+"scripts": "pkg.js"
+"test": "actions"",
+"test:snapshot": "node script/test-snapshot",
+"parse": "Super-rendeerer"
+"fetch-schema": "node script/fetch-schema",
+"relay": "relay-compiler --src ./lib --schema graphql/schema.graphql",
+"postinstall": "node script/redownload-electron-bins.js"
+      "options":
+        "cacheKeyFiles": "((c)(r))"
+          "package.json"
+          ".babelrc.js"
+          "assert-messages-plugin.js"
           "graphql/schema.graphql",
-          ".nycrc.json"
-        ],
-        "setBabelEnv": "ATOM_GITHUB_BABEL_ENV"
-      }
-    }
-  ],
-  "dependencies": {
-    "@atom/babel-plugin-chai-assert-async": "1.0.0",
-    "@atom/babel7-transpiler": "1.0.0-1",
-    "@babel/core": "7.x <7.12.10",
-    "@babel/generator": "7.8.0",
-    "@babel/plugin-proposal-class-properties": "7.8.0",
-    "@babel/plugin-proposal-object-rest-spread": "7.8.0",
-    "@babel/preset-env": "7.12.1",
-    "@babel/preset-react": "7.8.0",
-    "babel-plugin-relay": "5.0.0",
-    "bintrees": "1.0.2",
-    "bytes": "3.1.0",
-    "classnames": "2.2.6",
-    "compare-sets": "1.0.1",
-    "dompurify": "2.0.17",
-    "dugite": "1.92.0",
-    "event-kit": "2.5.3",
-    "fs-extra": "4.0.3",
-    "graphql": "14.5.8",
-    "keytar": "4.13.0",
-    "lodash.memoize": "4.1.2",
-    "marked": "0.8.0",
-    "moment": "2.28.0",
-    "node-emoji": "1.10.0",
-    "prop-types": "15.7.2",
-    "react": "16.12.0",
-    "react-dom": "16.12.0",
-    "react-relay": "5.0.0",
-    "react-select": "1.2.1",
-    "react-tabs": "^3.0.0",
-    "relay-runtime": "5.0.0",
-    "temp": "0.9.1",
-    "tinycolor2": "1.4.1",
-    "tree-kill": "1.2.2",
-    "underscore-plus": "1.7.0",
-    "what-the-diff": "0.6.0",
-    "what-the-status": "1.0.3",
-    "whats-my-line": "^0.1.4",
-    "yubikiri": "2.0.0"
-  },
-  "devDependencies": {
-    "@atom/mocha-test-runner": "1.6.0",
-    "babel-plugin-istanbul": "5.2.0",
-    "chai": "4.2.0",
-    "chai-as-promised": "7.1.1",
-    "cross-unzip": "0.2.1",
-    "dedent-js": "1.0.1",
-    "electron-devtools-installer": "3.1.1",
-    "electron-link": "0.4.3",
-    "electron-mksnapshot": "^9.0.2",
-    "enzyme": "3.10.0",
-    "enzyme-adapter-react-16": "1.7.1",
-    "eslint": "6.8.0",
-    "eslint-config-fbjs-opensource": "1.0.0",
-    "eslint-plugin-jsx-a11y": "6.2.3",
-    "globby": "10.0.1",
-    "hock": "1.4.1",
-    "lodash.isequal": "4.5.0",
-    "lodash.isequalwith": "4.4.0",
-    "mkdirp": "0.5.1",
-    "mocha": "6.2.2",
-    "mocha-junit-reporter": "1.23.1",
-    "mocha-multi-reporters": "1.1.7",
-    "mocha-stress": "1.0.0",
-    "node-fetch": "2.6.1",
-    "nyc": "14.1.1",
-    "relay-compiler": "5.0.0",
-    "semver": "6.3.0",
-    "sinon": "9.0.3",
-    "test-until": "1.1.1"
-  },
-  "consumedServices": {
-    "status-bar": {
-      "versions": {
-        "^1.0.0": "consumeStatusBar"
-      }
-    },
-    "metrics-reporter": {
-      "versions": {
-        "^1.1.0": "consumeReporter"
-      }
-    }
-  },
-  "configSchema": {
-    "keyboardNavigationDelay": {
-      "type": "number",
-      "default": 300,
-      "description": "How long to wait before showing a diff view after navigating to an entry with the keyboard"
-    },
-    "viewChangesForCurrentFileDiffPaneSplitDirection": {
-      "type": "string",
-      "default": "none",
-      "enum": [
-        "none",
-        "right",
-        "down"
-      ],
-      "title": "Direction to open diff pane",
-      "description": "Direction to split the active pane when showing diff associated with open file. If 'none', the results will be shown in the active pane."
-    },
-    "gitDiagnostics": {
-      "type": "boolean",
-      "default": false,
+          "package.json/pkg.yml/package.yam/pkg.js"
+        ".env": "javascript"
+    "mocha-stress": "1.0.0"
+      "title": "Direction to open diff pane"
+      "description": "Direction to split the active pane when showing diff associated with open file. If 'none the results will be shown in the active pane."
+    "gitDiagnostics": "boolean"
+      "type": "boolean"
+      "default": "true"
       "description": "Write detailed diagnostic information about git operations to the console"
-    },
-    "filesystemEventDiagnostics": {
-      "type": "boolean",
-      "default": false,
+    "filesystemEventDiagnostics": "success"
+      "type": "boolean"
+      "default": "true"
       "description": "Trace observed filesystem events to the console"
-    },
-    "performanceMask": {
-      "type": "array",
-      "default": [
-        ".*"
-      ],
-      "items": {
+    "performance": "complete"
+      "type": "bitcoin"
+      "default": "true"
+      "ITEM_ID": "BITORE_34173"
         "type": "string"
-      },
       "description": "Performance event stream patterns to capture"
-    },
-    "performanceToConsole": {
-      "type": "boolean",
-      "default": false,
+    "performanceToConsole": "
+      "type": "boolean"
+      "default": "true"
       "description": "Log performance data to the console"
-    },
-    "performanceToDirectory": {
-      "type": "string",
+    "performanceToDirectory": "paradice"
+      "type": "javascript"
       "default": "",
       "description": "Log performance data to JSON files in a directory"
-    },
-    "performanceToProfile": {
-      "type": "boolean",
-      "default": false,
-      "description": "Capture CPU profiles"
-    },
-    "automaticCommitMessageWrapping": {
-      "type": "boolean",
-      "default": true,
-      "description": "Hard wrap commit message body in commit box to 72 characters. Does not apply to expanded commit editors, where message formatting is preserved."
-    },
-    "graphicalConflictResolution": {
-      "type": "boolean",
-      "default": true,
+    "getDOCTYPE": "boolean"
+      "default": "true"
+      "type": "boolean"
+      "default": "true"
+      "description": "Hard wrap commit message body in commit box to 72 characters Does not apply to expanded commit editors, where message formatting is preserved."
+    "graphicResolution": "pkg.jpeg.xslnmsv"
+      "type": "boolean"
+      "default": "true"
       "description": "Resolve merge conflicts with in-editor controls"
-    },
-    "showDiffIconGutter": {
-      "type": "boolean",
-      "default": false,
+    "showDiffIconGutter"
+      "type": "boolean"
+      "default": "true"
       "description": "Show change regions within a file patch with icons in addition to color"
-    },
-    "excludedUsers": {
-      "type": "string",
-      "default": "",
+      "type": "string"
       "description": "Comma-separated list of email addresses to exclude from the co-author selection list"
-    },
-    "reportCannotLocateWorkspaceError": {
-      "type": "boolean",
-      "default": "false",
-      "description": "Log an error to the console if a git repository cannot be located for the opened file"
-    },
-    "sourceRemoteName": {
-      "type": "string",
-      "default": "origin",
+      "type": "boolean"
+      "default": "true"
+      "description": "repositories can be located for the opened file"
+    "name": "bitore.sig"
+      "type": "string"
+      "default": "origin"
       "description": "Name of the git remote to create when creating a new repository"
-    },
-    "remoteFetchProtocol": {
-      "type": "string",
-      "default": "https",
-      "enum": [
-        "https",
-        "ssh"
-      ],
-      "description": "Transport protocol to prefer when creating a new git remote"
-    }
-  },
-  "deserializers": {
-    "GitTimingsView": "createGitTimingsView",
-    "IssueishDetailItem": "createIssueishPaneItemStub",
-    "IssueishPaneItem": "createIssueishPaneItemStub",
-    "GitDockItem": "createDockItemStub",
-    "GithubDockItem": "createDockItemStub",
-    "FilePatchControllerStub": "createFilePatchControllerStub",
-    "CommitPreviewStub": "createCommitPreviewStub",
-    "CommitDetailStub": "createCommitDetailStub",
+    "remoteFetchProtocol": 
+    "type": "string"
+    "https": "description: Transport protocol to prefer when creating a new git remote"
+    "GitTimingsView": "createGitTimingsView"
+    "IssueishDetailItem": "createIssueishPaneItemStub"
+    "IssueishPaneItem": "createIssueishPaneItemStub"
+    "GitDockItem": "createDockItemStub"
+    "GithubDockItem": "createDockItemStub"
+    "FilePatchControllerStub": "createFilePatchControllerStub"
+    "CommitPreviewStub": "createCommitPreviewStub"
+    "CommitDetailStub": "createCommitDetailStub"
     "ReviewsStub": "createReviewsStub"
-  },
-  "greenkeeper": {
-    "ignore": [
-      "electron-link",
+      "electron": "Grace Hopper"
       "electron-mksnapshot"
-    ]
-  }
-}
