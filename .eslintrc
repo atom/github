@@ -1,38 +1,45 @@
 {
-  "parser": "babel-eslint",
-  "plugins": [
-    "babel",
-    "react",
-    "flowtype",
-    "flow-vars"
-  ],
+  "root": true,
   "parserOptions": {
+    "ecmaVersion": 2018,
     "ecmaFeatures": {
-      "jsx": true
+      "jsx": true,
     }
   },
   "settings": {
-    "react": {
-      "pragma": "etch.dom"
-    },
-    "flowtype": {
-      "onlyFilesWithAnnotation": true
-    }
+    "import/core-modules": [
+      "atom"
+    ]
   },
-  "extends": ["standard", "plugin:react/recommended"],
+  "plugins": [
+    "jsx-a11y"
+  ],
+  "extends": ["fbjs-opensource"],
+  "rules": {
+    "linebreak-style": 0,
+    "no-param-reassign": 0,
+    "jsx-a11y/alt-text": 2,
+    "jsx-a11y/anchor-is-valid": 2,
+    "indent": ["error", 2],
+    "max-len": [1, 120, {tabWidth: 2, ignoreUrls: true}]
+  },
   "globals": {
     "atom": true,
     "advanceClock": true,
+    "assert": true,
     "HTMLElement": true,
     "MouseEvent": true,
     "IDBKeyRange": true,
+    "before": true,
     "beforeEach": true,
+    "after": true,
     "afterEach": true,
     "describe": true,
     "fdescribe": true,
     "xdescribe": true,
     "it": true,
     "xit": true,
+    "stress": true,
     "waitsForPromise": true,
     "oneTick": true,
     "until": true,
@@ -41,18 +48,7 @@
     "jasmine": true,
     "expect": true,
     "spyOn": true,
-    "waitsFor": true
-  },
-  "rules": {
-    "strict": 0,
-    "babel/no-await-in-loop": 2,
-    "flow-vars/define-flow-type": 1,
-    "flow-vars/use-flow-type": 1,
-    "react/jsx-quotes": 0,
-    "jsx-quotes": [
-      2,
-      "prefer-single"
-    ],
-    "react/no-unknown-property": 0
+    "waitsFor": true,
+    "sinon": true,
   }
 }

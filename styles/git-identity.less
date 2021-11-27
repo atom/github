@@ -1,0 +1,33 @@
+// Styles for the Git Identity view.
+
+.github-GitIdentity {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: @component-padding;
+
+  &-title {
+    margin-bottom: @component-padding;
+  }
+
+  &-explanation {
+    margin-bottom: @component-padding * 3;
+  }
+
+  &-text {
+    width: 90%;
+    margin-bottom: @component-padding * 2;
+
+    .github-AtomTextEditor-container {
+      margin: @component-padding 0;
+      height: inherit;
+    }
+  }
+
+  &-buttons {
+    .btn {
+      margin: @component-padding/2;
+    }
+  }
+}

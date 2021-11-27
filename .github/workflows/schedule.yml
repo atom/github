@@ -1,0 +1,14 @@
+on:
+  schedule:
+  - cron: 0 1 * * 5
+name: GraphQL schema update
+jobs:
+  updateSchema:
+    name: Update schema
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Update schema
+      uses: ./actions/schema-up
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

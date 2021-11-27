@@ -1,9 +1,0 @@
-type WatchEvent = 'rename' | 'delete' | 'change'
-
-declare module 'pathwatcher' {
-  declare class PathWatcher {
-    close (): void;
-  }
-
-  declare function watch (path: string, fn: (event: WatchEvent, path: string) => void): PathWatcher;
-}

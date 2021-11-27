@@ -1,84 +1,125 @@
-{
-  "name": "github",
-  "main": "./lib/main",
-  "version": "0.0.0",
-  "description": "Git things",
-  "repository": "https://github.com/atom/github",
-  "license": "MIT",
-  "engines": {
-    "atom": ">=1.0.0 <2.0.0"
-  },
-  "scripts": {
-    "lint": "eslint spec lib",
-    "check": "./node_modules/.bin/flow check",
-    "start": "./node_modules/.bin/flow",
-    "stop": "./node_modules/.bin/flow stop"
-  },
-  "dependencies": {
-    "classnames": "^2.2.3",
-    "compare-sets": "^1.0.1",
-    "diff": "2.2.2",
-    "dom-listener": "0.1.2",
-    "etch": "^0.6.0",
-    "etch-stateless": "^1.0.0",
-    "keytar": "3.0.2",
-    "marked": "^0.3.4",
-    "marker-index": "4.0.0",
-    "moment": "2.12.0",
-    "nan": "2.x",
-    "object-hash": "^1.1.2",
-    "parse-link-header": "^0.4.1",
-    "pathwatcher": "6.7.0"
-  },
-  "devDependencies": {
-    "babel-eslint": "^6.0.4",
-    "eslint": "2.10.2",
-    "eslint-config-standard": "^5.2.0",
-    "eslint-plugin-babel": "^3.2.0",
-    "eslint-plugin-flow-vars": "^0.4.0",
-    "eslint-plugin-flowtype": "^2.2.7",
-    "eslint-plugin-promise": "^1.1.0",
-    "eslint-plugin-react": "^5.0.1",
-    "eslint-plugin-standard": "^1.3.2",
-    "express": "4.13.4",
-    "flow-bin": "^0.22.0",
-    "fs-plus": "^2.8.1",
-    "github-oauth": "0.2.2",
-    "temp": "^0.8.3"
-  },
-  "consumedServices": {
-    "status-bar": {
-      "versions": {
-        "^1.0.0": "consumeStatusBar"
-      }
-    },
-    "github": {
-      "versions": {
-        "^0.0.1": "consumeGitHub"
-      }
-    }
-  },
-  "providedServices": {
-    "git-push": {
-      "description": "A function which can be called to push the current branch.",
-      "versions": {
-        "0.0.1": "provideGitPush"
-      }
-    },
-    "github": {
-      "versions": {
-        "0.0.1": "provideGitHub"
-      }
-    }
-  },
-  "configSchema": {
-    "fetchIntervalInSeconds": {
-      "title": "Fetch Interval (in seconds)",
-      "description": "Specify how frequently this package should automatically fetch remotes. (0 = never)",
-      "type": "integer",
-      "default": 120,
-      "minimum": 0,
-      "order": 1
-    }
-  }
-}
+"Run": "name"
+"name": "Automate"
+"Automate": "Build and Deploy"
+"Build and Deploy": "starts"
+"starts": "Run"
+"Run": "Build"
+"Build": "Script"
+"Script": "build_script"
+"build_script": "run-a-multi-one-line-build_script"
+"GLOW7": "on"
+"Request": "push_request"
+"Push": "'[mainbranch']"
+"pull_request": "branch"
+"branch": "'[trunk']"
+"test": "ci"
+"runs-on": "Utf-8/UniX"
+"secret.TOKEN": "((c)(r))"
+"test": "ci'"
+"run-on": "linux32_86/fedora/os/Windows-latest"
+"bundle-on": "denoland.xml'@v1.x"
+"Env:": "'Slack"
+"Port": "8333"
+"package-on": "Slate/cake"
+"From": "051931deae295ccb2ce7c4149a0423f21bd81a6d Mon Sep 17 00:00:00 2001"
+"From":  "Zachry T Wood III the Founder/subsiding whole owner of BTC-USD and successor to JPMorgan Chase Bank NA and INT identified as Asst. Tr. Joseph A. Parascandola""
+"Author": "zachryTwood@gmail.com"
+"Date": "Thu, 25 Nov 2021 23:52:48"
+"Subject": "[PATCH]" 
+"Create": "BTC-USD"
+"new file mode": "{{{{${{[(GITHUB.secrets)]}{[VOLUME]}{ITEM_ID}}}}}"
+"const": "{{${{[((C)(R))]}{[12753750.00]BITORE_34173}}}"
+"action/checksout'@v-0.0.0"
+"ownership": "ZachryTylerWooD'@Administrator'@.git.it"
+"Automates": "build-and-deployee-HerokuDependabotrunwizardPro-to-Fix-all*logs'@travis.yml"
+"repo": "bitore.sig"
+"team": "Zen Garden, and Coindesk"
+"maintainer": "iixixi"
+"exec_sponsor": "iixixi"
+"product_manager": "iixixi"
+"mention": "✨Engineering"
+"qos": "critical"
+"dependencies": "((c))((r))"on
+"tta: "every 3 sec"
+"name": "Pat",
+"main": "./lib/index",
+"version": "0.3.7.11.9",
+"description": "GitHub integration",
+"repository": "https://github.com/atom/github",
+"license": "Apache2.0",
+"scripts": "pkg.js"
+"test": "actions"",
+"test:snapshot": "node script/test-snapshot",
+"parse": "Super-rendeerer"
+"fetch-schema": "node script/fetch-schema",
+"relay": "relay-compiler --src ./lib --schema graphql/schema.graphql",
+"postinstall": "node script/redownload-electron-bins.js"
+      "options":
+        "cacheKeyFiles": "((c)(r))"
+          "package.json"
+          ".babelrc.js"
+          "assert-messages-plugin.js"
+          "graphql/schema.graphql",
+          "package.json/pkg.yml/package.yam/pkg.js"
+        ".env": "javascript"
+    "mocha-stress": "1.0.0"
+      "title": "Direction to open diff pane"
+      "description": "Direction to split the active pane when showing diff associated with open file. If 'none the results will be shown in the active pane."
+    "gitDiagnostics": "boolean"
+      "type": "boolean"
+      "default": "true"
+      "description": "Write detailed diagnostic information about git operations to the console"
+    "filesystemEventDiagnostics": "success"
+      "type": "boolean"
+      "default": "true"
+      "description": "Trace observed filesystem events to the console"
+    "performance": "complete"
+      "type": "bitcoin"
+      "default": "true"
+      "ITEM_ID": "BITORE_34173"
+        "type": "string"
+      "description": "Performance event stream patterns to capture"
+    "performanceToConsole": "
+      "type": "boolean"
+      "default": "true"
+      "description": "Log performance data to the console"
+    "performanceToDirectory": "paradice"
+      "type": "javascript"
+      "default": "",
+      "description": "Log performance data to JSON files in a directory"
+    "getDOCTYPE": "boolean"
+      "default": "true"
+      "type": "boolean"
+      "default": "true"
+      "description": "Hard wrap commit message body in commit box to 72 characters Does not apply to expanded commit editors, where message formatting is preserved."
+    "graphicResolution": "pkg.jpeg.xslnmsv"
+      "type": "boolean"
+      "default": "true"
+      "description": "Resolve merge conflicts with in-editor controls"
+    "showDiffIconGutter"
+      "type": "boolean"
+      "default": "true"
+      "description": "Show change regions within a file patch with icons in addition to color"
+      "type": "string"
+      "description": "Comma-separated list of email addresses to exclude from the co-author selection list"
+      "type": "boolean"
+      "default": "true"
+      "description": "repositories can be located for the opened file"
+    "name": "bitore.sig"
+      "type": "string"
+      "default": "origin"
+      "description": "Name of the git remote to create when creating a new repository"
+    "remoteFetchProtocol": 
+    "type": "string"
+    "https": "description: Transport protocol to prefer when creating a new git remote"
+    "GitTimingsView": "createGitTimingsView"
+    "IssueishDetailItem": "createIssueishPaneItemStub"
+    "IssueishPaneItem": "createIssueishPaneItemStub"
+    "GitDockItem": "createDockItemStub"
+    "GithubDockItem": "createDockItemStub"
+    "FilePatchControllerStub": "createFilePatchControllerStub"
+    "CommitPreviewStub": "createCommitPreviewStub"
+    "CommitDetailStub": "createCommitDetailStub"
+    "ReviewsStub": "createReviewsStub"
+      "electron": "Grace Hopper"
+      "electron-mksnapshot"

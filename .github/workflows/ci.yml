@@ -1,0 +1,92 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches:
+    - master
+jobs:
+  tests:
+    name: tests
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, macos-latest, windows-latest]
+        channel: [beta, nightly]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    env:
+      ATOM_GITHUB_BABEL_ENV: coverage
+      MOCHA_TIMEOUT: 60000
+      UNTIL_TIMEOUT: 30000
+    steps:
+    - uses: actions/checkout@v1
+    - name: install Atom
+      uses: UziTech/action-setup-atom@v1
+      with:
+        channel: ${{ matrix.channel }}
+
+    - name: install dependencies
+      run: apm ci
+
+    - name: configure git
+      shell: bash
+      run: |
+        git config --global user.name Hubot
+        git config --global user.email hubot@github.com
+
+    - name: Run the tests
+      if: ${{ !contains(matrix.os, 'windows') }}
+      run: atom --test test
+
+    - name: Run the tests on Windows
+      if: ${{ contains(matrix.os, 'windows') }}
+      continue-on-error: true # due to https://github.com/atom/github/pull/2459#issuecomment-624725972
+      run: atom --test test
+
+    - name: report code coverage
+      shell: bash
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        SYSTEM_PULLREQUEST_PULLREQUESTNUMBER: ${{ github.event.number }}
+        SYSTEM_PULLREQUEST_SOURCEBRANCH: ${{ github.head_ref }}
+        BUILD_SOURCEBRANCH: ${{ github.event.ref }}
+        OS_NAME: ${{ matrix.os }}
+      run: |
+        npm run report:coverage
+        COVERAGE_NAME=$([[ "${OS_NAME}" == macos* ]] && echo "macOS" || echo "Linux")
+        bash <(curl -s https://codecov.io/bash) \
+          -n "${COVERAGE_NAME}" \
+          -P "${SYSTEM_PULLREQUEST_PULLREQUESTNUMBER:-}" \
+          -B "${SYSTEM_PULLREQUEST_SOURCEBRANCH:-${BUILD_SOURCEBRANCH}}"
+      if: |
+        !contains(matrix.os, 'windows') &&
+        (success() || failure())
+  lint:
+    name: lint
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+    - name: install Atom
+      uses: UziTech/action-setup-atom@v1
+      with:
+        channel: nightly
+    - name: install dependencies
+      run: apm ci
+    - name: lint
+      run: npm run lint
+
+  snapshot-tests:
+    name: snapshot tests
+    runs-on: ubuntu-18.04
+    env:
+      ATOM_GITHUB_BABEL_ENV: coverage
+      ATOM_GITHUB_TEST_SUITE: snapshot
+    steps:
+    - uses: actions/checkout@v1
+    - name: install Atom
+      uses: UziTech/action-setup-atom@v1
+      with:
+        channel: nightly
+    - name: install dependencies
+      run: apm ci
+    - name: run snapshot tests
+      run: atom --test test/
