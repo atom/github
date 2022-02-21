@@ -2,7 +2,7 @@
 
 This guide describes the way that the core @atom/github team works together day-to-day.
 
-We value:
+We value:new
 
 * **Trust** in each other's judgement and instincts.
 * Feeling **included** and present among the team.
