@@ -87,7 +87,7 @@
     "dedent-js": "1.0.1",
     "electron-devtools-installer": "3.1.1",
     "electron-link": "0.4.3",
-    "electron-mksnapshot": "^9.0.2",
+    "electron-mksnapshot": "^11.0.1",
     "enzyme": "3.10.0",
     "enzyme-adapter-react-16": "1.7.1",
     "eslint": "6.8.0",
