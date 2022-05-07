@@ -1,0 +1,43 @@
+Contribuir al paquete Atom GitHub
+Para obtener información general sobre contribuciones, consulte la guía de contribución de Atom ; sin embargo, contribuir al paquete de GitHub difiere de contribuir a otros paquetes principales de Atom en algunos aspectos.
+
+En particular, el paquete GitHub está en constante desarrollo por parte del equipo central de Atom, y actualmente existe una visión clara para las funciones y mejoras a corto y mediano plazo. Eso no significa que no fusionaremos las solicitudes de incorporación de cambios ni solucionaremos otros problemas, pero sí significa que debería considerar discutir las cosas con nosotros primero para que no dedique tiempo a implementar las cosas de una manera que difiera de los patrones que queremos. para establecer o crear una función en la que ya estamos trabajando.
+
+Siéntase libre de abrir un problema si desea discutir cualquier cosa con nosotros. Según el alcance y la complejidad de su propuesta, es posible que le pidamos que la reformule como una solicitud de función . Si tiene curiosidad en lo que estamos trabajando y en lo que trabajaremos en un futuro cercano, puede echar un vistazo a nuestro proyecto de sprint más reciente o Solicitudes de funciones aceptadas .
+
+Empezando
+Si está trabajando en el paquete de GitHub todos los días, es útil tener un entorno de desarrollo configurado para usar la última y mejor fuente.
+
+Ejecute una compilación nocturna de Atom si puede. Ocasionalmente, dependemos de cambios ascendentes en Atom que aún no se han filtrado a versiones estables. Esto también nos ayudará a notar cualquier cambio en el núcleo de Atom que cause regresiones. También puede ser conveniente crear alias de shell desde atomhasta atom-nightlyy apmhasta apm-nightly.
+
+Instale el paquete de GitHub desde su URL de git:
+
+apm-nightly instalar atom/github
+Cuando ejecuta Atom en modo no desarrollador ( atom-nightly .), estará ejecutando el último código fusionado en este repositorio. Si esto no es lo suficientemente estable para el trabajo diario, entonces tenemos errores que corregir.😉
+
+Vincula la fuente de tu paquete de GitHub en modo desarrollador:
+
+# En el directorio raíz de su clon atom/github 
+apm-nightly link --dev .
+Cuando ejecuta Atom en modo de desarrollo ( atom-nightly -d .), ejecutará sus cambios locales. Esto es útil para reproducir errores o probar nuevos cambios en vivo antes de fusionarlos.
+
+Ejecutando pruebas
+Las especificaciones del paquete de GitHub se pueden ejecutar con el corredor de pruebas gráficas de Atom o desde la línea de comandos.
+
+Inicie el ejecutor de pruebas gráficas ejecutándolo Window: Run Package Specsdesde la paleta de comandos. Una vez que una ventana de prueba está visible, las pruebas pueden volver a ejecutarse actualizándolas con cmd-R. Alterne las herramientas de desarrollador dentro de la ventana del ejecutor de pruebas con cmd-shift-I para ver errores de sintaxis, advertencias o el resultado de las console.logdeclaraciones de depuración.
+
+Para ejecutar pruebas desde la línea de comando, use:
+
+átomo-noche --prueba prueba/
+Si este proceso finaliza sin salida y con un estado de salida distinto de cero, intente:
+
+atom-nightly --enable-electron-logging --test test/
+Copos
+Ocasionalmente, una prueba no relacionada con sus cambios puede fallar esporádicamente. Presentamos problemas para estos con la etiqueta "prueba escamosa" y agregamos una declaración de reintento:
+
+it ( 'pasa a veces y falla a veces' ,  function ( )  { 
+  this . retries ( 5 ) ;  // FLAKE
+
+  // .. 
+} )
+Si eso no es suficiente para pasar la
