@@ -1,4 +1,4 @@
-# Atom GitHub Package
+#  Atom GitHub Package
 
 | Build | Code Coverage |
 |-------|---------------|
