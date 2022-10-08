@@ -1,7 +1,7 @@
 {
   "name": "github",
   "main": "./lib/index",
-  "version": "0.36.10",
+  "version": "0.36.11",
   "description": "GitHub integration",
   "repository": "https://github.com/atom/github",
   "license": "MIT",
@@ -91,7 +91,7 @@
     "enzyme": "3.10.0",
     "enzyme-adapter-react-16": "1.7.1",
     "eslint": "6.8.0",
-    "eslint-config-fbjs-opensource": "1.0.0",
+    "eslint-config-fbjs-opensource": "2.0.1",
     "eslint-plugin-jsx-a11y": "6.2.3",
     "globby": "10.0.1",
     "hock": "1.4.1",
