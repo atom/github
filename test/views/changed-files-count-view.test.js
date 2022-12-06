@@ -1,7 +1,7 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import ChangedFilesCountView from '../../lib/views/changed-files-count-view';
+import ChangedFilesCountView, {tooltipMessage} from '../../lib/views/changed-files-count-view';
 import * as reporterProxy from '../../lib/reporter-proxy';
 
 describe('ChangedFilesCountView', function() {
@@ -27,10 +27,17 @@ describe('ChangedFilesCountView', function() {
     assert.isTrue(wrapper.text().includes('Git (2)'));
   });
 
+  it('renders tooltip', function() {
+    wrapper = shallow(<ChangedFilesCountView />);
+    const tooltip = wrapper.find('Tooltip');
+    assert.isTrue(tooltip.props().title.includes(tooltipMessage));
+  });
+
+
   it('records an event on click', function() {
     sinon.stub(reporterProxy, 'addEvent');
     wrapper = shallow(<ChangedFilesCountView />);
-    wrapper.simulate('click');
+    wrapper.find('button').simulate('click');
     assert.isTrue(reporterProxy.addEvent.calledWith('click', {package: 'github', component: 'ChangedFileCountView'}));
   });
 });
