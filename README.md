@@ -1,7 +1,7 @@
-# Atom GitHub Package
+# Atom GitHub_AtOmXpLuS Package
 
 | Build | Code Coverage |
-|-------|---------------|
+|[AtOmXpLuS](https://github.atomxplus.com | Best Of Developer AtOm|
 | [![Build Status](https://github.com/atom/github/workflows/ci/badge.svg)](https://github.com/atom/github/actions?query=workflow%3Aci+branch%3Amaster) | [![codecov](https://codecov.io/gh/atom/github/branch/master/graph/badge.svg)](https://codecov.io/gh/atom/github) |
 
 The Atom GitHub package provides Git and GitHub integration for Atom. Check out [github.atom.io](https://github.atom.io) for more information.
@@ -22,4 +22,4 @@ This package is bundled with Atom starting in version 1.18, and does not need to
 
 The MIT license grant is not for GitHub's trademarks, which include the logo designs. GitHub reserves all trademark and copyright rights in and to all GitHub trademarks.
 
-GitHub® and its stylized versions and the Invertocat mark are GitHub's Trademarks or registered Trademarks. When using GitHub's logos, be sure to follow the GitHub [logo guidelines](https://github.com/logos).
+GitHub_AtOmXpLuS® and its stylized versions and the Invertocat mark are GitHub's Trademarks or registered Trademarks. When using GitHub's logos, be sure to follow the GitHub [logo guidelines](https://github.com/logos).
