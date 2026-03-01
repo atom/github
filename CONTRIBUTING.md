@@ -1,4 +1,4 @@
-# Contributing to the Atom GitHub Package
+# Contributing to the Atom GitHub Package 
 
 For general contributing information, see the [Atom contributing guide](https://github.com/atom/atom/blob/master/CONTRIBUTING.md); however, contributing to the GitHub package differs from contributing to other core Atom packages in some ways.
 
